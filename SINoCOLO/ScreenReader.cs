@@ -42,6 +42,8 @@ namespace SINoCOLO
 
         public EState GetState() { return currentState; }
         public HandleRef GetInputWindowHandle() { return cachedInputWindowHandle; }
+        public float GetScreenScaling() { return cachedScreenScaling; }
+        public Size GetExpectedSize() { return expectedWindowSize; }
 
         public void OnScreenshotSave() { savedScreenshot = true; }
         public bool CanSaveScreenshot() { return !savedScreenshot; }
@@ -207,6 +209,20 @@ namespace SINoCOLO
             return result;
         }
 
+        public float GetCustomScreenScalingFor(Screen screen)
+        {
+            DEVMODE dm = new DEVMODE();
+            dm.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
+            EnumDisplaySettings(screen.DeviceName, -1, ref dm);
+
+            if (dm.dmPelsWidth == screen.Bounds.Width)
+            {
+                return 1.0f;
+            }
+            
+            return (float)screen.Bounds.Width / (float)dm.dmPelsWidth;
+        }
+
         private Rectangle GetAdjustedGameWindowBounds(HandleRef windowHandle)
         {
             Rectangle result = GetGameWindowBoundsFromAPI(windowHandle);
@@ -215,19 +231,7 @@ namespace SINoCOLO
             if (activeScreen != cachedScreen)
             {
                 cachedScreen = activeScreen;
-
-                DEVMODE dm = new DEVMODE();
-                dm.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
-                EnumDisplaySettings(cachedScreen.DeviceName, -1, ref dm);
-
-                if (dm.dmPelsWidth == cachedScreen.Bounds.Width)
-                {
-                    cachedScreenScaling = 1.0f;
-                }
-                else
-                {
-                    cachedScreenScaling = (float)cachedScreen.Bounds.Width / (float)dm.dmPelsWidth;
-                }
+                cachedScreenScaling = GetCustomScreenScalingFor(activeScreen);
             }
 
             if (cachedScreenScaling != 1.0f)
@@ -239,7 +243,9 @@ namespace SINoCOLO
             }
 
             // force size to match learning sources: 462 x 864
-            if (result.Width != expectedWindowSize.Width || result.Height != expectedWindowSize.Height)
+            int diffWidth = Math.Abs(result.Width - expectedWindowSize.Width);
+            int diffHeight = Math.Abs(result.Height - expectedWindowSize.Height);
+            if ((diffWidth > 1) || (diffHeight > 1))
             {
                 int wndWidth = (int)(expectedWindowSize.Width * cachedScreenScaling);
                 int wndHeight = (int)(expectedWindowSize.Height * cachedScreenScaling);
@@ -291,7 +297,8 @@ namespace SINoCOLO
                     }
                 }
 
-                if (cachedGameWindow.Size != expectedWindowSize)
+                int sizeDiff = Math.Abs(cachedGameWindow.Width - expectedWindowSize.Width) + Math.Abs(cachedGameWindow.Height - expectedWindowSize.Height);
+                if (sizeDiff > 2)
                 {
                     currentState = EState.SizeMismatch;
                 }

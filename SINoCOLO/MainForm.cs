@@ -40,11 +40,30 @@ namespace SINoCOLO
 
             // show version number
             Text += " v" + typeof(Program).Assembly.GetName().Version.Major;
+
+            // look for monitors with custom scalling and panic
+            foreach (var screen in Screen.AllScreens)
+            {
+                float customScaling = screenReader.GetCustomScreenScalingFor(screen);
+                if (customScaling != 1.0f)
+                {
+                    labelScreenScaling.Visible = true;
+                    break;
+                }
+            }
         }
 
         private long MakeMouseMsgLParam(int posX, int posY)
         {
             posY = Math.Max(0, posY - 45);
+
+            float customScaling = screenReader.GetScreenScaling();
+            if (customScaling != 1.0f)
+            {
+                posX = (int)(posX * customScaling);
+                posY = (int)(posY * customScaling);
+            }
+
             return (long)((posX & 0xffff) | ((posY & 0xffff) << 16));
         }
 
@@ -73,7 +92,8 @@ namespace SINoCOLO
                     catch (Exception ex) { Console.WriteLine("Failed to safe source image! {0}", ex); }
 #endif // DEBUG
 
-                    var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
+                    var forcedSize = screenReader.GetExpectedSize();
+                    var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
                     foreach (var scanner in scanners)
                     {
                         var resultOb = scanner.Process(fastBitmap);

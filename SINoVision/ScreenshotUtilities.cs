@@ -183,23 +183,24 @@ namespace SINoVision
 
     public class ScreenshotUtilities
     {
-        public static FastBitmapHSV ConvertToFastBitmap(Bitmap image)
+        public static FastBitmapHSV ConvertToFastBitmap(Bitmap image, int forcedWidth = -1, int forcedHeight = -1)
         {
             FastBitmapHSV result = new FastBitmapHSV();
-            result.Width = image.Width;
-            result.Height = image.Height;
-            result.Pixels = new FastPixelHSV[image.Width * image.Height];
+            result.Width = (forcedWidth > 0) ? forcedWidth : image.Width;
+            result.Height = (forcedHeight > 0) ? forcedHeight : image.Height;
+            result.Pixels = new FastPixelHSV[result.Width * result.Height];
 
             unsafe
             {
                 BitmapData bitmapData = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, image.PixelFormat);
                 int bytesPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
-                int bytesPerRow = bitmapData.Width * bytesPerPixel;
+                int bytesPerRow = Math.Min(bitmapData.Width, result.Width) * bytesPerPixel;
+                int convertHeight = Math.Min(bitmapData.Height, result.Height);
 
-                for (int IdxY = 0; IdxY < image.Height; IdxY++)
+                for (int IdxY = 0; IdxY < convertHeight; IdxY++)
                 {
                     byte* pixels = (byte*)bitmapData.Scan0 + (IdxY * bitmapData.Stride);
-                    int IdxPixel = IdxY * image.Width;
+                    int IdxPixel = IdxY * result.Width;
                     for (int IdxByte = 0; IdxByte < bytesPerRow; IdxByte += bytesPerPixel)
                     {
                         result.Pixels[IdxPixel] = new FastPixelHSV(pixels[IdxByte + 2], pixels[IdxByte + 1], pixels[IdxByte]);                       
