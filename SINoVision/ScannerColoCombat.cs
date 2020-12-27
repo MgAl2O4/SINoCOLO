@@ -41,33 +41,31 @@ namespace SINoVision
             }
         }
 
-        private Point[] posLifeforceMeter = { new Point(127, 83), new Point(168, 71), new Point(206, 64), new Point(254, 64), new Point(294, 71), new Point(331, 83) };
-        private Point[] posDemonPrepI = { new Point(341, 163), new Point(336, 163), new Point(331, 163), new Point(325, 163), new Point(312, 163), new Point(304, 163) };
-        private Point[] posDemonPrepO = { new Point(339, 163), new Point(334, 163), new Point(329, 163), new Point(322, 161), new Point(312, 161), new Point(306, 161) };
-        private Point[] posDemonActiveI = { new Point(3, 6), new Point(10, 6), new Point(16, 6), new Point(21, 10), new Point(29, 7) };
-        private Point[] posDemonActiveO = { new Point(6, 4), new Point(14, 6), new Point(16, 2), new Point(20, 6), new Point(31, 6) };
+        private Point[] posLifeforceMeter = { new Point(93, 27), new Point(118, 19), new Point(153, 13), new Point(182, 13), new Point(218, 19), new Point(243, 27) };
+        private Point[] posDemonPrepI = { new Point(250, 87), new Point(247, 87), new Point(243, 87), new Point(235, 86), new Point(228, 86), new Point(223, 86) };
+        private Point[] posDemonPrepO = { new Point(249, 88), new Point(246, 88), new Point(241, 87), new Point(237, 86), new Point(226, 86), new Point(220, 86) };
 
-        private Rectangle rectPurify = new Rectangle(365, 666, 83, 40);
-        private Rectangle rectDemonType = new Rectangle(199, 118, 16, 16);
-        private Rectangle rectDemonL = new Rectangle(60, 148, 33, 13);
-        private Rectangle rectDemonR = new Rectangle(410, 148, 33, 13);
+        private Rectangle rectPurify = new Rectangle(266, 459, 67, 28);
+        private Rectangle rectDemonType = new Rectangle(147, 55, 10, 10);
+        private Rectangle rectDemonL = new Rectangle(18, 76, 50, 10);
+        private Rectangle rectDemonR = new Rectangle(277, 76, 50, 10);
 
         private FastPixelMatch matchLifeforceR = new FastPixelMatchHueMono(12, 27, 90, 255);
         private FastPixelMatch matchLifeforceG = new FastPixelMatchHueMono(82, 97, 90, 255);
         private FastPixelMatch matchSpecialReload = new FastPixelMatchHueMono(26, 60, 50, 255);
         private FastPixelMatch matchSpecialRevive = new FastPixelMatchHueMono(80, 120, 50, 255);
         private FastPixelMatch matchSpecialShip = new FastPixelMatchHueMono(0, 25, 50, 255);
-        private FastPixelMatch matchDemonPrepI = new FastPixelMatchHSV(0, 25, 0, 50, 80, 100);
-        private FastPixelMatch matchDemonPrepO = new FastPixelMatchHSV(10, 20, 70, 85, 20, 35);
-        private FastPixelMatch matchDemonLI = new FastPixelMatchHSV(50, 100, 20, 30, 75, 95);
-        private FastPixelMatch matchDemonLO = new FastPixelMatchHSV(110, 140, 55, 75, 25, 35);
-        private FastPixelMatch matchDemonRI = new FastPixelMatchHSV(0, 50, 30, 50, 70, 90);
-        private FastPixelMatch matchDemonRO = new FastPixelMatchHSV(0, 20, 85, 100, 30, 40);
+        private FastPixelMatch matchDemonPrepI = new FastPixelMatchHSV(0, 25, 0, 100, 80, 100);
+        private FastPixelMatch matchDemonPrepO = new FastPixelMatchHSV(0, 20, 40, 100, 20, 40);
+
+        private MLClassifierDemon classifierDemon = new MLClassifierDemon();
 
         public ScannerColoCombat()
         {
             ScannerName = "[ColoCombat]";
             DebugLevel = EDebugLevel.Simple;
+
+            classifierDemon.InitializeModel();
         }
 
         public override object Process(FastBitmapHSV bitmap)
@@ -80,7 +78,6 @@ namespace SINoVision
                 {
                     var outputOb = new ScreenData();
                     ScanSP(bitmap, outputOb);
-                    //ScanDemonSummon(bitmap, outputOb);
 
                     for (int idx = 0; idx < outputOb.actions.Length; idx++)
                     {
@@ -212,7 +209,10 @@ namespace SINoVision
                 for (int idx = 0; idx < points.Length; idx++)
                 {
                     if (idx > 0) { desc += ", "; }
-                    desc += "(" + bitmap.GetPixel(points[idx].X + offsetX, points[idx].Y + offsetY) + ")";
+                    var testPx = bitmap.GetPixel(points[idx].X + offsetX, points[idx].Y + offsetY);
+                    var matching = match.IsMatching(testPx);
+
+                    desc += "(" + testPx + "):" + matching;
                 }
 
                 Console.WriteLine("HasMatchingSamples: {2}> filter({0}) vs {1}", match, desc, debugName);
@@ -233,18 +233,28 @@ namespace SINoVision
 
         private void ScanDemonSummon(FastBitmapHSV bitmap, ScreenData screenData)
         {
-            var hasCircle =
-                HasMatchingSamples(bitmap, posDemonActiveI, rectDemonL.X, rectDemonL.Y, matchDemonLI, "activeLI") &&
-                HasMatchingSamples(bitmap, posDemonActiveO, rectDemonL.X, rectDemonL.Y, matchDemonLO, "activeLO") &&
-                HasMatchingSamples(bitmap, posDemonActiveI, rectDemonR.X, rectDemonR.Y, matchDemonRI, "activeRI") &&
-                HasMatchingSamples(bitmap, posDemonActiveO, rectDemonR.X, rectDemonR.Y, matchDemonRO, "activeRO");
+            var hasCircle = false;
+            float pctDemonL = 0, pctDemonR = 0;
+
+            float[] values = ExtractDemonCounterData(bitmap, 0);
+            int IsDemonL = classifierDemon.Calculate(values, out pctDemonL);
+            int IsDemonR = 0;
+            if (IsDemonL > 0)
+            {
+                values = ExtractDemonCounterData(bitmap, 1);
+                IsDemonR = classifierDemon.Calculate(values, out pctDemonR);
+                if (IsDemonR > 0)
+                {
+                    hasCircle = true;
+                }
+            }
 
             if (hasCircle)
             {
                 screenData.demonState = EDemonState.Active;
 
-                float[] values = ExtractDemonTypeData(bitmap);
-                screenData.demonType = (EWeaponType)classifierWeapon.Calculate(values, out float DummyPct);
+                values = ExtractDemonTypeData(bitmap);
+                screenData.demonType = (EWeaponType)classifierWeapon.Calculate(values, out float dummyPctDT);
             }
             else
             {
@@ -263,12 +273,16 @@ namespace SINoVision
                 Console.WriteLine("{0} Demon: {1} {2}", ScannerName, screenData.demonState, 
                     hasCircle ? screenData.demonType.ToString() : "");
             }
+            if (DebugLevel >= EDebugLevel.Verbose)
+            {
+                Console.WriteLine(">> IsDemonL: {0} ({1:P2}), IsDemonR:{2} ({3:P2})", IsDemonL, pctDemonL, IsDemonR, pctDemonR);
+            }
         }
 
         public float[] ExtractDemonTypeData(FastBitmapHSV bitmap)
         {
-            // scan area: 16x16 (rectActionIcon)
-            float[] values = new float[16 * 16];
+            // scan area: 10x10 (rectActionIcon)
+            float[] values = new float[10 * 10];
             for (int idx = 0; idx < values.Length; idx++)
             {
                 values[idx] = 0.0f;
@@ -277,14 +291,51 @@ namespace SINoVision
             const int monoSteps = 16;
             const float monoScale = 1.0f / monoSteps;
 
-            for (int idxY = 0; idxY < 16; idxY++)
+            for (int idxY = 0; idxY < 10; idxY++)
             {
-                for (int idxX = 0; idxX < 16; idxX++)
+                for (int idxX = 0; idxX < 10; idxX++)
                 {
                     FastPixelHSV pixel = bitmap.GetPixel(rectDemonType.X + idxX, rectDemonType.Y + idxY);
                     int monoV = pixel.GetMonochrome() / (256 / monoSteps);
 
-                    values[idxX + (idxY * 16)] = monoV * monoScale;
+                    values[idxX + (idxY * 10)] = monoV * monoScale;
+                }
+            }
+
+            return values;
+        }
+
+        private float GetDemonPixelValue(FastPixelHSV pixel)
+        {
+            const int hueSteps = 16;
+            const int monoSteps = 16;
+
+            const float monoScale = 1.0f / monoSteps;
+            const float hueScale = monoScale / hueSteps;
+
+            int hueV = pixel.GetHue() / (360 / hueSteps);
+            int monoV = pixel.GetMonochrome() / (256 / monoSteps);
+
+            float pixelV = (hueV * hueScale) + (monoV * monoScale);
+            return pixelV;
+        }
+
+        public float[] ExtractDemonCounterData(FastBitmapHSV bitmap, int side)
+        {
+            // scan area: 50x10
+            float[] values = new float[50 * 10];
+            for (int idx = 0; idx < values.Length; idx++)
+            {
+                values[idx] = 0.0f;
+            }
+
+            Rectangle bounds = (side == 0) ? rectDemonL : rectDemonR;
+            for (int idxY = 0; idxY < 10; idxY++)
+            {
+                for (int idxX = 0; idxX < 50; idxX++)
+                {
+                    FastPixelHSV pixel = bitmap.GetPixel(bounds.X + idxX, bounds.Y + idxY);
+                    values[idxX + (idxY * 50)] = GetDemonPixelValue(pixel);
                 }
             }
 

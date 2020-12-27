@@ -55,13 +55,13 @@ namespace SINoVision
             }
         }
 
-        protected Rectangle rectSPBar = new Rectangle(112, 699, 238, 1);
-        protected Rectangle[] rectActionSlots = { new Rectangle(24, 724, 73, 73), new Rectangle(109, 724, 73, 73), new Rectangle(194, 724, 73, 73), new Rectangle(280, 724, 73, 73), new Rectangle(365, 724, 73, 73) };
-        protected Rectangle rectActionIcon = new Rectangle(52, 5, 16, 16);
-        protected Rectangle rectActionAvail = new Rectangle(5, 61, 5, 5);
-        protected Rectangle rectActionElement = new Rectangle(6, 4, 40, 5);
-        protected Rectangle rectBigButton = new Rectangle(141, 734, 178, 55);
-        protected Point[] posBigButton = { new Point(150, 728), new Point(230, 728), new Point(305, 728), new Point(150, 793), new Point(230, 793), new Point(305, 793) };
+        protected Rectangle rectSPBar = new Rectangle(86, 484, 166, 1);
+        protected Rectangle[] rectActionSlots = { new Rectangle(17, 501, 52, 52), new Rectangle(80, 501, 52, 52), new Rectangle(143, 501, 52, 52), new Rectangle(206, 501, 52, 52), new Rectangle(269, 501, 52, 52) };
+        protected Rectangle rectActionIcon = new Rectangle(39, 4, 10, 10);
+        protected Rectangle rectActionAvail = new Rectangle(3, 44, 4, 4);
+        protected Rectangle rectActionElement = new Rectangle(3, 3, 28, 2);
+        protected Rectangle rectBigButton = new Rectangle(103, 506, 131, 44);
+        protected Point[] posBigButton = { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
 
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
         private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
@@ -231,8 +231,8 @@ namespace SINoVision
 
         public float[] ExtractActionSlotWeaponData(FastBitmapHSV bitmap, int slotIdx)
         {
-            // scan area: 16x16 (rectActionIcon)
-            float[] values = new float[16 * 16];
+            // scan area: 10x10 (rectActionIcon)
+            float[] values = new float[10 * 10];
             for (int idx = 0; idx < values.Length; idx++)
             {
                 values[idx] = 0.0f;
@@ -242,14 +242,14 @@ namespace SINoVision
             const float monoScale = 1.0f / monoSteps;
 
             Point slotPos = rectActionSlots[slotIdx].Location;
-            for (int idxY = 0; idxY < 16; idxY++)
+            for (int idxY = 0; idxY < 10; idxY++)
             {
-                for (int idxX = 0; idxX < 16; idxX++)
+                for (int idxX = 0; idxX < 10; idxX++)
                 {
                     FastPixelHSV pixel = bitmap.GetPixel(slotPos.X + rectActionIcon.X + idxX, slotPos.Y + rectActionIcon.Y + idxY);
                     int monoV = pixel.GetMonochrome() / (256 / monoSteps);
 
-                    values[idxX + (idxY * 16)] = monoV * monoScale;
+                    values[idxX + (idxY * 10)] = monoV * monoScale;
                 }
             }
 

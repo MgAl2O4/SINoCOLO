@@ -15,12 +15,12 @@ namespace SINoVision
             }
         }
 
-        private FastPixelMatch matchOkButtonInner = new FastPixelMatchHueMono(0, 20, 40, 120);
+        private FastPixelMatch matchOkButtonInner = new FastPixelMatchHueMono(0, 50, 20, 100);
         private FastPixelMatch matchOkButtonOuter = new FastPixelMatchMono(20, 50);
 
-        private Point[] posOkButtonOuter = new Point[] { new Point(151, 777), new Point(298, 777), new Point(151, 834), new Point(298, 834) };
-        private Point[] posOkButtonInner = new Point[] { new Point(162, 788), new Point(286, 788), new Point(162, 822), new Point(286, 822) };
-        private Rectangle rectOkButton = new Rectangle(164, 788, 122, 36);
+        private Point[] posOkButtonOuter = new Point[] { new Point(110, 540), new Point(220, 540), new Point(110, 582), new Point(220, 582) };
+        private Point[] posOkButtonInner = new Point[] { new Point(121, 550), new Point(107, 550), new Point(121, 571), new Point(107, 571) };
+        private Rectangle rectOkButton = new Rectangle(118, 546, 95, 28);
 
         public ScannerMessageBox()
         {

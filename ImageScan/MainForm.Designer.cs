@@ -67,8 +67,8 @@ namespace SINoCOLO
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.pictureBoxAnalyzed);
-            this.splitContainer1.Size = new System.Drawing.Size(1119, 896);
-            this.splitContainer1.SplitterDistance = 514;
+            this.splitContainer1.Size = new System.Drawing.Size(703, 610);
+            this.splitContainer1.SplitterDistance = 332;
             this.splitContainer1.TabIndex = 1;
             // 
             // pictureBoxSrc
@@ -76,7 +76,7 @@ namespace SINoCOLO
             this.pictureBoxSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxSrc.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxSrc.Name = "pictureBoxSrc";
-            this.pictureBoxSrc.Size = new System.Drawing.Size(514, 896);
+            this.pictureBoxSrc.Size = new System.Drawing.Size(332, 610);
             this.pictureBoxSrc.TabIndex = 0;
             this.pictureBoxSrc.TabStop = false;
             // 
@@ -85,7 +85,7 @@ namespace SINoCOLO
             this.pictureBoxAnalyzed.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxAnalyzed.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxAnalyzed.Name = "pictureBoxAnalyzed";
-            this.pictureBoxAnalyzed.Size = new System.Drawing.Size(601, 896);
+            this.pictureBoxAnalyzed.Size = new System.Drawing.Size(367, 610);
             this.pictureBoxAnalyzed.TabIndex = 0;
             this.pictureBoxAnalyzed.TabStop = false;
             // 
@@ -97,14 +97,14 @@ namespace SINoCOLO
             this.comboBoxFileName.FormattingEnabled = true;
             this.comboBoxFileName.Location = new System.Drawing.Point(243, 14);
             this.comboBoxFileName.Name = "comboBoxFileName";
-            this.comboBoxFileName.Size = new System.Drawing.Size(888, 21);
+            this.comboBoxFileName.Size = new System.Drawing.Size(472, 21);
             this.comboBoxFileName.TabIndex = 2;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1143, 949);
+            this.ClientSize = new System.Drawing.Size(727, 663);
             this.Controls.Add(this.comboBoxFileName);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.buttonLoad);

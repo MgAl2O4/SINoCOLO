@@ -33,7 +33,6 @@ namespace SINoCOLO
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pictureBoxAnalyzed = new System.Windows.Forms.PictureBox();
             this.panelStatus = new System.Windows.Forms.Panel();
-            this.labelScreenScaling = new System.Windows.Forms.Label();
             this.checkBoxClicks = new System.Windows.Forms.CheckBox();
             this.labelStatus = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -51,7 +50,7 @@ namespace SINoCOLO
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBoxAnalyzed.Location = new System.Drawing.Point(12, 59);
             this.pictureBoxAnalyzed.Name = "pictureBoxAnalyzed";
-            this.pictureBoxAnalyzed.Size = new System.Drawing.Size(463, 862);
+            this.pictureBoxAnalyzed.Size = new System.Drawing.Size(340, 604);
             this.pictureBoxAnalyzed.TabIndex = 0;
             this.pictureBoxAnalyzed.TabStop = false;
             this.pictureBoxAnalyzed.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxAnalyzed_MouseDown);
@@ -63,30 +62,19 @@ namespace SINoCOLO
             this.panelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelStatus.Controls.Add(this.labelScreenScaling);
             this.panelStatus.Controls.Add(this.checkBoxClicks);
             this.panelStatus.Controls.Add(this.labelStatus);
             this.panelStatus.Controls.Add(this.label1);
             this.panelStatus.Location = new System.Drawing.Point(12, 12);
             this.panelStatus.Name = "panelStatus";
-            this.panelStatus.Size = new System.Drawing.Size(463, 45);
+            this.panelStatus.Size = new System.Drawing.Size(340, 45);
             this.panelStatus.TabIndex = 2;
             this.panelStatus.Click += new System.EventHandler(this.topPanelClick);
-            // 
-            // labelScreenScaling
-            // 
-            this.labelScreenScaling.AutoSize = true;
-            this.labelScreenScaling.Location = new System.Drawing.Point(287, 24);
-            this.labelScreenScaling.Name = "labelScreenScaling";
-            this.labelScreenScaling.Size = new System.Drawing.Size(171, 13);
-            this.labelScreenScaling.TabIndex = 3;
-            this.labelScreenScaling.Text = "Warning! Screen scaling detected!";
-            this.labelScreenScaling.Visible = false;
             // 
             // checkBoxClicks
             // 
             this.checkBoxClicks.AutoSize = true;
-            this.checkBoxClicks.Location = new System.Drawing.Point(52, 23);
+            this.checkBoxClicks.Location = new System.Drawing.Point(52, 21);
             this.checkBoxClicks.Name = "checkBoxClicks";
             this.checkBoxClicks.Size = new System.Drawing.Size(123, 17);
             this.checkBoxClicks.TabIndex = 2;
@@ -122,9 +110,9 @@ namespace SINoCOLO
             // 
             this.buttonDetails.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDetails.Location = new System.Drawing.Point(12, 927);
+            this.buttonDetails.Location = new System.Drawing.Point(12, 669);
             this.buttonDetails.Name = "buttonDetails";
-            this.buttonDetails.Size = new System.Drawing.Size(463, 23);
+            this.buttonDetails.Size = new System.Drawing.Size(340, 23);
             this.buttonDetails.TabIndex = 3;
             this.buttonDetails.Text = "Hide details";
             this.buttonDetails.UseVisualStyleBackColor = true;
@@ -137,7 +125,7 @@ namespace SINoCOLO
             | System.Windows.Forms.AnchorStyles.Right)));
             this.labelScreenshotFailed.Location = new System.Drawing.Point(12, 59);
             this.labelScreenshotFailed.Name = "labelScreenshotFailed";
-            this.labelScreenshotFailed.Size = new System.Drawing.Size(463, 862);
+            this.labelScreenshotFailed.Size = new System.Drawing.Size(340, 604);
             this.labelScreenshotFailed.TabIndex = 4;
             this.labelScreenshotFailed.Text = "(screenshot not available)";
             this.labelScreenshotFailed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -147,7 +135,7 @@ namespace SINoCOLO
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(487, 956);
+            this.ClientSize = new System.Drawing.Size(364, 698);
             this.Controls.Add(this.labelScreenshotFailed);
             this.Controls.Add(this.buttonDetails);
             this.Controls.Add(this.pictureBoxAnalyzed);
@@ -174,7 +162,6 @@ namespace SINoCOLO
         private System.Windows.Forms.CheckBox checkBoxClicks;
         private System.Windows.Forms.Button buttonDetails;
         private System.Windows.Forms.Label labelScreenshotFailed;
-        private System.Windows.Forms.Label labelScreenScaling;
     }
 }
 

@@ -39,32 +39,13 @@ namespace SINoCOLO
             gameLogic.OnMouseClickRequested += GameLogic_OnMouseClickRequested;
 
             // show version number
-            Text += " v" + typeof(Program).Assembly.GetName().Version.Major;
-
-            // look for monitors with custom scalling and panic
-            foreach (var screen in Screen.AllScreens)
-            {
-                float customScaling = screenReader.GetCustomScreenScalingFor(screen);
-                if (customScaling != 1.0f)
-                {
-                    labelScreenScaling.Visible = true;
-                    break;
-                }
-            }
+            Text += " v" + typeof(Program).Assembly.GetName().Version.Major;            
         }
 
         private long MakeMouseMsgLParam(int posX, int posY)
         {
-            posY = Math.Max(0, posY - 45);
-
-            float customScaling = screenReader.GetScreenScaling();
-            if (customScaling != 1.0f)
-            {
-                posX = (int)(posX * customScaling);
-                posY = (int)(posY * customScaling);
-            }
-
-            return (long)((posX & 0xffff) | ((posY & 0xffff) << 16));
+            screenReader.ConvertLocalToClient(posX, posY, out int clickX, out int clickY);
+            return (long)((clickX & 0xffff) | ((clickY & 0xffff) << 16));
         }
 
         private void GameLogic_OnMouseClickRequested(int posX, int posY)
@@ -85,13 +66,13 @@ namespace SINoCOLO
             var srcScreenshot = screenReader.DoWork();
             if (srcScreenshot != null)
             {
-                if (screenReader.GetState() != ScreenReader.EState.SizeMismatch)
+                //if (screenReader.GetState() != ScreenReader.EState.WindowTooSmall)
                 {
 #if DEBUG
                     try { srcScreenshot.Save("source.jpg"); }
                     catch (Exception ex) { Console.WriteLine("Failed to safe source image! {0}", ex); }
 #endif // DEBUG
-
+                    
                     var forcedSize = screenReader.GetExpectedSize();
                     var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
                     foreach (var scanner in scanners)
@@ -145,8 +126,8 @@ namespace SINoCOLO
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
-                case ScreenReader.EState.SizeMismatch:
-                    labelStatus.Text = "Window size mismatch";
+                case ScreenReader.EState.WindowTooSmall:
+                    labelStatus.Text = "BlueStacks window is too small";
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
@@ -231,7 +212,7 @@ namespace SINoCOLO
                 labelScreenshotFailed.Visible = false;
                 buttonDetails.Text = "Show details";
 
-                Size = new Size(503, 130);
+                Size = new Size(380, 130);
             }
             else
             {
@@ -240,7 +221,7 @@ namespace SINoCOLO
                 labelScreenshotFailed.Visible = false;
                 buttonDetails.Text = "Hide details";
 
-                Size = new Size(503, 995);
+                Size = new Size(380, 737);
             }
 
             hasDetailCtrl = !hasDetailCtrl;

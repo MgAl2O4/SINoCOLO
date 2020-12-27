@@ -174,16 +174,49 @@ namespace SINoCOLO
             await _bitmap.RenderAsync(previewImage);
 
             var pixels = await _bitmap.GetPixelsAsync();
+            int pixelW = _bitmap.PixelWidth;
+            int pixelH = _bitmap.PixelHeight;
+            byte[] usePixels = null;
+
+            /*if (pixelW == 460 && pixelH == 864)
+            {
+                try
+                {
+                    using (InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream())
+                    {
+                        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, stream);
+                        encoder.SetPixelData(BitmapPixelFormat.Rgba8, BitmapAlphaMode.Ignore, (uint)pixelW, (uint)pixelH, 96, 96, pixels.ToArray());
+
+                        encoder.BitmapTransform.Bounds = new BitmapBounds()
+                        {
+                            X = 2,
+                            Y = 45,
+                            Height = 456,
+                            Width = 814
+                        };
+
+                        await encoder.FlushAsync();
+
+                        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+                        var pixelsProvider = await decoder.GetPixelDataAsync();
+                        pixelW = (int)encoder.BitmapTransform.Bounds.Width;
+                        pixelH = (int)encoder.BitmapTransform.Bounds.Height;
+                        usePixels = pixelsProvider.DetachPixelData();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    int a = 1;
+                }
+            }*/
+
             try
             {
-                byte[] pixelData = pixels.ToArray();
-                int pixelW = _bitmap.PixelWidth;
-                int pixelH = _bitmap.PixelHeight;
-
-                var analyzeBitmap = ScreenshotUtilities.ConvertToFastBitmap(pixelData, _bitmap.PixelWidth, _bitmap.PixelHeight);
+                byte[] pixelData = (usePixels != null) ? usePixels : pixels.ToArray();
+                var analyzeBitmap = ScreenshotUtilities.ConvertToFastBitmap(pixelData, pixelW, pixelH);
                 cachedBitmap = analyzeBitmap;
 
-                foreach (var scanner in scanners)
+                /*foreach (var scanner in scanners)
                 {
                     object resultOb = scanner.Process(analyzeBitmap);
                     if (resultOb != null)
@@ -191,7 +224,7 @@ namespace SINoCOLO
                         textScanResults.Text = scanner.ScannerName + " found!\n\n" + resultOb;
                         break;
                     }
-                }
+                }*/
 
                 var showBitmapPixels = new byte[pixelW * pixelH * 4];
                 int writeIdx = 0;
@@ -232,163 +265,59 @@ namespace SINoCOLO
             await LoadMovieData();
         }
 
-        private Dictionary<double, int[]> BuildPurifyFrameMap_Purify()
-        {
-            //colo2 movie
-            var mapPatterns = new Dictionary<double, int[]>();
-            mapPatterns.Add(183.50, new int[] { 1, 0, 0, 1, 0, 0, 0, 2 });
-            mapPatterns.Add(183.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(184.00, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(184.25, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(184.50, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(184.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(185.00, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(185.25, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(185.50, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(185.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(186.00, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(186.25, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(186.50, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(186.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(187.00, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(187.25, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(187.50, new int[] { 1, 0, 0, 0, 0, 0, 0, 2 });
-            mapPatterns.Add(187.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(188.00, new int[] { 3, 0, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(188.25, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(188.50, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(188.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(189.25, new int[] { 1, 1, 3, 1, 1, 0, 0, 1 });
-            mapPatterns.Add(189.50, new int[] { 1, 1, 0, 3, 1, 0, 0, 1 });
-            mapPatterns.Add(189.75, new int[] { 1, 1, 0, 0, 3, 0, 0, 1 });
-            mapPatterns.Add(190.00, new int[] { 1, 1, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(190.25, new int[] { 1, 1, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(190.50, new int[] { 3, 1, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(190.75, new int[] { 3, 3, 0, 0, 0, 0, 0, 3 });
-
-            mapPatterns.Add(192.00, new int[] { 1, 0, 1, 1, 0, 1, 0, 0 });
-            mapPatterns.Add(192.25, new int[] { 1, 0, 1, 1, 0, 1, 0, 0 });
-            mapPatterns.Add(192.50, new int[] { 0, 0, 1, 1, 0, 1, 0, 0 });
-            mapPatterns.Add(192.75, new int[] { 0, 0, 3, 1, 0, 1, 0, 0 });
-            mapPatterns.Add(193.00, new int[] { 0, 0, 3, 1, 0, 1, 0, 0 });
-            mapPatterns.Add(193.25, new int[] { 0, 0, 0, 3, 0, 1, 0, 0 });
-            mapPatterns.Add(193.50, new int[] { 0, 0, 0, 0, 0, 3, 0, 0 });
-            mapPatterns.Add(193.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(194.00, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(194.25, new int[] { 0, 1, 0, 2, 0, 1, 0, 1 });
-            mapPatterns.Add(194.50, new int[] { 0, 1, 0, 2, 0, 1, 0, 1 });
-            mapPatterns.Add(194.75, new int[] { 0, 1, 0, 2, 0, 1, 0, 3 });
-            mapPatterns.Add(195.00, new int[] { 0, 1, 0, 2, 0, 1, 0, 0 });
-            mapPatterns.Add(195.25, new int[] { 0, 1, 0, 2, 0, 3, 0, 0 });
-            mapPatterns.Add(195.50, new int[] { 0, 1, 0, 2, 0, 3, 0, 0 });
-            mapPatterns.Add(195.75, new int[] { 0, 1, 0, 2, 0, 0, 0, 0 });
-            mapPatterns.Add(196.00, new int[] { 0, 3, 0, 2, 0, 0, 0, 0 });
-            mapPatterns.Add(196.25, new int[] { 0, 3, 0, 2, 0, 0, 0, 0 });
-            mapPatterns.Add(196.50, new int[] { 0, 0, 0, 3, 0, 0, 0, 0 });
-            mapPatterns.Add(196.75, new int[] { 0, 0, 0, 3, 0, 0, 0, 0 });
-            mapPatterns.Add(197.00, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(197.75, new int[] { 1, 1, 3, 1, 1, 2, 1, 1 });
-            mapPatterns.Add(198.00, new int[] { 1, 1, 0, 3, 1, 2, 1, 1 });
-            mapPatterns.Add(198.25, new int[] { 1, 1, 0, 0, 0, 2, 1, 1 });
-            mapPatterns.Add(198.50, new int[] { 1, 1, 0, 0, 0, 2, 1, 1 });
-            mapPatterns.Add(198.75, new int[] { 1, 1, 0, 0, 0, 2, 3, 1 });
-            mapPatterns.Add(199.00, new int[] { 1, 1, 0, 0, 0, 2, 0, 3 });
-            mapPatterns.Add(199.25, new int[] { 0, 1, 0, 0, 0, 2, 0, 0 });
-            mapPatterns.Add(199.50, new int[] { 0, 1, 0, 0, 0, 2, 0, 0 });
-            mapPatterns.Add(199.75, new int[] { 0, 3, 0, 0, 0, 2, 0, 0 });
-            mapPatterns.Add(200.00, new int[] { 0, 0, 0, 0, 0, 2, 0, 0 });
-            mapPatterns.Add(200.25, new int[] { 0, 0, 0, 0, 0, 3, 0, 0 });
-            mapPatterns.Add(200.50, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(200.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(201.25, new int[] { 1, 0, 1, 0, 1, 1, 1, 1 });
-            mapPatterns.Add(201.50, new int[] { 1, 0, 1, 0, 1, 1, 1, 3 });
-            mapPatterns.Add(201.75, new int[] { 1, 0, 3, 0, 1, 1, 1, 0 });
-            mapPatterns.Add(202.00, new int[] { 1, 0, 3, 0, 3, 1, 1, 0 });
-            mapPatterns.Add(202.25, new int[] { 1, 0, 0, 0, 3, 3, 1, 0 });
-            mapPatterns.Add(202.50, new int[] { 1, 0, 0, 0, 0, 3, 3, 0 });
-            mapPatterns.Add(202.75, new int[] { 1, 0, 0, 0, 0, 0, 3, 0 });
-            mapPatterns.Add(203.00, new int[] { 3, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(203.25, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(203.50, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(654.50, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(654.75, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(655.00, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(655.25, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(655.50, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(655.75, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(656.00, new int[] { 1, 1, 0, 0, 1, 2, 1, 1 });
-            mapPatterns.Add(656.25, new int[] { 1, 1, 0, 0, 3, 3, 1, 1 });
-            mapPatterns.Add(656.50, new int[] { 1, 1, 0, 0, 0, 3, 1, 1 });
-            mapPatterns.Add(656.75, new int[] { 1, 1, 0, 0, 0, 0, 3, 1 });
-            mapPatterns.Add(657.00, new int[] { 1, 1, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(657.25, new int[] { 3, 1, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(657.50, new int[] { 0, 3, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(657.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(658.00, new int[] { 0, 0, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(658.25, new int[] { 0, 0, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(658.50, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(658.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(659.00, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(659.25, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(757.00, new int[] { 1, 1, 0, 0, 0, 3, 0, 1 });
-            mapPatterns.Add(757.25, new int[] { 1, 1, 0, 0, 0, 0, 0, 1 });
-            mapPatterns.Add(757.50, new int[] { 1, 1, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(757.75, new int[] { 3, 1, 0, 0, 0, 0, 0, 3 });
-            mapPatterns.Add(758.00, new int[] { 0, 3, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(758.25, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(758.50, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(758.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-
-            mapPatterns.Add(759.25, new int[] { 1, 2, 1, 1, 1, 3, 3, 0 });
-            mapPatterns.Add(759.50, new int[] { 1, 2, 1, 1, 1, 0, 3, 0 });
-            mapPatterns.Add(759.75, new int[] { 1, 2, 3, 1, 1, 0, 0, 0 });
-            mapPatterns.Add(760.00, new int[] { 1, 2, 0, 1, 1, 0, 0, 0 });
-            mapPatterns.Add(760.25, new int[] { 1, 2, 0, 1, 3, 0, 0, 0 });
-            mapPatterns.Add(760.50, new int[] { 1, 2, 0, 1, 0, 0, 0, 0 });
-            mapPatterns.Add(760.75, new int[] { 1, 3, 0, 1, 0, 0, 0, 0 });
-            mapPatterns.Add(761.00, new int[] { 1, 0, 0, 1, 0, 0, 0, 0 });
-            mapPatterns.Add(761.25, new int[] { 1, 0, 0, 3, 0, 0, 0, 0 });
-            mapPatterns.Add(761.50, new int[] { 1, 0, 0, 3, 0, 0, 0, 0 });
-            mapPatterns.Add(761.75, new int[] { 1, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(762.00, new int[] { 1, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(762.25, new int[] { 3, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(762.50, new int[] { 3, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(762.75, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            mapPatterns.Add(763.00, new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            // more after this if needed
-
-            return mapPatterns;
-        }
-
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            var frameMap = BuildPurifyFrameMap_Purify();
-            var jsonLines = new List<string>();
+            var purifyTime = new List<Tuple<float, float>>();
+            purifyTime.Add(new Tuple<float, float>(73.0f, 92.5f));
+            purifyTime.Add(new Tuple<float, float>(157.25f, 180.25f));
+            purifyTime.Add(new Tuple<float, float>(249.25f, 278.5f));
 
-            foreach (var kvp in frameMap)
+            StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+            int imgIdx = 0;
+
+            foreach (var time2 in purifyTime)
             {
                 try
                 {
-                    int timeSec = (int)kvp.Key;
-                    int timeMSec = (int)Math.Floor(kvp.Key * 1000) % 1000;
-                    TimeSpan timeOfFrame = new TimeSpan(0, 0, 0, timeSec, timeMSec);
-                    await LoadFrame(timeOfFrame);                    
+                    float fromTime = time2.Item1;
+                    float toTime = time2.Item2;
 
-                    int[] MLClasses = kvp.Value;
-                    for (int idx = 0; idx < MLClasses.Length; idx++)
+                    for (float itTime = fromTime; itTime <= toTime; itTime += 0.25f)
                     {
-                        float[] inputV = scannerPurify.ExtractActionSlotData(cachedBitmap, idx);
-                        int outputV = (MLClasses[idx] < 0) ? 0 : MLClasses[idx];
-                        string inDesc = string.Join(',', inputV);
+                        int timeSec = (int)itTime;
+                        int timeMSec = (int)Math.Floor(itTime * 1000) % 1000;
+                        TimeSpan timeOfFrame = new TimeSpan(0, 0, 0, timeSec, timeMSec);
+                        await LoadFrame(timeOfFrame);
 
-                        var textLine = "{\"desc\":\"" + kvp.Key + "_" + idx + "\",\"output\":" + outputV + ",\"input\":[" + inDesc + "]}";
-                        jsonLines.Add(textLine);
+                        StorageFile exportFile = await storageFolder.CreateFileAsync("purify-" + imgIdx + ".jpg", CreationCollisionOption.ReplaceExisting);
+                        imgIdx++;
+
+                        try
+                        {
+                            var _bitmap = new RenderTargetBitmap();
+                            await _bitmap.RenderAsync(previewImage);
+
+                            var pixels = await _bitmap.GetPixelsAsync();
+                            using (IRandomAccessStream stream = await exportFile.OpenAsync(FileAccessMode.ReadWrite))
+                            {
+                                var encoder = await
+                                BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream);
+                                byte[] bytes = pixels.ToArray();
+                                encoder.SetPixelData(BitmapPixelFormat.Bgra8,
+                                                        BitmapAlphaMode.Ignore,
+                                                        (uint)_bitmap.PixelWidth,
+                                                        (uint)_bitmap.PixelHeight,
+                                                        200,
+                                                        200,
+                                                        bytes);
+
+                                await encoder.FlushAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -396,12 +325,6 @@ namespace SINoCOLO
                     Console.WriteLine(ex);
                 }
             }
-
-            StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
-            StorageFile jsonFile = await storageFolder.CreateFileAsync("sino-ml-purify.json", CreationCollisionOption.OpenIfExists);
-
-            string jsonDesc = "{\"dataset\":[\n" + string.Join(",\n", jsonLines) + "]}";
-            await FileIO.WriteTextAsync(jsonFile, jsonDesc);
 
             Slider_ValueChanged(null, null);
         }

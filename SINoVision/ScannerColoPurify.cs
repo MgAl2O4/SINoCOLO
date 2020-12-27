@@ -11,6 +11,7 @@ namespace SINoVision
             Small,
             Big,
             Locked,
+            LockedBig,
         }
 
         public enum EBurstState
@@ -50,27 +51,28 @@ namespace SINoVision
             }
         }
 
-        private Point[] posPurifyPlateI = new Point[] { new Point(135, 66), new Point(162, 56), new Point(298, 56), new Point(325, 66) };
-        private Point[] posPurifyPlateO = new Point[] { new Point(152, 60), new Point(312, 60) };
+        private Point[] posPurifyPlateI = new Point[] { new Point(100, 9), new Point(118, 8), new Point(218, 8), new Point(235, 9) };
+        private Point[] posPurifyPlateO = new Point[] { new Point(131, 11), new Point(205, 11) };
         private Point[] posActionSlots = new Point[] {
-            new Point(254, 210-32), new Point(352, 295-32), new Point(352, 420-32), new Point(301, 545-32),
-            new Point(125, 559-32), new Point(21, 470-32), new Point(73, 349-32), new Point(68, 222-32),
+            new Point(185, 106), new Point(259, 170), new Point(258, 265), new Point(221, 357),
+            new Point(92, 367), new Point(16, 302), new Point(52, 210), new Point(52, 111),
         };
-        private Point[] posBurstMarkerI = new Point[] { new Point(19, 6), new Point(23, 6), new Point(21, 9), new Point(8, 11), new Point(12, 15), new Point(30, 15), new Point(34, 11) };
-        private Point[] posBurstMarkerO = new Point[] { new Point(21, 15), new Point(15, 9), new Point(28, 9) };
-        private Point posBurstMarkerCenter = new Point(21, 22);
+        private Point[] posBurstMarkerI = new Point[] { new Point(11, 2), new Point(13, 2), new Point(21, 9), new Point(4, 6), new Point(20, 6), new Point(8, 10), new Point(16, 10) };
+        private Point[] posBurstMarkerO = new Point[] { new Point(8, 4), new Point(16, 4), new Point(12, 7) };
+        private Point posBurstMarkerCenter = new Point(12, 13);
         private Point cachedBurstPos;
 
-        private Rectangle rectSPBar = new Rectangle(48, 135, 400, 1);
-        private Rectangle rectBurstActive = new Rectangle(32, 753, 400, 5);
-        private Rectangle rectBurstCenter = new Rectangle(218, 450, 32, 2);
-        private Rectangle rectBurstArea = new Rectangle(105, 170, 250, 360);
-        private Rectangle rectBurstAction = new Rectangle(210, 375, 40, 40);
-        private Rectangle rectReturnAction = new Rectangle(345, 61, 100, 25);
+        private Rectangle rectPurifyPlate = new Rectangle(132, 8, 74, 1);
+        private Rectangle rectSPBar = new Rectangle(34, 66, 296, 1);
+        private Rectangle rectBurstActive = new Rectangle(1, 235, 5, 90);
+        private Rectangle rectBurstCenter = new Rectangle(153, 302, 30, 2);
+        private Rectangle rectBurstArea = new Rectangle(65, 90, 190, 285);
+        private Rectangle rectBurstAction = new Rectangle(154, 244, 30, 30);
+        private Rectangle rectReturnAction = new Rectangle(254, 11, 75, 19);
         private Rectangle[] rectActionSlots;
 
-        private FastPixelMatch matchPlateShiny = new FastPixelMatchMono(180, 230);
-        private FastPixelMatch matchPlateBack = new FastPixelMatchMono(0, 50);
+        private FastPixelMatch matchPlateShiny = new FastPixelMatchMono(100, 230);
+        private FastPixelMatch matchPlateBack = new FastPixelMatchMono(0, 40);
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
         private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
         private FastPixelMatch matchBurstCenter = new FastPixelMatchHueMono(20, 40, 130, 195);
@@ -88,7 +90,8 @@ namespace SINoVision
             rectActionSlots = new Rectangle[posActionSlots.Length];
             for (int idx = 0; idx < posActionSlots.Length; idx++)
             {
-                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + 16, posActionSlots[idx].Y + 64, 32, 32);
+                posActionSlots[idx].Y -= 8;
+                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + (42/2) - (32/2), posActionSlots[idx].Y + (92/2) - (32/2), 32, 32);
             }
 
             for (int idx = 0; idx < posBurstMarkerI.Length; idx++)
@@ -141,7 +144,7 @@ namespace SINoVision
             }
             else if (actionType == (int)ESpecialBox.BurstReady)
             {
-                return new Rectangle(cachedBurstPos.X - 20, cachedBurstPos.Y + 50, 40, 40);
+                return new Rectangle(cachedBurstPos.X - 15, cachedBurstPos.Y + 40, 30, 30);
             }
             else if (actionType == (int)ESpecialBox.ReturnToBattle)
             {
@@ -177,6 +180,25 @@ namespace SINoVision
                 }
             }
 
+            var rectSample0 = bitmap.GetPixel(rectPurifyPlate.X, rectPurifyPlate.Y);
+
+            int maxHDiff = 0;
+            int maxMDiff = 0;
+            for (int idx = 1; idx < rectPurifyPlate.Width; idx++)
+            {
+                var testPx = bitmap.GetPixel(rectPurifyPlate.X + idx, rectPurifyPlate.Y);
+
+                int hDiff = Math.Abs(testPx.GetHue() - rectSample0.GetHue());
+                int mDiff = Math.Abs(testPx.GetMonochrome() - rectSample0.GetMonochrome());
+                if (maxHDiff < hDiff) { maxHDiff = hDiff; }
+                if (maxMDiff < mDiff) { maxMDiff = mDiff; }
+            }
+
+            if (maxHDiff > 35 || maxMDiff > 25)
+            {
+                hasMatch = false;
+            }
+
             if (DebugLevel >= EDebugLevel.Simple)
             {
                 Console.WriteLine("{0} HasPurifyPlate: {1}", ScannerName, hasMatch);
@@ -205,6 +227,8 @@ namespace SINoVision
 
                 Console.WriteLine(debugDesc);
                 Console.WriteLine("  filterIn({0}), filterOut({1})", matchPlateShiny, matchPlateBack);
+
+                Console.WriteLine("  maxHDiff:{0}, maxMDiff:{1}", maxHDiff, maxMDiff);
             }
 
             return hasMatch;
@@ -281,16 +305,16 @@ namespace SINoVision
             {
                 byte frameColor =
                     (SlotType == ESlotType.None) ? (byte)0 :
-                    (SlotType == ESlotType.Locked) ? (byte)128 :
+                    (SlotType == ESlotType.Locked || SlotType == ESlotType.LockedBig) ? (byte)128 :
                     (byte)255;
 
-                DrawRectangle(bitmap, slotPos.X, slotPos.Y, 64, 96, frameColor, 1);
+                DrawRectangle(bitmap, slotPos.X, slotPos.Y, 48, 96, frameColor, 1);
                 if (SlotType == ESlotType.Big)
                 {
-                    DrawRectangle(bitmap, slotPos.X, slotPos.Y, 64, 96, frameColor, 3);
+                    DrawRectangle(bitmap, slotPos.X, slotPos.Y, 48, 96, frameColor, 3);
                 }
 
-                int previewX = slotPos.X + ((slotIdx < 4) ? -20 : (64 + 5));
+                int previewX = slotPos.X + ((slotIdx < 4) ? -20 : (48 + 5));
                 int previewY = slotPos.Y;
                 int readIdx = 0;
                 for (int idxY = 0; idxY < 16; idxY++)
@@ -323,7 +347,7 @@ namespace SINoVision
 
         public float[] ExtractActionSlotData(FastBitmapHSV bitmap, int slotIdx)
         {
-            // scan area: 64x96, downsample to 16x16
+            // scan area: 48x64, downsample to 16x16
             float[] values = new float[16 * 16];
             for (int idx = 0; idx < values.Length; idx++)
             {
@@ -331,26 +355,26 @@ namespace SINoVision
             }
 
             Point slotPos = posActionSlots[slotIdx];
-            const float scaleV = 1.0f / 24;
+            const float scaleV = 1.0f / 12;
             bool shouldMirror = slotIdx < 4;
 
             if (shouldMirror)
             {
-                for (int idxY = 0; idxY < 96; idxY++)
+                for (int idxY = 0; idxY < 64; idxY++)
                 {
-                    for (int idxX = 0; idxX < 64; idxX++)
+                    for (int idxX = 0; idxX < 48; idxX++)
                     {
-                        values[(idxX / 4) + ((idxY / 6) * 16)] += GetActionSlotPixelValue(bitmap.GetPixel(slotPos.X + 63 - idxX, slotPos.Y + idxY)) * scaleV;
+                        values[(idxX / 3) + ((idxY / 4) * 16)] += GetActionSlotPixelValue(bitmap.GetPixel(slotPos.X + 47 - idxX, slotPos.Y + idxY)) * scaleV;
                     }
                 }
             }
             else
             {
-                for (int idxY = 0; idxY < 96; idxY++)
+                for (int idxY = 0; idxY < 64; idxY++)
                 {
-                    for (int idxX = 0; idxX < 64; idxX++)
+                    for (int idxX = 0; idxX < 48; idxX++)
                     {
-                        values[(idxX / 4) + ((idxY / 6) * 16)] += GetActionSlotPixelValue(bitmap.GetPixel(slotPos.X + idxX, slotPos.Y + idxY)) * scaleV;
+                        values[(idxX / 3) + ((idxY / 4) * 16)] += GetActionSlotPixelValue(bitmap.GetPixel(slotPos.X + idxX, slotPos.Y + idxY)) * scaleV;
                     }
                 }
             }
@@ -385,10 +409,22 @@ namespace SINoVision
                     screenData.BurstState = EBurstState.ReadyAndCenter;
                     screenData.BurstMarkerPctX = 0.5f;
                     screenData.BurstMarkerPctY = 0.5f;
+
+                    if (DebugLevel >= EDebugLevel.Verbose)
+                    {
+                        Rectangle box = GetSpecialActionBox((int)ESpecialBox.BurstCenter);
+                        DrawRectangle(bitmap, box.X, box.Y, box.Width, box.Height, 255);
+                    }
                 }
                 else
                 {
                     ScanBurstPosition(bitmap, screenData);
+
+                    if (DebugLevel >= EDebugLevel.Verbose && screenData.BurstState == EBurstState.Ready)
+                    {
+                        Rectangle box = GetSpecialActionBox((int)ESpecialBox.BurstReady);
+                        DrawRectangle(bitmap, box.X, box.Y, box.Width, box.Height, 255);
+                    }
                 }
             }
 
@@ -421,7 +457,7 @@ namespace SINoVision
                             screenData.BurstMarkerPctY = idxY * 1.0f / rectBurstArea.Height;
                             cachedBurstPos = new Point(rectBurstArea.X + idxX, rectBurstArea.Y + idxY);
 
-                            DrawRectangle(bitmap, rectBurstArea.X + idxX - 20, rectBurstArea.Y + idxY - 20, 40, 40, 255);
+                            DrawRectangle(bitmap, rectBurstArea.X + idxX - 15, rectBurstArea.Y + idxY - 15, 30, 30, 255);
                             break;
                         }
                     }
@@ -442,6 +478,8 @@ namespace SINoVision
 
         private bool HasBurstMarker(FastBitmapHSV bitmap, int testX, int testY)
         {
+            //bool wantsLogs = testX == 153 && testY == 112;
+
             for (int idx = 0; idx < posBurstMarkerI.Length; idx++)
             {
                 FastPixelHSV testPx = bitmap.GetPixel(posBurstMarkerI[idx].X + testX, posBurstMarkerI[idx].Y + testY);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -14,39 +15,47 @@ namespace SINoCOLO
             None,
             MissingGameProcess,
             MissingGameWindow,
-            SizeMismatch,
+            WindowTooSmall,
             Success,
         }
 
         private Process cachedProcess;
-        private Screen cachedScreen;
         private HandleRef cachedWindowHandle;
         private HandleRef cachedInputWindowHandle;
-        private float cachedScreenScaling;
+        private HandleRef cachedClientWindowHandle;
         private Rectangle cachedGameWindow;
+        private Rectangle cachedGameClipWindow;
         private Bitmap cachedScreenshot;
 
         private EState currentState;
-        private Stopwatch perfTimer;
         private bool savedScreenshot;
 
-        private Size expectedWindowSize = new Size(462, 864);
-        private bool forceUsingHDC = true;
+        private Size finalSize = new Size(338, 600);
 
         public ScreenReader()
         {
-            perfTimer = new Stopwatch();
             currentState = EState.None;
             savedScreenshot = false;
         }
 
         public EState GetState() { return currentState; }
         public HandleRef GetInputWindowHandle() { return cachedInputWindowHandle; }
-        public float GetScreenScaling() { return cachedScreenScaling; }
-        public Size GetExpectedSize() { return expectedWindowSize; }
 
         public void OnScreenshotSave() { savedScreenshot = true; }
         public bool CanSaveScreenshot() { return !savedScreenshot; }
+        public Size GetExpectedSize() { return finalSize; }
+
+        public void ConvertLocalToClient(int localX, int localY, out int clientX, out int clientY)
+        {
+            // scale up back to cropped size
+            float scaleX = (float)cachedGameClipWindow.Width / finalSize.Width;
+            float scaleY = (float)cachedGameClipWindow.Height / finalSize.Height;
+            float tmpClientX = localX * scaleX;
+            float tmpClientY = localY * scaleY;
+
+            clientX = Math.Max(0, (int)tmpClientX);
+            clientY = Math.Max(0, (int)tmpClientY);
+        }
 
         public Bitmap DoWork()
         {
@@ -177,12 +186,17 @@ namespace SINoCOLO
 
             if (cachedProcess != null)
             {
-                WindowHandle = new HandleRef(this, cachedProcess.MainWindowHandle);
-                
-                IntPtr childHandle = FindWindowEx(cachedProcess.MainWindowHandle, (IntPtr)0, null, "BlueStacks Android PluginAndroid");
-                if (childHandle != IntPtr.Zero)
+                IntPtr childHandleInput = FindWindowEx(cachedProcess.MainWindowHandle, (IntPtr)0, null, "BlueStacks Android PluginAndroid");
+                IntPtr childHandleClient = (childHandleInput != IntPtr.Zero) ? FindWindowEx(childHandleInput, (IntPtr)0, null, "_ctl.Window") : IntPtr.Zero;
+                if (childHandleInput != IntPtr.Zero && childHandleClient != IntPtr.Zero)
                 {
-                    cachedInputWindowHandle = new HandleRef(this, childHandle);
+                    cachedInputWindowHandle = new HandleRef(this, childHandleInput);
+                    cachedClientWindowHandle = new HandleRef(this, childHandleClient);
+                    WindowHandle = new HandleRef(this, cachedProcess.MainWindowHandle);
+                }
+                else
+                {
+                    currentState = EState.MissingGameWindow;
                 }
             }
             else
@@ -209,98 +223,64 @@ namespace SINoCOLO
             return result;
         }
 
-        public float GetCustomScreenScalingFor(Screen screen)
-        {
-            DEVMODE dm = new DEVMODE();
-            dm.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
-            EnumDisplaySettings(screen.DeviceName, -1, ref dm);
-
-            if (dm.dmPelsWidth == screen.Bounds.Width)
-            {
-                return 1.0f;
-            }
-            
-            return (float)screen.Bounds.Width / (float)dm.dmPelsWidth;
-        }
-
-        private Rectangle GetAdjustedGameWindowBounds(HandleRef windowHandle)
-        {
-            Rectangle result = GetGameWindowBoundsFromAPI(windowHandle);
-
-            Screen activeScreen = Screen.FromHandle(windowHandle.Handle);
-            if (activeScreen != cachedScreen)
-            {
-                cachedScreen = activeScreen;
-                cachedScreenScaling = GetCustomScreenScalingFor(activeScreen);
-            }
-
-            if (cachedScreenScaling != 1.0f)
-            {
-                result.X = (int)(result.X / cachedScreenScaling);
-                result.Y = (int)(result.Y / cachedScreenScaling);
-                result.Width = (int)(result.Width / cachedScreenScaling);
-                result.Height = (int)(result.Height / cachedScreenScaling);
-            }
-
-            // force size to match learning sources: 462 x 864
-            int diffWidth = Math.Abs(result.Width - expectedWindowSize.Width);
-            int diffHeight = Math.Abs(result.Height - expectedWindowSize.Height);
-            if ((diffWidth > 1) || (diffHeight > 1))
-            {
-                int wndWidth = (int)(expectedWindowSize.Width * cachedScreenScaling);
-                int wndHeight = (int)(expectedWindowSize.Height * cachedScreenScaling);
-
-                const uint SWP_NOMOVE = 0x0002;
-                const uint SWP_NOOWNERZORDER = 0x0200;
-                SetWindowPos(windowHandle.Handle, (IntPtr)0, result.X, result.Y, wndWidth, wndHeight, SWP_NOMOVE | SWP_NOOWNERZORDER);
-            }
-
-            return result;
-        }
-
         private Bitmap TakeScreenshot(HandleRef windowHandle)
         {
             Bitmap bitmap = null;
 
-            Rectangle bounds = GetAdjustedGameWindowBounds(windowHandle);
+            Rectangle bounds = GetGameWindowBoundsFromAPI(windowHandle);
             if (bounds.Width > 0)
             {
                 cachedGameWindow = bounds;
+                Rectangle absClipWindow = GetGameWindowBoundsFromAPI(cachedClientWindowHandle);
+                Point relClipWindowPos = new Point(
+                    Math.Max(0, absClipWindow.X - cachedGameWindow.X), 
+                    Math.Max(0, absClipWindow.Y - cachedGameWindow.Y));
+                Size relClipWindowSize = new Size(
+                    Math.Min(bounds.Width - relClipWindowPos.X, absClipWindow.Width),
+                    Math.Min(bounds.Height - relClipWindowPos.Y, absClipWindow.Height));
+
+                cachedGameClipWindow = new Rectangle(relClipWindowPos, relClipWindowSize);
 
                 bitmap = new Bitmap(cachedGameWindow.Width, cachedGameWindow.Height, PixelFormat.Format32bppArgb);
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    bool bIsNewerThanWindows7 = (Environment.OSVersion.Platform == PlatformID.Win32NT &&
-                        (Environment.OSVersion.Version.Major > 6) || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor > 1));
-
-                    if (bIsNewerThanWindows7 && !forceUsingHDC)
+                    IntPtr hdcBitmap;
+                    try
                     {
-                        // can't use PrintWindow API above win7, returns black screen
-                        // copy entire screen - will capture all windows on top of game too
-                        g.CopyFromScreen(cachedGameWindow.Location, Point.Empty, cachedGameWindow.Size);
+                        hdcBitmap = g.GetHdc();
                     }
-                    else
+                    catch
                     {
-                        IntPtr hdcBitmap;
-                        try
-                        {
-                            hdcBitmap = g.GetHdc();
-                        }
-                        catch
-                        {
-                            return null;
-                        }
-
-                        // capture window contents only
-                        PrintWindow(windowHandle.Handle, hdcBitmap, 0);
-                        g.ReleaseHdc(hdcBitmap);
+                        return null;
                     }
+
+                    // capture window contents only
+                    PrintWindow(windowHandle.Handle, hdcBitmap, 0);
+                    g.ReleaseHdc(hdcBitmap);
                 }
 
-                int sizeDiff = Math.Abs(cachedGameWindow.Width - expectedWindowSize.Width) + Math.Abs(cachedGameWindow.Height - expectedWindowSize.Height);
-                if (sizeDiff > 2)
+                Bitmap croppedBitmap = bitmap.Clone(cachedGameClipWindow, bitmap.PixelFormat);
+                bitmap.Dispose();
+                bitmap = croppedBitmap;
+
+                if ((bitmap.Width >= finalSize.Width) && (bitmap.Height >= finalSize.Height))
                 {
-                    currentState = EState.SizeMismatch;
+                    if (bitmap.Size != finalSize)
+                    {
+                        Bitmap scaledBitmap = new Bitmap(finalSize.Width, finalSize.Height);
+                        using (Graphics g = Graphics.FromImage(scaledBitmap))
+                        {
+                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            g.DrawImage(bitmap, 0, 0, finalSize.Width, finalSize.Height);
+                        }
+
+                        bitmap.Dispose();
+                        bitmap = scaledBitmap;
+                    }
+                }
+                else
+                {
+                    currentState = EState.WindowTooSmall;
                 }
             }
             else

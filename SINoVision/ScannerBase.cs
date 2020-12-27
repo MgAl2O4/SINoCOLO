@@ -18,8 +18,8 @@ namespace SINoVision
         private FastPixelMatchMono matchChatBoxInner = new FastPixelMatchMono(220, 250);
         private FastPixelMatchMono matchChatBoxOuter = new FastPixelMatchMono(20, 50);
 
-        private Point[] posChatBoxOuter = new Point[] { new Point(179, 813), new Point(179, 852), new Point(298, 813), new Point(298, 852) };
-        private Point[] posChatBoxInner = new Point[] { new Point(186, 820), new Point(186, 846), new Point(290, 820), new Point(290, 846) };
+        private Point[] posChatBoxOuter = new Point[] { new Point(136, 565), new Point(136, 597), new Point(215, 565), new Point(215, 597) };
+        private Point[] posChatBoxInner = new Point[] { new Point(150, 572), new Point(150, 588), new Point(200, 572), new Point(200, 588) };
 
         public List<Rectangle> debugShapes = new List<Rectangle>();
 

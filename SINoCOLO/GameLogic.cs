@@ -24,7 +24,7 @@ namespace SINoCOLO
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
 
-        private Font overlayFont = new Font(FontFamily.GenericSansSerif, 8.0f);
+        private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
         private Color colorPaletteGreen = Color.FromArgb(0xca, 0xff, 0xbf);
         private Color colorPaletteBlue = Color.FromArgb(0x9b, 0xf6, 0xff);
@@ -283,11 +283,11 @@ namespace SINoCOLO
             switch (screenData.demonState)
             {
                 case ScannerColoCombat.EDemonState.Active:
-                    DrawActionArea(g, new Rectangle(196, 162, 70, 70), screenData.demonType.ToString(), colorPaletteYellow, false);
+                    DrawActionArea(g, new Rectangle(144, 86, 51, 51), screenData.demonType.ToString(), colorPaletteYellow, false);
                     break;
 
                 case ScannerColoCombat.EDemonState.Preparing:
-                    DrawActionArea(g, new Rectangle(115, 144, 232, 28), "DEMON SOON", colorPaletteYellow, false);
+                    DrawActionArea(g, new Rectangle(83, 73, 171, 21), "DEMON SOON", colorPaletteYellow, false);
                     break;
 
                 default: break;
@@ -342,14 +342,16 @@ namespace SINoCOLO
             int numSmall = 0;
             int numBig = 0;
             int numLocked = 0;
+            int numLockedBig = 0;
             foreach (var slot in screenData.Slots)
             {
                 numSmall += (slot == ScannerColoPurify.ESlotType.Small) ? 1 : 0;
                 numBig += (slot == ScannerColoPurify.ESlotType.Big) ? 1 : 0;
                 numLocked += (slot == ScannerColoPurify.ESlotType.Locked) ? 1 : 0;
+                numLockedBig += (slot == ScannerColoPurify.ESlotType.LockedBig) ? 1 : 0;
             }
 
-            int numTotal = numSmall + numBig + numLocked;
+            int numTotal = numSmall + numBig + numLocked + numLockedBig;
 
             // if about to transition to next scene (or in flight) and burst is ready, wait a bit longer
             // to make sure everything spawns in before decision to use burst
@@ -371,10 +373,8 @@ namespace SINoCOLO
                 return true;
             }
 
-            // alternative: if burst is ready but not centered, nothing is locked just yet
-            // and there are mobs worth using it on - fire
-            if (screenData.BurstState == ScannerColoPurify.EBurstState.Ready &&
-                (numBig > 0) && (numLocked == 0) && (numTotal >= 5))
+            // alternative: if burst is ready but not centered and there are mobs worth using it on - fire
+            if (screenData.BurstState == ScannerColoPurify.EBurstState.Ready && (numBig > 0) && (numTotal >= 5))
             {
                 float SPAfterBurst = (screenData.SPIsValid ? screenData.SPFillPct : 1.0f) + (numBig * burstBigPct);
                 bool shouldUseBurst = (SPAfterBurst < 0.95);
@@ -435,15 +435,32 @@ namespace SINoCOLO
                 Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
                 for (int idx = 0; idx < actionBoxes.Length; idx++)
                 {
-                    if (screenData.Slots[idx] != ScannerColoPurify.ESlotType.None)
+                    var slotType = screenData.Slots[idx];
+                    if (slotType != ScannerColoPurify.ESlotType.None)
                     {
-                        Color actionColor =
-                            (screenData.Slots[idx] == ScannerColoPurify.ESlotType.Small) ? colorPaletteGreen :
-                            (screenData.Slots[idx] == ScannerColoPurify.ESlotType.Big) ? colorPaletteBlue :
-                            (screenData.Slots[idx] == ScannerColoPurify.ESlotType.Locked) ? colorPaletteYellow :
-                            Color.White;
+                        string desc = slotType.ToString();
+                        Color actionColor = Color.White;
 
-                        DrawActionArea(g, actionBoxes[idx], screenData.Slots[idx].ToString(), actionColor, slotIdx == idx);
+                        switch (slotType)
+                        {
+                            case ScannerColoPurify.ESlotType.Small:
+                                actionColor = colorPaletteGreen;
+                                break;
+                            case ScannerColoPurify.ESlotType.Big:
+                                actionColor = colorPaletteBlue;
+                                break;
+                            case ScannerColoPurify.ESlotType.Locked:
+                                actionColor = colorPaletteYellow;
+                                desc = "Lock";
+                                break;
+                            case ScannerColoPurify.ESlotType.LockedBig:
+                                actionColor = colorPaletteYellow;
+                                desc = "Lock";
+                                break;
+                            default: break;
+                        }
+
+                        DrawActionArea(g, actionBoxes[idx], desc, actionColor, slotIdx == idx);
                     }
                 }
             }

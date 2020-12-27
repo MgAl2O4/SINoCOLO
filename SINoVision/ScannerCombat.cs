@@ -17,10 +17,10 @@ namespace SINoVision
             }
         }
 
-        private Point posChestG = new Point(299, 57);
-        private Point posChestS = new Point(354, 57);
-        private Point posChestB = new Point(409, 57);
-        private Rectangle rectChestArea = new Rectangle(5, 8, 6, 2);
+        private Point posChestG = new Point(219, 8);
+        private Point posChestS = new Point(260, 8);
+        private Point posChestB = new Point(300, 8);
+        private Rectangle rectChestArea = new Rectangle(2, 6, 6, 3);
 
         private FastPixelMatch matchSpecialReload = new FastPixelMatchHueMono(26, 60, 50, 255);
 
