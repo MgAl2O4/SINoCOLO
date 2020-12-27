@@ -4,7 +4,7 @@
     {
         const int NumInputs = 16 * 16;
         private int NumHidden = 64;
-        private int NumOutputs = 4;
+        private int NumOutputs = 5;
 
         private float[] WeightH1 = null;
         private float[] BiasH1 = null;
