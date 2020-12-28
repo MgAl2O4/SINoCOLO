@@ -55,7 +55,7 @@ namespace SINoVision
             }
         }
 
-        protected Rectangle rectSPBar = new Rectangle(86, 484, 166, 1);
+        protected Rectangle rectSPBar = new Rectangle(86, 484, 164, 1);
         protected Rectangle[] rectActionSlots = { new Rectangle(17, 501, 52, 52), new Rectangle(80, 501, 52, 52), new Rectangle(143, 501, 52, 52), new Rectangle(206, 501, 52, 52), new Rectangle(269, 501, 52, 52) };
         protected Rectangle rectActionIcon = new Rectangle(39, 4, 10, 10);
         protected Rectangle rectActionAvail = new Rectangle(3, 44, 4, 4);
@@ -91,7 +91,7 @@ namespace SINoVision
             bool wasEmpty = false;
 
             int lastPosFull = 0;
-            for (int idx = 0; idx < rectSPBar.Width; idx++)
+            for (int idx = 0; idx <= rectSPBar.Width; idx++)
             {
                 var testPx = bitmap.GetPixel(rectSPBar.X + idx, rectSPBar.Y);
 

@@ -485,6 +485,22 @@ namespace SINoCOLO
             fileList.Add(new PurifyML("purify-207-scaled.jpg", "....xxxx"));
             fileList.Add(new PurifyML("purify-208-scaled.jpg", "....xxxx"));
             fileList.Add(new PurifyML("purify-209-scaled.jpg", "....xxxx"));*/
+            fileList.Add(new PurifyML("colo2-purify1.jpg", "..B.xxxx"));
+            fileList.Add(new PurifyML("colo2-purify2.jpg", "..B.xxxx"));
+            fileList.Add(new PurifyML("colo2-purify3.jpg", "...SSBxx"));
+            fileList.Add(new PurifyML("colo2-purify4.jpg", "....xBxx"));
+            fileList.Add(new PurifyML("colo2-purify5.jpg", "....xBxx"));
+            fileList.Add(new PurifyML("colo2-purify6.jpg", "....xBxx"));
+            fileList.Add(new PurifyML("colo2-purify7.jpg", "....xBxx"));
+            fileList.Add(new PurifyML("colo2-purify8.jpg", "....xBxx"));
+            fileList.Add(new PurifyML("colo2-purify10.jpg", "SS..xxSS"));
+            fileList.Add(new PurifyML("colo2-purify11.jpg", ".LS.SxSx"));
+            fileList.Add(new PurifyML("colo2-purify12.jpg", "SS..xBxx"));
+            fileList.Add(new PurifyML("colo2-purify13.jpg", "...LBxxx"));
+            fileList.Add(new PurifyML("colo2-purify18.jpg", "BSS.BSSS"));
+            fileList.Add(new PurifyML("colo2-purify20.jpg", "B...xSSS"));
+            fileList.Add(new PurifyML("colo2-purify22.jpg", "..SSxBSx"));
+            fileList.Add(new PurifyML("colo2-purify23.jpg", ".SSSSSSx"));
 
             string jsonDesc = "{\"dataset\":[";
             foreach (var fileData in fileList)

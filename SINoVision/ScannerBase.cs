@@ -15,7 +15,7 @@ namespace SINoVision
         public EDebugLevel DebugLevel = EDebugLevel.None;
         public string ScannerName = "[Unknown]";
 
-        private FastPixelMatchMono matchChatBoxInner = new FastPixelMatchMono(220, 250);
+        private FastPixelMatchMono matchChatBoxInner = new FastPixelMatchMono(210, 250);
         private FastPixelMatchMono matchChatBoxOuter = new FastPixelMatchMono(20, 50);
 
         private Point[] posChatBoxOuter = new Point[] { new Point(136, 565), new Point(136, 597), new Point(215, 565), new Point(215, 597) };

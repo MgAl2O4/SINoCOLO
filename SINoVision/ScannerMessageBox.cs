@@ -15,7 +15,7 @@ namespace SINoVision
             }
         }
 
-        private FastPixelMatch matchOkButtonInner = new FastPixelMatchHueMono(0, 50, 20, 100);
+        private FastPixelMatch matchOkButtonInner = new FastPixelMatchHSV(10, 45, 30, 100, 10, 50);
         private FastPixelMatch matchOkButtonOuter = new FastPixelMatchMono(20, 50);
 
         private Point[] posOkButtonOuter = new Point[] { new Point(110, 540), new Point(220, 540), new Point(110, 582), new Point(220, 582) };
