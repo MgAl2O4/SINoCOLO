@@ -91,7 +91,7 @@ namespace SINoVision
             for (int idx = 0; idx < posActionSlots.Length; idx++)
             {
                 posActionSlots[idx].Y -= 8;
-                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + (42/2) - (32/2), posActionSlots[idx].Y + (92/2) - (32/2), 32, 32);
+                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + (42/2) - (32/2) + 5, posActionSlots[idx].Y + (92/2) - (32/2) + 5, 32, 32);
             }
 
             for (int idx = 0; idx < posBurstMarkerI.Length; idx++)
@@ -290,8 +290,6 @@ namespace SINoVision
 
         protected void ScanActionSlot(FastBitmapHSV bitmap, Point slotPos, ScreenData screenData, int slotIdx)
         {
-            Console.WriteLine("ScanActionSlot[{0}]...", slotIdx);
-
             float[] pixelInput = ExtractActionSlotData(bitmap, slotIdx);
             ESlotType SlotType = (ESlotType)classifierPurify.Calculate(pixelInput, out float BestPct);
 
