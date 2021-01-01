@@ -71,7 +71,7 @@ namespace SINoVision
         private Rectangle rectReturnAction = new Rectangle(254, 11, 75, 19);
         private Rectangle[] rectActionSlots;
 
-        private FastPixelMatch matchPlateShiny = new FastPixelMatchMono(100, 230);
+        private FastPixelMatch matchPlateShiny = new FastPixelMatchMono(80, 230);
         private FastPixelMatch matchPlateBack = new FastPixelMatchMono(0, 40);
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
         private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
