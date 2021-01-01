@@ -12,6 +12,7 @@ namespace SINoCOLO
         private List<ScannerBase> scanners = new List<ScannerBase>();
         private ScreenReader screenReader = new ScreenReader();
         private GameLogic gameLogic = new GameLogic();
+        private Bitmap cachedSourceScreen = null;
         private bool hasDetailCtrl = true;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
@@ -68,11 +69,9 @@ namespace SINoCOLO
             {
                 //if (screenReader.GetState() != ScreenReader.EState.WindowTooSmall)
                 {
-#if DEBUG
-                    try { srcScreenshot.Save("source.jpg"); }
-                    catch (Exception ex) { Console.WriteLine("Failed to safe source image! {0}", ex); }
-#endif // DEBUG
-                    
+                    if (cachedSourceScreen != null) { cachedSourceScreen.Dispose(); }
+                    cachedSourceScreen = srcScreenshot.Clone(new Rectangle(0, 0, srcScreenshot.Width, srcScreenshot.Height), srcScreenshot.PixelFormat);
+
                     var forcedSize = screenReader.GetExpectedSize();
                     var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
                     foreach (var scanner in scanners)
@@ -182,25 +181,21 @@ namespace SINoCOLO
                     SendMessage(windowHandle.Handle, WM_LBUTTONDOWN, MK_LBUTTON, (IntPtr)lParam);
                 }
             }
-#if DEBUG
-            else if (e.Button == MouseButtons.Right && screenReader.CanSaveScreenshot())
+            else if (e.Button == MouseButtons.Right)
             {
-                string orgName = "source.jpg";
-                if (System.IO.File.Exists(orgName))
+                if (cachedSourceScreen != null)
                 {
                     for (int idx = 1; idx < 1000000; idx++)
                     {
                         string testPath = "real-source" + idx + ".jpg";
                         if (!System.IO.File.Exists(testPath))
                         {
-                            System.IO.File.Copy(orgName, testPath);
-                            screenReader.OnScreenshotSave();
+                            cachedSourceScreen.Save(testPath);
                             break;
                         }
                     }
                 }
             }
-#endif // DEBUG
         }
 
         private void buttonDetails_Click(object sender, EventArgs e)
