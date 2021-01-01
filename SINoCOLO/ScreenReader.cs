@@ -259,9 +259,12 @@ namespace SINoCOLO
                     g.ReleaseHdc(hdcBitmap);
                 }
 
-                Bitmap croppedBitmap = bitmap.Clone(cachedGameClipWindow, bitmap.PixelFormat);
-                bitmap.Dispose();
-                bitmap = croppedBitmap;
+                if (cachedGameClipWindow.Width > 0 && cachedGameClipWindow.Height > 0)
+                {
+                    Bitmap croppedBitmap = bitmap.Clone(cachedGameClipWindow, bitmap.PixelFormat);
+                    bitmap.Dispose();
+                    bitmap = croppedBitmap;
+                }
 
                 if ((bitmap.Width >= finalSize.Width) && (bitmap.Height >= finalSize.Height))
                 {

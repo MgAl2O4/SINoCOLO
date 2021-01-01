@@ -14,6 +14,7 @@ namespace SINoCOLO
         private GameLogic gameLogic = new GameLogic();
         private Bitmap cachedSourceScreen = null;
         private bool hasDetailCtrl = true;
+        private int numHighFreqTicks = 0;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
@@ -109,6 +110,7 @@ namespace SINoCOLO
         private void timerScan_Tick(object sender, EventArgs e)
         {
             Scan();
+            UpdateTimerFreq();
         }
 
         private void SetScreenState(ScreenReader.EState NewState)
@@ -227,6 +229,32 @@ namespace SINoCOLO
 #if !DEBUG
             buttonDetails_Click(null, null);
 #endif // !DEBUG
+        }
+
+        private void UpdateTimerFreq()
+        {
+            int newInterval = timerScan.Interval;
+
+            bool hasValidScreen = gameLogic.screenScanner != null;
+            if (hasValidScreen)
+            {
+                numHighFreqTicks = 10 * 20; // keep for 20s
+                newInterval = 100;
+            }
+            else
+            {
+                numHighFreqTicks -= 1;
+                if (numHighFreqTicks <= 0)
+                {
+                    numHighFreqTicks = 0;
+                    newInterval = 2000;
+                }
+            }
+
+            if (timerScan.Interval != newInterval)
+            {
+                timerScan.Interval = newInterval;
+            }
         }
     }
 }
