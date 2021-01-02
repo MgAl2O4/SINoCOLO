@@ -59,7 +59,6 @@ namespace SINoCOLO
 
         public Bitmap DoWork()
         {
-            //perfTimer.Restart();
             currentState = EState.Success;
 
             cachedWindowHandle = FindGameWindow();
@@ -70,23 +69,6 @@ namespace SINoCOLO
                 cachedScreenshot = TakeScreenshot(cachedWindowHandle);
                 savedScreenshot = false;
             }
-#if DEBUG
-            else
-            {
-                string testScreenPath = @"D:\Projects\Git\SINoCOLO\samples\";
-                //testScreenPath += "real-combat.jpg";
-                testScreenPath += "real-source3.jpg";
-
-                try
-                {
-                    cachedScreenshot = Image.FromFile(testScreenPath) as Bitmap;
-                }
-                catch (Exception ex) { Console.WriteLine("Failed to load test screenshot: {0}", ex); }
-            }
-#endif // DEBUG
-
-            //perfTimer.Stop();
-            //Console.WriteLine("Screenshot load: {0}ms", perfTimer.ElapsedMilliseconds);
 
             return cachedScreenshot;
         }

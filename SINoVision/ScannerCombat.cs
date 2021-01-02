@@ -23,6 +23,7 @@ namespace SINoVision
         private Rectangle rectChestArea = new Rectangle(2, 6, 6, 3);
 
         private FastPixelMatch matchSpecialReload = new FastPixelMatchHueMono(26, 60, 50, 255);
+        private string[] scannerStates = new string[] { "Idle", "NoTextBox", "NoChests", "Ok" };
 
         public ScannerCombat() 
         {
@@ -30,14 +31,22 @@ namespace SINoVision
             DebugLevel = EDebugLevel.Simple;
         }
 
+        public override string GetState()
+        {
+            return scannerStates[scannerState];
+        }
+
         public override object Process(FastBitmapHSV bitmap)
         {
+            scannerState = 1;
             var hasTextBox = HasChatBoxArea(bitmap);
             if (hasTextBox)
             {
+                scannerState = 2;
                 var hasRewardChests = HasRewardChests(bitmap);
                 if (hasRewardChests)
                 {
+                    scannerState = 3;
                     var outputOb = new ScreenData();
                     ScanSP(bitmap, outputOb);
 

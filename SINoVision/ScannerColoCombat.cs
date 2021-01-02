@@ -59,6 +59,7 @@ namespace SINoVision
         private FastPixelMatch matchDemonPrepO = new FastPixelMatchHSV(0, 20, 40, 100, 20, 40);
 
         private MLClassifierDemon classifierDemon = new MLClassifierDemon();
+        private string[] scannerStates = new string[] { "Idle", "NoTextBox", "NoLifeForce", "Ok" };
 
         public ScannerColoCombat()
         {
@@ -68,14 +69,22 @@ namespace SINoVision
             classifierDemon.InitializeModel();
         }
 
+        public override string GetState()
+        {
+            return scannerStates[scannerState];
+        }
+
         public override object Process(FastBitmapHSV bitmap)
         {
+            scannerState = 1;
             var hasTextBox = HasChatBoxArea(bitmap);
             if (hasTextBox)
             {
+                scannerState = 2;
                 var hasLifeforceMeter = HasLifeforceMeter(bitmap);
                 if (hasLifeforceMeter)
                 {
+                    scannerState = 3;
                     var outputOb = new ScreenData();
                     ScanSP(bitmap, outputOb);
 

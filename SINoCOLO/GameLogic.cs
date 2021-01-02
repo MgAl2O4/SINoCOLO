@@ -17,6 +17,10 @@ namespace SINoCOLO
         public ScannerBase screenScanner;
         public object screenData;
 
+        public ScannerColoCombat.ScreenData cachedDataColoCombat;
+        public ScannerColoPurify.ScreenData cachedDataColoPurify;
+        public ScannerCombat.ScreenData cachedDataCombat;
+
         public int slotIdx = -1;
         public int specialIdx = -1;
 
@@ -146,6 +150,7 @@ namespace SINoCOLO
                 OnStateChanged();
             }
 
+            cachedDataColoCombat = screenData;
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
@@ -322,6 +327,8 @@ namespace SINoCOLO
                 state = EState.ColoPurify;
                 OnStateChanged();
             }
+
+            cachedDataColoPurify = screenData;
 
             // don't do anything when burst is already active
             if (screenData.BurstState == ScannerColoPurify.EBurstState.Active)
@@ -513,6 +520,7 @@ namespace SINoCOLO
                 OnStateChanged();
             }
 
+            cachedDataCombat = screenData;
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {

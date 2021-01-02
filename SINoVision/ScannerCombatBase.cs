@@ -165,8 +165,6 @@ namespace SINoVision
                     const int hueG = 130;
                     const int hueR = 15;
 
-                    debugShapes.Add(new Rectangle(bounds.X + rectActionElement.X, bounds.Y + rectActionElement.Y, rectActionElement.Width, rectActionElement.Height));
-
                     for (int idxY = 0; idxY < rectActionElement.Height; idxY++)
                     {
                         for (int idxX = 0; idxX < rectActionElement.Width; idxX++)

@@ -22,17 +22,26 @@ namespace SINoVision
         private Point[] posOkButtonInner = new Point[] { new Point(121, 550), new Point(107, 550), new Point(121, 571), new Point(107, 571) };
         private Rectangle rectOkButton = new Rectangle(118, 546, 95, 28);
 
+        private string[] scannerStates = new string[] { "Idle", "NoButton", "Ok" };
+
         public ScannerMessageBox()
         {
             ScannerName = "[MessageBox]";
             DebugLevel = EDebugLevel.None;
         }
 
+        public override string GetState()
+        {
+            return scannerStates[scannerState];
+        }
+
         public override object Process(FastBitmapHSV bitmap)
         {
+            scannerState = 1;
             var hasMsgBox = HasOkButtonArea(bitmap);
             if (hasMsgBox)
             {
+                scannerState = 2;
                 return new ScreenData();
             }
 

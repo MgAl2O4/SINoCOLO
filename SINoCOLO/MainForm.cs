@@ -1,6 +1,7 @@
 ﻿using SINoVision;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -15,6 +16,7 @@ namespace SINoCOLO
         private Bitmap cachedSourceScreen = null;
         private bool hasDetailCtrl = true;
         private int numHighFreqTicks = 0;
+        private int numScanDelayTicks = 0;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
@@ -68,11 +70,12 @@ namespace SINoCOLO
             var srcScreenshot = screenReader.DoWork();
             if (srcScreenshot != null)
             {
-                //if (screenReader.GetState() != ScreenReader.EState.WindowTooSmall)
-                {
-                    if (cachedSourceScreen != null) { cachedSourceScreen.Dispose(); }
-                    cachedSourceScreen = srcScreenshot.Clone(new Rectangle(0, 0, srcScreenshot.Width, srcScreenshot.Height), srcScreenshot.PixelFormat);
+                if (cachedSourceScreen != null) { cachedSourceScreen.Dispose(); }
+                cachedSourceScreen = srcScreenshot.Clone(new Rectangle(0, 0, srcScreenshot.Width, srcScreenshot.Height), srcScreenshot.PixelFormat);
 
+                if (screenReader.GetState() != ScreenReader.EState.WindowTooSmall &&
+                    numScanDelayTicks <= 0)
+                {
                     var forcedSize = screenReader.GetExpectedSize();
                     var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
                     foreach (var scanner in scanners)
@@ -111,6 +114,7 @@ namespace SINoCOLO
         {
             Scan();
             UpdateTimerFreq();
+            DetailLog();
         }
 
         private void SetScreenState(ScreenReader.EState NewState)
@@ -206,19 +210,21 @@ namespace SINoCOLO
             {
                 pictureBoxAnalyzed.Visible = false;
                 pictureBoxAnalyzed.Enabled = false;
+                textBoxDetails.Visible = false;
                 labelScreenshotFailed.Visible = false;
                 buttonDetails.Text = "Show details";
 
-                Size = new Size(380, 130);
+                Size = MinimumSize;
             }
             else
             {
                 pictureBoxAnalyzed.Visible = true;
                 pictureBoxAnalyzed.Enabled = true;
+                textBoxDetails.Visible = true;
                 labelScreenshotFailed.Visible = false;
                 buttonDetails.Text = "Hide details";
 
-                Size = new Size(380, 737);
+                Size = new Size(MinimumSize.Width, 734);
             }
 
             hasDetailCtrl = !hasDetailCtrl;
@@ -233,13 +239,10 @@ namespace SINoCOLO
 
         private void UpdateTimerFreq()
         {
-            int newInterval = timerScan.Interval;
-
             bool hasValidScreen = gameLogic.screenScanner != null;
             if (hasValidScreen)
             {
                 numHighFreqTicks = 10 * 20; // keep for 20s
-                newInterval = 100;
             }
             else
             {
@@ -247,14 +250,62 @@ namespace SINoCOLO
                 if (numHighFreqTicks <= 0)
                 {
                     numHighFreqTicks = 0;
-                    newInterval = 2000;
                 }
             }
 
-            if (timerScan.Interval != newInterval)
+            numScanDelayTicks -= 1;
+            if (numScanDelayTicks < 0)
             {
-                timerScan.Interval = newInterval;
+                numScanDelayTicks = (numHighFreqTicks > 0) ? 0 : 20;
             }
+        }
+
+        private void DetailLog()
+        {
+            if (!textBoxDetails.Visible || Size.Width <= MinimumSize.Width)
+            {
+                return;
+            }
+
+            var lines = new List<string>();
+            lines.Add(string.Format("Tick: high freq:{0}, delay:{1}{2}", 
+                numHighFreqTicks, numScanDelayTicks, numScanDelayTicks <= 0 ? " (scan now)" : ""));
+            lines.Add(string.Format("Screenshot:{0} ({1})",
+                cachedSourceScreen != null ? string.Format("{0}x{1}", cachedSourceScreen.Width, cachedSourceScreen.Height) : "n/a",
+                screenReader.GetState()));
+
+            // scanner status
+            foreach (var scanner in scanners)
+            {
+                lines.Add(string.Format("  {0} = {1}", scanner.ScannerName, scanner.GetState()));
+            }
+
+            // cached data status           
+            if (gameLogic.cachedDataCombat != null)
+            {
+                lines.Add("");
+                lines.Add("Cached Combat:");
+                string[] tokens = gameLogic.cachedDataCombat.ToString().Split('\n');
+                lines.AddRange(tokens);
+            }
+
+            if (gameLogic.cachedDataColoCombat != null)
+            {
+                lines.Add("");
+                lines.Add("Cached ColoCombat:");
+                string[] tokens = gameLogic.cachedDataColoCombat.ToString().Split('\n');
+                lines.AddRange(tokens);
+            }
+
+            if (gameLogic.cachedDataColoPurify != null)
+            {
+                lines.Add("");
+                lines.Add("Cached ColoPurify:");
+                string[] tokens = gameLogic.cachedDataColoPurify.ToString().Split('\n');
+                lines.AddRange(tokens);
+            }
+
+            textBoxDetails.Lines = lines.ToArray();
         }
     }
 }

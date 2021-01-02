@@ -79,6 +79,7 @@ namespace SINoVision
         private FastPixelMatch matchBurstMarker = new FastPixelMatchHSV(0, 120, 0, 100, 80, 100);
 
         private MLClassifierPurifyType classifierPurify = new MLClassifierPurifyType();
+        private string[] scannerStates = new string[] { "Idle", "NoTextBox", "NoPurifyPlate", "Ok" };
 
         public ScannerColoPurify()
         {
@@ -107,14 +108,22 @@ namespace SINoVision
             }
         }
 
+        public override string GetState()
+        {
+            return scannerStates[scannerState];
+        }
+
         public override object Process(FastBitmapHSV bitmap)
         {
+            scannerState = 1;
             var hasTextBox = HasChatBoxArea(bitmap);
             if (hasTextBox)
             {
+                scannerState = 2;
                 var hasPurifyPlate = HasPurifyPlate(bitmap);
                 if (hasPurifyPlate)
                 {
+                    scannerState = 3;
                     var outputOb = new ScreenData();
                     ScanSP(bitmap, outputOb);
                     ScanBurst(bitmap, outputOb);

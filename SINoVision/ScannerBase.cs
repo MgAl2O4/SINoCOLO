@@ -14,6 +14,7 @@ namespace SINoVision
         }
         public EDebugLevel DebugLevel = EDebugLevel.None;
         public string ScannerName = "[Unknown]";
+        protected int scannerState = 0;
 
         private FastPixelMatchMono matchChatBoxInner = new FastPixelMatchMono(210, 250);
         private FastPixelMatchMono matchChatBoxOuter = new FastPixelMatchMono(20, 50);
@@ -21,7 +22,15 @@ namespace SINoVision
         private Point[] posChatBoxOuter = new Point[] { new Point(136, 565), new Point(136, 597), new Point(215, 565), new Point(215, 597) };
         private Point[] posChatBoxInner = new Point[] { new Point(150, 572), new Point(150, 588), new Point(200, 572), new Point(200, 588) };
 
-        public List<Rectangle> debugShapes = new List<Rectangle>();
+        public virtual void PrepareForScan() 
+        {
+            scannerState = 0;
+        }
+
+        public virtual string GetState()
+        {
+            return "--"; 
+        }
 
         public virtual object Process(FastBitmapHSV bitmap) 
         {
