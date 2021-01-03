@@ -151,6 +151,7 @@ namespace SINoCOLO
             }
 
             cachedDataColoCombat = screenData;
+            cachedDataCombat = null;
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
@@ -494,18 +495,33 @@ namespace SINoCOLO
 
             // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
             scanSkipCounter = randGen.Next(5, 8);
-            
-            Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
-            if (actionBoxes.Length > 0)
-            {
-                RequestMouseClick(actionBoxes[0], 0, -1);
-            }
 
+            int specialIdx = screenData.hasRetry ? (int)ScannerMessageBox.ESpecialBox.CombatReportRetry : (int)screenData.mode;
+            RequestMouseClick(screenScanner.GetSpecialActionBox(specialIdx), -1, specialIdx);
             return true;
         }
 
         private bool DrawScanHighlights_MessageBox(Graphics g, ScannerMessageBox.ScreenData screenData)
         {
+            if (screenData == null) { return false; }
+
+            if (screenData.mode == ScannerMessageBox.ESpecialBox.MessageBoxOk)
+            {
+                Rectangle okBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.MessageBoxOk);
+                DrawActionArea(g, okBox, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.MessageBoxOk);
+            }
+            else if (screenData.mode == ScannerMessageBox.ESpecialBox.CombatReportOk)
+            {
+                Rectangle okBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.CombatReportOk);
+                DrawActionArea(g, okBox, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.CombatReportOk);
+
+                if (screenData.hasRetry)
+                {
+                    Rectangle retryBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
+                    DrawActionArea(g, retryBox, "Retry", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
+                }
+            }
+
             return false;
         }
 
@@ -521,6 +537,9 @@ namespace SINoCOLO
             }
 
             cachedDataCombat = screenData;
+            cachedDataColoCombat = null;
+            cachedDataColoPurify = null;
+
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {

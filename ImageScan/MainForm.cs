@@ -42,6 +42,7 @@ namespace SINoCOLO
             //GatherMLDataWeapon();
             //GatherMLDataDemon();
             //GatherMLDataPurify();
+            //GatherMLDataButtons();
         }
 
         private void CollectFileNames()
@@ -71,8 +72,6 @@ namespace SINoCOLO
                 var resultOb = scanner.Process(fastBitmap);
                 if (resultOb != null)
                 {
-                    debugBounds.AddRange(scanner.debugShapes);
-
                     Console.WriteLine("{0} found!\n\n{1}", scanner.ScannerName, resultOb);
                     break;
                 }
@@ -525,6 +524,50 @@ namespace SINoCOLO
             jsonDesc += "\n]}";
 
             string savePath = @"D:\temp\recording\sino-ml-purify.json";
+            File.WriteAllText(savePath, jsonDesc);
+        }
+
+        private void GatherMLDataButtons()
+        {
+            var fileMap = new Dictionary<string, ScannerMessageBox.ESpecialBox>();
+            fileMap.Add("real-buttons.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
+            fileMap.Add("real-source4.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
+            fileMap.Add("real-source5.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
+            fileMap.Add("real-source6.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
+            fileMap.Add("real-source7.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
+            fileMap.Add("real-msg1.jpg", ScannerMessageBox.ESpecialBox.MessageBoxOk);
+            fileMap.Add("real-msg2.jpg", ScannerMessageBox.ESpecialBox.MessageBoxOk);
+
+            string jsonDesc = "{\"dataset\":[";
+            foreach (var kvp in fileMap)
+            {
+                var srcScreenshot = LoadTestScreenshot("train-smol/" + kvp.Key);
+                var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
+
+                var buttonsScanner = scanners[2] as ScannerMessageBox;
+                for (int idx = 1; idx <= 3; idx++)
+                {
+                    var values = buttonsScanner.ExtractButtonData(fastBitmap, idx);
+                    var canUse =
+                        (kvp.Value == ScannerMessageBox.ESpecialBox.MessageBoxOk && idx == (int)ScannerMessageBox.ESpecialBox.MessageBoxOk) ||
+                        (kvp.Value == ScannerMessageBox.ESpecialBox.CombatReportOk && idx == (int)ScannerMessageBox.ESpecialBox.CombatReportOk) ||
+                        (kvp.Value == ScannerMessageBox.ESpecialBox.CombatReportOk && idx == (int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
+
+                    if (canUse)
+                    {
+                        jsonDesc += "\n{\"input\":[";
+                        jsonDesc += string.Join(",", values);
+                        jsonDesc += "], \"output\":";
+                        jsonDesc += idx;
+                        jsonDesc += "},";
+                    }
+                }
+            }
+
+            jsonDesc = jsonDesc.Remove(jsonDesc.Length - 1, 1);
+            jsonDesc += "\n]}";
+
+            string savePath = @"D:\temp\recording\sino-ml-buttons.json";
             File.WriteAllText(savePath, jsonDesc);
         }
     }

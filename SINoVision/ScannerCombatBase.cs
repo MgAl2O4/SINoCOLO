@@ -31,7 +31,7 @@ namespace SINoVision
 
             public override string ToString()
             {
-                return string.Format("valid:{0}, class:{1}, elem:{2}", isValid, weaponClass, element);
+                return isValid ? string.Format("{0} ({1})", weaponClass, element) : "n/a";
             }
         }
 
@@ -45,10 +45,12 @@ namespace SINoVision
 
             public override string ToString()
             {
-                string desc = string.Format("SP bar> valid:{0}, fill:{1:P2}{2}\n", SPIsValid, SPFillPct, SPIsObstructed ? ", obstructed" : "");
+                string desc = "SP> " + (!SPIsValid ? "n/a" :
+                    string.Format("{0:P0}{1}", SPFillPct, SPIsObstructed ? ", obstructed" : ""));
+
                 for (int idx = 0; idx < actions.Length; idx++)
                 {
-                    desc += "Action[" + idx + "]> " + actions[idx] + "\n";
+                    desc += "\nAction[" + idx + "]> " + actions[idx];
                 }
 
                 return desc;
