@@ -268,11 +268,13 @@ namespace SINoCOLO
             }
 
             var lines = new List<string>();
-            lines.Add(string.Format("Tick: high freq:{0}, delay:{1}{2}", 
+            lines.Add(string.Format("Tick: high freq:{0}, delay:{1}{2}",
                 numHighFreqTicks, numScanDelayTicks, numScanDelayTicks <= 0 ? " (scan now)" : ""));
             lines.Add(string.Format("Screenshot:{0} ({1})",
                 cachedSourceScreen != null ? string.Format("{0}x{1}", cachedSourceScreen.Width, cachedSourceScreen.Height) : "n/a",
                 screenReader.GetState()));
+            lines.Add(string.Format("Logic:{0}, delay:{1}{2}",
+                gameLogic.state, gameLogic.GetScanSkipCounter(), gameLogic.GetScanSkipCounter() <= 1 ? " (click)" : ""));
 
             // scanner status
             foreach (var scanner in scanners)

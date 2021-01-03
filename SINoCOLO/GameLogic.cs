@@ -40,6 +40,7 @@ namespace SINoCOLO
             Unknown,
             ColoCombat,
             ColoPurify,
+            Combat,
             MessageBox,
         }
         public EState state;
@@ -51,6 +52,8 @@ namespace SINoCOLO
             scanSkipCounter = 0;
             // don't clear purify slot
         }
+
+        public int GetScanSkipCounter() { return scanSkipCounter; }
 
         public void OnScanPrep()
         {
@@ -496,7 +499,13 @@ namespace SINoCOLO
             // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
             scanSkipCounter = randGen.Next(5, 8);
 
-            int specialIdx = screenData.hasRetry ? (int)ScannerMessageBox.ESpecialBox.CombatReportRetry : (int)screenData.mode;
+            int specialIdx = (int)screenData.mode;
+            if (screenData.hasRetry)
+            {
+                specialIdx = (int)ScannerMessageBox.ESpecialBox.CombatReportRetry;
+                scanSkipCounter = randGen.Next(25, 30);
+            }
+
             RequestMouseClick(screenScanner.GetSpecialActionBox(specialIdx), -1, specialIdx);
             return true;
         }
@@ -530,9 +539,9 @@ namespace SINoCOLO
         private bool OnScan_Combat(ScannerCombat.ScreenData screenData)
         {
             if (screenData == null) { return false; }
-            if (state != EState.ColoCombat)
+            if (state != EState.Combat)
             {
-                state = EState.ColoCombat;
+                state = EState.Combat;
                 OnStateChanged();
             }
 
