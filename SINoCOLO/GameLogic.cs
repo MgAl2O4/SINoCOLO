@@ -525,8 +525,11 @@ namespace SINoCOLO
             switch (screenData.mode)
             {
                 case ScannerMessageBox.EMessageType.CombatReport:
-                    scanSkipCounter = randGen.Next(25, 30);
-                    specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                    if (screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType == ScannerMessageBox.EButtonType.Retry)
+                    {
+                        scanSkipCounter = randGen.Next(25, 30);
+                        specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                    }
                     break;
 
                 case ScannerMessageBox.EMessageType.Ok:
@@ -553,6 +556,8 @@ namespace SINoCOLO
             if (screenData == null) { return false; }
 
             Rectangle boxA = Rectangle.Empty, boxB = Rectangle.Empty;
+            string desc = null;
+
             switch (screenData.mode)
             {
                 case ScannerMessageBox.EMessageType.Ok:
@@ -570,7 +575,8 @@ namespace SINoCOLO
                 case ScannerMessageBox.EMessageType.CombatReport:
                     boxA = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CombatReportRetry);
                     boxB = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CombatReportOk);
-                    DrawActionArea(g, boxA, "Retry", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.EButtonPos.CombatReportRetry);
+                    desc = screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType.ToString();
+                    DrawActionArea(g, boxA, desc, colorPaletteGreen, specialIdx == (int)ScannerMessageBox.EButtonPos.CombatReportRetry);
                     DrawActionArea(g, boxB, "Ok", colorPaletteYellow, specialIdx == (int)ScannerMessageBox.EButtonPos.CombatReportOk);
                     break;
 

@@ -30,6 +30,7 @@ namespace SINoVision
             Cancel,
             Close,
             Retry,
+            Next,
             Ok,
         }
 
@@ -168,7 +169,7 @@ namespace SINoVision
             if (screenData.actions[(int)EButtonPos.CombatReportOk].isRed &&
                 screenData.actions[(int)EButtonPos.CombatReportOk].buttonType == EButtonType.Ok &&
                 screenData.actions[(int)EButtonPos.CombatReportRetry].isWhite &&
-                screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Retry)
+                (screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Retry || screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Next))
             {
                 screenData.mode = EMessageType.CombatReport;
             }

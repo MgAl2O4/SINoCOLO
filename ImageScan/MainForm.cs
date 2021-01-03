@@ -205,6 +205,7 @@ namespace SINoCOLO
                     else if (tokens[idx + 1] == "ok") { buttonType = ScannerMessageBox.EButtonType.Ok; }
                     else if (tokens[idx + 1] == "cancel") { buttonType = ScannerMessageBox.EButtonType.Cancel; }
                     else if (tokens[idx + 1] == "close") { buttonType = ScannerMessageBox.EButtonType.Close; }
+                    else if (tokens[idx + 1] == "next") { buttonType = ScannerMessageBox.EButtonType.Next; }
 
                     ButtonSlots[(int)buttonPos] = buttonType;
                 }
@@ -563,6 +564,8 @@ namespace SINoCOLO
         {
             List<ButtonML> fileList = new List<ButtonML>();
             fileList.Add(new ButtonML("real-buttons.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-buttonNext1.jpg", "reportRetry:next, reportOk:ok"));
+            fileList.Add(new ButtonML("real-buttonNext2.jpg", "reportRetry:next, reportOk:ok"));
             fileList.Add(new ButtonML("real-source4.jpg", "reportRetry:retry, reportOk:ok"));
             fileList.Add(new ButtonML("real-source5.jpg", "reportRetry:retry, reportOk:ok"));
             fileList.Add(new ButtonML("real-source6.jpg", "reportRetry:retry, reportOk:ok"));
