@@ -330,6 +330,23 @@ namespace SINoCOLO
             {
                 state = EState.ColoPurify;
                 OnStateChanged();
+
+                // when returning to purify state, check if there's burst ready with at least 1 big on screen
+                // enforce longer delay so stuff can spawn back in and be detected
+                if (cachedDataColoPurify != null &&
+                    (cachedDataColoPurify.BurstState == ScannerColoPurify.EBurstState.Ready || cachedDataColoPurify.BurstState == ScannerColoPurify.EBurstState.ReadyAndCenter))
+                {
+                    int numPrevBig = 0;
+                    foreach (var slot in cachedDataColoPurify.Slots)
+                    {
+                        numPrevBig += (slot == ScannerColoPurify.ESlotType.Big) ? 1 : 0;
+                    }
+
+                    if (numPrevBig >= 1)
+                    {
+                        scanSkipCounter = 30;
+                    }
+                }
             }
 
             cachedDataColoPurify = screenData;
