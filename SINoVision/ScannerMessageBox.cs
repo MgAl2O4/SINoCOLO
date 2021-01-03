@@ -1,43 +1,77 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace SINoVision
 {
     public class ScannerMessageBox : ScannerBase
     {
-        public enum ESpecialBox
+        public enum EMessageType
         {
             Unknown,
-            MessageBoxOk,
-            CombatReportOk,
+            Ok,
+            OkCancel,
+            Close,
+            CombatReport,
+        }
+
+        public enum EButtonPos
+        {
+            Unknown,
+            Center,
+            CenterTwoLeft,
+            CenterTwoRight,
             CombatReportRetry,
+            CombatReportOk,
+        }
+
+        public enum EButtonType   
+        { 
+            Unknown,
+            Cancel,
+            Close,
+            Retry,
+            Ok,
+        }
+
+        public class ActionData
+        {
+            public EButtonType buttonType;
+            public bool isRed;
+            public bool isWhite;
         }
 
         public class ScreenData
         {
-            public ESpecialBox mode;
-            public bool hasRetry;
+            public EMessageType mode;
+            public ActionData[] actions = new ActionData[6];
 
             public override string ToString()
             {
-                string desc = mode.ToString();
-                if (mode == ESpecialBox.CombatReportOk && hasRetry)
+                string desc = "Type:" + mode.ToString();
+                for (int idx = 1; idx < actions.Length; idx++)
                 {
-                    desc += " (with retry)";
+                    desc += string.Format("\n[{0}] {1}:{2} ({3})",
+                        idx,
+                        actions[idx].buttonType,
+                        actions[idx].isRed ? "red" : actions[idx].isWhite ? "white" : "??",
+                        (EButtonPos)idx);
                 }
 
                 return desc;
             }
         }
 
-        private FastPixelMatch matchAvgOk = new FastPixelMatchHSV(10, 20, 50, 70, 40, 50);
-        private FastPixelMatch matchAvgRetry = new FastPixelMatchHSV(25, 35, 20, 30, 80, 100);
+        private FastPixelMatch matchAvgRed = new FastPixelMatchHSV(10, 20, 50, 70, 40, 50);
+        private FastPixelMatch matchAvgWhite = new FastPixelMatchHSV(25, 40, 20, 40, 80, 90);
 
         private Rectangle rectOkButton = new Rectangle(118, 547, 95, 27);
-        private Rectangle rectStageTryAgainButton = new Rectangle(11, 549, 95, 27);
-        private Rectangle rectStageOkButton = new Rectangle(123, 549, 95, 27);
+        private Rectangle rectCombatRetryButton = new Rectangle(11, 549, 95, 27);
+        private Rectangle rectCombatOkButton = new Rectangle(123, 549, 95, 27);
+        private Rectangle rectTwoButtonsLeft = new Rectangle(65, 547, 95, 27);
+        private Rectangle rectTwoButtonsRight = new Rectangle(177, 547, 95, 27);
+        private Rectangle[] rectButtonPos;
+
+        private Rectangle rectButtonText = new Rectangle(29, 6, 32, 16);
 
         private MLClassifierButtons classifierButtons = new MLClassifierButtons();
         private string[] scannerStates = new string[] { "Idle", "NoButton", "Ok" };
@@ -48,6 +82,14 @@ namespace SINoVision
             DebugLevel = EDebugLevel.None;
 
             classifierButtons.InitializeModel();
+            
+            rectButtonPos = new Rectangle[6];
+            rectButtonPos[(int)EButtonPos.Unknown] = Rectangle.Empty;
+            rectButtonPos[(int)EButtonPos.Center] = rectOkButton;
+            rectButtonPos[(int)EButtonPos.CenterTwoLeft] = rectTwoButtonsLeft;
+            rectButtonPos[(int)EButtonPos.CenterTwoRight] = rectTwoButtonsRight;
+            rectButtonPos[(int)EButtonPos.CombatReportRetry] = rectCombatRetryButton;
+            rectButtonPos[(int)EButtonPos.CombatReportOk] = rectCombatOkButton;
         }
 
         public override string GetState()
@@ -73,9 +115,11 @@ namespace SINoVision
         {
             switch (actionType)
             {
-                case (int)ESpecialBox.MessageBoxOk: return rectOkButton;
-                case (int)ESpecialBox.CombatReportOk: return rectStageOkButton;
-                case (int)ESpecialBox.CombatReportRetry: return rectStageTryAgainButton;
+                case (int)EButtonPos.Center: return rectOkButton;
+                case (int)EButtonPos.CenterTwoLeft: return rectTwoButtonsLeft;
+                case (int)EButtonPos.CenterTwoRight: return rectTwoButtonsRight;
+                case (int)EButtonPos.CombatReportOk: return rectCombatOkButton;
+                case (int)EButtonPos.CombatReportRetry: return rectCombatRetryButton;
             }
 
             return Rectangle.Empty;
@@ -103,65 +147,73 @@ namespace SINoVision
 
         protected bool HasOkButtonArea(FastBitmapHSV bitmap, ScreenData screenData)
         {
-            FastPixelHSV avgPxA = GetAverageColor(bitmap, rectOkButton);
-            var matchOkA = matchAvgOk.IsMatching(avgPxA);
-
-            FastPixelHSV avgPxB = GetAverageColor(bitmap, rectStageOkButton);
-            var matchOkB = matchAvgOk.IsMatching(avgPxB);
-
-            FastPixelHSV avgPxC = new FastPixelHSV();
-            bool matchRetry = false;
-            if (matchOkB || DebugLevel >= EDebugLevel.Verbose)
+            FastPixelHSV[] avgPx = new FastPixelHSV[rectButtonPos.Length];
+            for (int idx = 1; idx < avgPx.Length; idx++)
             {
-                avgPxC = GetAverageColor(bitmap, rectStageTryAgainButton);
-                matchRetry = matchAvgRetry.IsMatching(avgPxC);
+                avgPx[idx] = GetAverageColor(bitmap, rectButtonPos[idx]);
+
+                var scanOb = new ActionData();
+                scanOb.isRed = matchAvgRed.IsMatching(avgPx[idx]);
+                scanOb.isWhite = matchAvgWhite.IsMatching(avgPx[idx]);
+
+                if (scanOb.isWhite || scanOb.isRed)
+                {
+                    float[] values = ExtractButtonData(bitmap, idx);
+                    scanOb.buttonType = (EButtonType)classifierButtons.Calculate(values, out float DummyPct);
+                }
+
+                screenData.actions[idx] = scanOb;
             }
 
-            if (matchRetry && matchOkB)
+            if (screenData.actions[(int)EButtonPos.CombatReportOk].isRed &&
+                screenData.actions[(int)EButtonPos.CombatReportOk].buttonType == EButtonType.Ok &&
+                screenData.actions[(int)EButtonPos.CombatReportRetry].isWhite &&
+                screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Retry)
             {
-                int typeIdx = (int)ESpecialBox.CombatReportRetry;
-                var buttonData = ExtractButtonData(bitmap, typeIdx);
-                int classIdx = classifierButtons.Calculate(buttonData, out float DummyPct);
-                screenData.hasRetry = classIdx == typeIdx;
-
-                typeIdx = (int)ESpecialBox.CombatReportOk;
-                buttonData = ExtractButtonData(bitmap, typeIdx);
-                classIdx = classifierButtons.Calculate(buttonData, out DummyPct);
-                if (classIdx == typeIdx)
-                {
-                    screenData.mode = (ESpecialBox)typeIdx;
-                }
+                screenData.mode = EMessageType.CombatReport;
             }
-
-            if (screenData.mode == ESpecialBox.Unknown && matchOkA)
+            else if (screenData.actions[(int)EButtonPos.Center].isRed && 
+                screenData.actions[(int)EButtonPos.Center].buttonType == EButtonType.Ok)
             {
-                int typeIdx = (int)ESpecialBox.MessageBoxOk;
-                var buttonData = ExtractButtonData(bitmap, typeIdx);
-                int classIdx = classifierButtons.Calculate(buttonData, out float DummyPct);
-                if (classIdx == typeIdx)
-                {
-                    screenData.mode = (ESpecialBox)typeIdx;
-                }
+                screenData.mode = EMessageType.Ok;
+            }
+            else if (screenData.actions[(int)EButtonPos.CenterTwoLeft].isWhite && 
+                screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonType == EButtonType.Cancel &&
+                screenData.actions[(int)EButtonPos.CenterTwoRight].isRed && 
+                screenData.actions[(int)EButtonPos.CenterTwoRight].buttonType == EButtonType.Ok)
+            {
+                screenData.mode = EMessageType.OkCancel;
+            }
+            else if (screenData.actions[(int)EButtonPos.Center].isWhite &&
+                screenData.actions[(int)EButtonPos.Center].buttonType == EButtonType.Close)
+            {
+                screenData.mode = EMessageType.Close;
             }
 
             if (DebugLevel >= EDebugLevel.Simple)
             {
-                Console.WriteLine("{0} HasOkButtonArea: {1}", ScannerName, screenData.mode);
+                Console.WriteLine("{0} Mode: {1}", ScannerName, screenData.mode);
             }
             if (DebugLevel >= EDebugLevel.Verbose)
             {
-                Console.WriteLine("  avgMsgBox:({0}) vs filter({1}) => {2}", avgPxA, matchAvgOk, matchOkA);
-                Console.WriteLine("  avgFightReport:({0}) vs filter({1}) => {2}", avgPxB, matchAvgOk, matchOkB);
-                Console.WriteLine("  avgTryAgain:({0}) vs filter({1}) => {2}", avgPxC, matchAvgRetry, matchRetry);
+                Console.WriteLine("  filterRed:({0}), filterWhite:({1})", matchAvgRed, matchAvgWhite);
+                for (int idx = 1; idx < avgPx.Length; idx++)
+                {
+                    Console.WriteLine("  [{0}]:({1}), isRed:{2}, isWhite:{3}, class:{4}",
+                        (EButtonPos)idx, avgPx[idx], 
+                        screenData.actions[idx].isRed,
+                        screenData.actions[idx].isWhite,
+                        screenData.actions[idx].buttonType);
+                }
             }
 
-            return matchOkA || matchOkB;
+            return screenData.mode != EMessageType.Unknown;
         }
 
         public float[] ExtractButtonData(FastBitmapHSV bitmap, int slotIdx)
         {
-            // scan area: 16x5 (95x27 crop: 80x25 and scale down by 5)
-            float[] values = new float[16 * 5];
+            // scan area: 16x8 (rectButtonText scaled down)
+            float[] values = new float[16 * 8];
             for (int idx = 0; idx < values.Length; idx++)
             {
                 values[idx] = 0.0f;
@@ -169,21 +221,19 @@ namespace SINoVision
 
             const int monoSteps = 16;
             const float monoScale = 1.0f / monoSteps;
-            const float accScale = 1.0f / 25.0f;
 
-            Point slotPos =
-                (slotIdx == (int)ESpecialBox.CombatReportOk) ? rectStageOkButton.Location :
-                (slotIdx == (int)ESpecialBox.CombatReportRetry) ? rectStageTryAgainButton.Location :
-                rectOkButton.Location;
+            Point slotPos = rectButtonPos[slotIdx].Location;
+            slotPos.X += rectButtonText.Location.X;
+            slotPos.Y += rectButtonText.Location.Y;
 
-            for (int idxY = 0; idxY < 25; idxY++)
+            for (int idxY = 0; idxY < 16; idxY++)
             {
-                for (int idxX = 0; idxX < 80; idxX++)
+                for (int idxX = 0; idxX < 32; idxX++)
                 {
                     FastPixelHSV pixel = bitmap.GetPixel(slotPos.X + idxX, slotPos.Y + idxY);
                     int monoV = pixel.GetMonochrome() / (256 / monoSteps);
 
-                    values[(idxX / 5) + ((idxY / 5) * 16)] = monoV * monoScale * accScale;
+                    values[(idxX / 2) + ((idxY / 2) * 16)] += monoV * monoScale * 0.25f;
                 }
             }
 

@@ -307,6 +307,14 @@ namespace SINoCOLO
                 lines.AddRange(tokens);
             }
 
+            if (gameLogic.cachedDataMessageBox != null)
+            {
+                lines.Add("");
+                lines.Add("Cached MessageBox:");
+                string[] tokens = gameLogic.cachedDataMessageBox.ToString().Split('\n');
+                lines.AddRange(tokens);
+            }
+
             textBoxDetails.Lines = lines.ToArray();
         }
     }

@@ -20,6 +20,7 @@ namespace SINoCOLO
         public ScannerColoCombat.ScreenData cachedDataColoCombat;
         public ScannerColoPurify.ScreenData cachedDataColoPurify;
         public ScannerCombat.ScreenData cachedDataCombat;
+        public ScannerMessageBox.ScreenData cachedDataMessageBox;
 
         public int slotIdx = -1;
         public int specialIdx = -1;
@@ -155,6 +156,7 @@ namespace SINoCOLO
 
             cachedDataColoCombat = screenData;
             cachedDataCombat = null;
+            cachedDataMessageBox = null;
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
@@ -350,6 +352,7 @@ namespace SINoCOLO
             }
 
             cachedDataColoPurify = screenData;
+            cachedDataMessageBox = null;
 
             // don't do anything when burst is already active
             if (screenData.BurstState == ScannerColoPurify.EBurstState.Active)
@@ -507,6 +510,8 @@ namespace SINoCOLO
                 OnStateChanged();
             }
 
+            cachedDataMessageBox = screenData;
+
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
@@ -515,15 +520,31 @@ namespace SINoCOLO
 
             // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
             scanSkipCounter = randGen.Next(5, 8);
+            specialIdx = -1;
 
-            int specialIdx = (int)screenData.mode;
-            if (screenData.hasRetry)
+            switch (screenData.mode)
             {
-                specialIdx = (int)ScannerMessageBox.ESpecialBox.CombatReportRetry;
-                scanSkipCounter = randGen.Next(25, 30);
+                case ScannerMessageBox.EMessageType.CombatReport:
+                    scanSkipCounter = randGen.Next(25, 30);
+                    specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                    break;
+
+                case ScannerMessageBox.EMessageType.Ok:
+                    specialIdx = (int)ScannerMessageBox.EButtonPos.Center;
+                    break;
+
+                case ScannerMessageBox.EMessageType.OkCancel:
+                    specialIdx = (int)ScannerMessageBox.EButtonPos.CenterTwoRight;
+                    break;
+
+                default: break;
             }
 
-            RequestMouseClick(screenScanner.GetSpecialActionBox(specialIdx), -1, specialIdx);
+            if (specialIdx >= 0)
+            {
+                RequestMouseClick(screenScanner.GetSpecialActionBox(specialIdx), -1, specialIdx);
+            }
+
             return true;
         }
 
@@ -531,24 +552,37 @@ namespace SINoCOLO
         {
             if (screenData == null) { return false; }
 
-            if (screenData.mode == ScannerMessageBox.ESpecialBox.MessageBoxOk)
+            Rectangle boxA = Rectangle.Empty, boxB = Rectangle.Empty;
+            switch (screenData.mode)
             {
-                Rectangle okBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.MessageBoxOk);
-                DrawActionArea(g, okBox, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.MessageBoxOk);
-            }
-            else if (screenData.mode == ScannerMessageBox.ESpecialBox.CombatReportOk)
-            {
-                Rectangle okBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.CombatReportOk);
-                DrawActionArea(g, okBox, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.CombatReportOk);
+                case ScannerMessageBox.EMessageType.Ok:
+                    boxA = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.Center);
+                    DrawActionArea(g, boxA, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.EButtonPos.Center);
+                    break;
 
-                if (screenData.hasRetry)
-                {
-                    Rectangle retryBox = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
-                    DrawActionArea(g, retryBox, "Retry", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
-                }
+                case ScannerMessageBox.EMessageType.OkCancel:
+                    boxA = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CenterTwoLeft);
+                    boxB = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CenterTwoRight);
+                    DrawActionArea(g, boxA, "Cancel", colorPaletteYellow, specialIdx == (int)ScannerMessageBox.EButtonPos.CenterTwoLeft);
+                    DrawActionArea(g, boxB, "Ok", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.EButtonPos.CenterTwoRight);
+                    break;
+
+                case ScannerMessageBox.EMessageType.CombatReport:
+                    boxA = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CombatReportRetry);
+                    boxB = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.CombatReportOk);
+                    DrawActionArea(g, boxA, "Retry", colorPaletteGreen, specialIdx == (int)ScannerMessageBox.EButtonPos.CombatReportRetry);
+                    DrawActionArea(g, boxB, "Ok", colorPaletteYellow, specialIdx == (int)ScannerMessageBox.EButtonPos.CombatReportOk);
+                    break;
+
+                case ScannerMessageBox.EMessageType.Close:
+                    boxA = screenScanner.GetSpecialActionBox((int)ScannerMessageBox.EButtonPos.Center);
+                    DrawActionArea(g, boxA, "Close", colorPaletteYellow, specialIdx == (int)ScannerMessageBox.EButtonPos.Center);
+                    break;
+
+                default: break;
             }
 
-            return false;
+            return true;
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -565,6 +599,7 @@ namespace SINoCOLO
             cachedDataCombat = screenData;
             cachedDataColoCombat = null;
             cachedDataColoPurify = null;
+            cachedDataMessageBox = null;
 
             scanSkipCounter--;
             if (scanSkipCounter > 0)

@@ -179,8 +179,40 @@ namespace SINoCOLO
             }
         };
 
-        private void GatherMLDataWeapon()
+        private struct ButtonML
         {
+            public string fileName;
+            public ScannerMessageBox.EButtonType[] ButtonSlots;
+
+            public ButtonML(string path, string typeCode)
+            {
+                fileName = path;
+                ButtonSlots = new ScannerMessageBox.EButtonType[6];
+
+                string[] tokens = typeCode.Split(new char[] { ':', ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int idx = 0; idx < tokens.Length; idx += 2)
+                {
+                    var buttonPos = ScannerMessageBox.EButtonPos.Unknown;
+                    var buttonType = ScannerMessageBox.EButtonType.Unknown;
+
+                    if (tokens[idx] == "reportRetry") { buttonPos = ScannerMessageBox.EButtonPos.CombatReportRetry; } 
+                    else if (tokens[idx] == "reportOk") { buttonPos = ScannerMessageBox.EButtonPos.CombatReportOk; }
+                    else if (tokens[idx] == "center") { buttonPos = ScannerMessageBox.EButtonPos.Center; }
+                    else if (tokens[idx] == "centerL") { buttonPos = ScannerMessageBox.EButtonPos.CenterTwoLeft; }
+                    else if (tokens[idx] == "centerR") { buttonPos = ScannerMessageBox.EButtonPos.CenterTwoRight; }
+
+                    if (tokens[idx + 1] == "retry") { buttonType = ScannerMessageBox.EButtonType.Retry; }
+                    else if (tokens[idx + 1] == "ok") { buttonType = ScannerMessageBox.EButtonType.Ok; }
+                    else if (tokens[idx + 1] == "cancel") { buttonType = ScannerMessageBox.EButtonType.Cancel; }
+                    else if (tokens[idx + 1] == "close") { buttonType = ScannerMessageBox.EButtonType.Close; }
+
+                    ButtonSlots[(int)buttonPos] = buttonType;
+                }
+            }
+        }
+
+        private void GatherMLDataWeapon()
+        { 
             List<WeapML> fileList = new List<WeapML>();
             fileList.Add(new WeapML("real-source10.jpg", "itisi"));
             fileList.Add(new WeapML("real-source12.jpg", "itisi"));
@@ -529,38 +561,38 @@ namespace SINoCOLO
 
         private void GatherMLDataButtons()
         {
-            var fileMap = new Dictionary<string, ScannerMessageBox.ESpecialBox>();
-            fileMap.Add("real-buttons.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
-            fileMap.Add("real-source4.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
-            fileMap.Add("real-source5.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
-            fileMap.Add("real-source6.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
-            fileMap.Add("real-source7.jpg", ScannerMessageBox.ESpecialBox.CombatReportOk);
-            fileMap.Add("real-msg1.jpg", ScannerMessageBox.ESpecialBox.MessageBoxOk);
-            fileMap.Add("real-msg2.jpg", ScannerMessageBox.ESpecialBox.MessageBoxOk);
+            List<ButtonML> fileList = new List<ButtonML>();
+            fileList.Add(new ButtonML("real-buttons.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-source4.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-source5.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-source6.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-source7.jpg", "reportRetry:retry, reportOk:ok"));
+            fileList.Add(new ButtonML("real-msg1.jpg", "center:ok"));
+            fileList.Add(new ButtonML("real-msg2.jpg", "center:ok"));
+            fileList.Add(new ButtonML("real-msgClose.jpg", "center:close"));
+            fileList.Add(new ButtonML("real-msgClose2.jpg", "center:close"));
+            fileList.Add(new ButtonML("real-msgOkCancel.jpg", "centerL:cancel, centerR:ok"));
 
             string jsonDesc = "{\"dataset\":[";
-            foreach (var kvp in fileMap)
+            foreach (var fileData in fileList)
             {
-                var srcScreenshot = LoadTestScreenshot("train-smol/" + kvp.Key);
+                var srcScreenshot = LoadTestScreenshot("train-smol/" + fileData.fileName);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
                 var buttonsScanner = scanners[2] as ScannerMessageBox;
-                for (int idx = 1; idx <= 3; idx++)
+                for (int idx = 0; idx < fileData.ButtonSlots.Length; idx++)
                 {
-                    var values = buttonsScanner.ExtractButtonData(fastBitmap, idx);
-                    var canUse =
-                        (kvp.Value == ScannerMessageBox.ESpecialBox.MessageBoxOk && idx == (int)ScannerMessageBox.ESpecialBox.MessageBoxOk) ||
-                        (kvp.Value == ScannerMessageBox.ESpecialBox.CombatReportOk && idx == (int)ScannerMessageBox.ESpecialBox.CombatReportOk) ||
-                        (kvp.Value == ScannerMessageBox.ESpecialBox.CombatReportOk && idx == (int)ScannerMessageBox.ESpecialBox.CombatReportRetry);
-
-                    if (canUse)
+                    if (fileData.ButtonSlots[idx] == ScannerMessageBox.EButtonType.Unknown)
                     {
-                        jsonDesc += "\n{\"input\":[";
-                        jsonDesc += string.Join(",", values);
-                        jsonDesc += "], \"output\":";
-                        jsonDesc += idx;
-                        jsonDesc += "},";
+                        continue;
                     }
+
+                    var values = buttonsScanner.ExtractButtonData(fastBitmap, idx);
+                    jsonDesc += "\n{\"input\":[";
+                    jsonDesc += string.Join(",", values);
+                    jsonDesc += "], \"output\":";
+                    jsonDesc += (int)fileData.ButtonSlots[idx];
+                    jsonDesc += "},";
                 }
             }
 
