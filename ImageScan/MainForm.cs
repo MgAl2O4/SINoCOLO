@@ -133,16 +133,28 @@ namespace SINoCOLO
         private struct WeapML
         {
             public string fileName;
+            public string[] effects;
             public ScannerCombatBase.EWeaponType[] WeaponTypes;
+            public ScannerCombatBase.EElementType[] ElementTypes;
+            public ScannerCombatBase.EElementType BoostElement;
 
-            public WeapML(string path, string weaponCode)
+            public WeapML(string path, string weaponCode, string elemCode, string effectCode, string meta = null)
             {
                 fileName = path;
                 WeaponTypes = new ScannerCombatBase.EWeaponType[5];
+                ElementTypes = new ScannerCombatBase.EElementType[5];
+                BoostElement = ScannerCombatBase.EElementType.Unknown;
+                effects = effectCode.Split(',');
+
                 for (int idx = 0; idx < 5; idx++)
                 {
                     WeaponTypes[idx] = GetWeaponTypeCode(weaponCode[idx]);
+                    ElementTypes[idx] = GetWeaponElementCode(elemCode[idx]);
                 }
+
+                if (meta == "boost:wind") { BoostElement = ScannerCombatBase.EElementType.Wind; }
+                else if (meta == "boost:water") { BoostElement = ScannerCombatBase.EElementType.Water; }
+                else if (meta == "boost:fire") { BoostElement = ScannerCombatBase.EElementType.Fire; }
             }
 
             private ScannerCombatBase.EWeaponType GetWeaponTypeCode(char c)
@@ -150,7 +162,16 @@ namespace SINoCOLO
                 return (c == 'I' || c == 'i') ? ScannerCombatBase.EWeaponType.Instrument :
                     (c == 'T' || c == 't') ? ScannerCombatBase.EWeaponType.Tome :
                     (c == 'S' || c == 's') ? ScannerCombatBase.EWeaponType.Staff :
+                    (c == 'O' || c == 'o') ? ScannerCombatBase.EWeaponType.Orb :
                     ScannerCombatBase.EWeaponType.Unknown;
+            }
+
+            private ScannerCombatBase.EElementType GetWeaponElementCode(char c)
+            {
+                return (c == 'R' || c == 'r') ? ScannerCombatBase.EElementType.Fire :
+                    (c == 'B' || c == 'b') ? ScannerCombatBase.EElementType.Water :
+                    (c == 'G' || c == 'g') ? ScannerCombatBase.EElementType.Wind :
+                    ScannerCombatBase.EElementType.Unknown;
             }
         };
 
@@ -215,47 +236,151 @@ namespace SINoCOLO
         private void GatherMLDataWeapon()
         { 
             List<WeapML> fileList = new List<WeapML>();
-            fileList.Add(new WeapML("real-source10.jpg", "itisi"));
-            fileList.Add(new WeapML("real-source12.jpg", "itisi"));
-            fileList.Add(new WeapML("real-source13.jpg", "itsii"));
-            fileList.Add(new WeapML("real-source14.jpg", "itsii"));
-            fileList.Add(new WeapML("real-source17.jpg", "isiii"));
-            fileList.Add(new WeapML("real-source18.jpg", "isiit"));
-            fileList.Add(new WeapML("real-source19.jpg", "isiit"));
-            fileList.Add(new WeapML("real-source20.jpg", "isiis"));
-            fileList.Add(new WeapML("real-source21.jpg", "isiis"));
-            fileList.Add(new WeapML("real-source22.jpg", "isiis"));
-            fileList.Add(new WeapML("real-source23.jpg", "isisi"));
-            fileList.Add(new WeapML("real-source24.jpg", "isisi"));
-            fileList.Add(new WeapML("real-source25.jpg", "isisi"));
-            fileList.Add(new WeapML("real-source26.jpg", "isisi"));
-            fileList.Add(new WeapML("real-source27.jpg", "isist"));
-            fileList.Add(new WeapML("real-source28.jpg", "isist"));
-            fileList.Add(new WeapML("real-source29.jpg", "isist"));
-            fileList.Add(new WeapML("real-source30.jpg", "isist"));
-            fileList.Add(new WeapML("real-source31.jpg", ".sist"));
-            fileList.Add(new WeapML("real-source32.jpg", ".sist"));
-            fileList.Add(new WeapML("real-source33.jpg", "sisti"));
-            fileList.Add(new WeapML("real-source34.jpg", "sisti"));
-            fileList.Add(new WeapML("real-source35.jpg", "sisti"));
-            fileList.Add(new WeapML("real-source36.jpg", "sisti"));
+            fileList.Add(new WeapML("real-source1.jpg", "iiiit", "rgrgb", "mdef,atk,def,matk,matk"));
+            fileList.Add(new WeapML("real-source2.jpg", "iiiti", "grgbb", "atk,def,matk,matk,patk"));
+            fileList.Add(new WeapML("real-source3.jpg", "iiiti", "grgbb", "atk,def,matk,matk,patk"));
+            fileList.Add(new WeapML("real-source4.jpg", "iiiti", "grgbb", "atk,def,matk,matk,patk"));
+            fileList.Add(new WeapML("real-source5.jpg", ".tisi", ".rgbb", "x,def,matk,matk,patk"));
+            fileList.Add(new WeapML("real-source6.jpg", "iitis", "rgbbg", "def,matk,matk,patk,heal"));
+            fileList.Add(new WeapML("real-source7.jpg", "iitis", "rgbbg", "def,matk,matk,patk,heal"));
+            fileList.Add(new WeapML("real-source8.jpg", ".itis", ".gbbg", "x,matk,matk,patk,heal"));
+            fileList.Add(new WeapML("real-source9.jpg", ".itis", ".gbbg", "x,matk,matk,patk,heal"));
+            fileList.Add(new WeapML("real-source12.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source13.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source14.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source15.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source16.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source17.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source18.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source19.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source20.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source21.jpg", "itisi", "gbbgg", "matk,matk,patk,heal,def"));
+            fileList.Add(new WeapML("real-source23.jpg", "itist", "gbbgg", "matk,matk,patk,heal,pdef+patk"));
+            fileList.Add(new WeapML("real-source24.jpg", "itist", "gbbgg", "matk,matk,patk,heal,pdef+patk"));
+            fileList.Add(new WeapML("real-source25.jpg", "iti.t", "gbb.g", "matk,matk,patk,x,pdef+patk"));
+            fileList.Add(new WeapML("real-source26.jpg", "iti.t", "gbb.g", "matk,matk,patk,x,pdef+patk"));
+            fileList.Add(new WeapML("real-source27.jpg", "iti.t", "gbb.g", "matk,matk,patk,x,pdef+patk"));
+            fileList.Add(new WeapML("real-source28.jpg", "ititi", "gbbgr", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source30.jpg", "ititi", "gbbgr", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source31.jpg", "ititi", "gbbgr", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source32.jpg", "ititi", "gbbgr", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source33.jpg", "ititi", "gbbgr", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source35.jpg", "ititi", "gbbgg", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source36.jpg", "ititi", "gbbgg", "matk,matk,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source37.jpg", "i.iti", "g.bgg", "matk,x,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source38.jpg", "i.iti", "g.bgg", "matk,x,patk,pdef+patk,atk"));
+            fileList.Add(new WeapML("real-source39.jpg", "iitis", "gbggb", "matk,patk,pdef+patk,atk,heal"));
+            fileList.Add(new WeapML("real-source40.jpg", "iitis", "gbggb", "matk,patk,pdef+patk,atk,heal"));
+            fileList.Add(new WeapML("real-source41.jpg", "iitis", "gbggb", "matk,patk,pdef+patk,atk,heal"));
+            fileList.Add(new WeapML("real-source42.jpg", "iitis", "gbggb", "matk,patk,pdef+patk,atk,heal"));
+            fileList.Add(new WeapML("real-source43.jpg", "iitis", "gbggb", "matk,patk,pdef+patk,atk,heal"));
+            fileList.Add(new WeapML("real-source44.jpg", "iiti.", "gbgg.", "matk,patk,pdef+patk,atk,x"));
+            fileList.Add(new WeapML("real-source45.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source46.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source47.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source48.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source49.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source50.jpg", "iitit", "gbggr", "matk,patk,pdef+patk,atk,atk"));
+            fileList.Add(new WeapML("real-source51.jpg", "ii.it", "gb.gr", "matk,patk,x,atk,atk"));
+            fileList.Add(new WeapML("real-source53.jpg", "iiiti", "gbgrg", "matk,patk,atk,atk,patk"));
+            fileList.Add(new WeapML("real-source54.jpg", "iiit.", "gbgr.", "matk,patk,atk,atk,x"));
+            fileList.Add(new WeapML("real-source55.jpg", "iiit.", "gbgr.", "matk,patk,atk,atk,x"));
+            fileList.Add(new WeapML("real-source56.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source57.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source58.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source59.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source60.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source61.jpg", "iiiti", "gbgrb", "matk,patk,atk,atk,def"));
+            fileList.Add(new WeapML("real-source62.jpg", "ii.ti", "gb.rr", "matk,patk,x,atk,def"));
+            fileList.Add(new WeapML("real-source63.jpg", "iitit", "gbrrr", "matk,patk,atk,def,matk"));
+            fileList.Add(new WeapML("real-source64.jpg", "iitit", "gbrrr", "matk,patk,atk,def,matk"));
+            fileList.Add(new WeapML("real-source65.jpg", "iitit", "gbrrr", "matk,patk,atk,def,matk"));
+            fileList.Add(new WeapML("real-source66.jpg", "iitit", "gbrrr", "matk,patk,atk,def,matk"));
+            fileList.Add(new WeapML("real-source67.jpg", "iiti.", "gbrr.", "matk,patk,atk,def,x"));
+            fileList.Add(new WeapML("real-source68.jpg", "iiti.", "gbrr.", "matk,patk,atk,def,x"));
+            // TODO: more?
+
+            fileList.Add(new WeapML("image-elemboost1-scaled.jpg", "i.iii", "b.gbr", "patk,x,matk,def,def", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost2-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost3-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost4-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost5-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost6-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost7-scaled.jpg", "iiiit", "bgbrb", "patk,matk,def,def,atk", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost8-scaled.jpg", "iiii.", "bgbr.", "patk,matk,def,def,x", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost9-scaled.jpg", "iiii.", "bgbr.", "patk,matk,def,def,x", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost10-scaled.jpg", "iiii.", "bgbr.", "patk,matk,def,def,x", "boost:wind"));
+            fileList.Add(new WeapML("image-elemboost11-scaled.jpg", "iiii.", "bgbr.", "patk,matk,def,def,x", "boost:wind"));
+            fileList.Add(new WeapML("image-summon1-scaled.jpg", "i....", "r....", "def,x,x,x,x"));
+            fileList.Add(new WeapML("image-summon2-scaled.jpg", "i....", "r....", "def,x,x,x,x"));
+            fileList.Add(new WeapML("image-summon3-scaled.jpg", ".....", ".....", "x,x,x,x,x"));
+            fileList.Add(new WeapML("image-summon4-scaled.jpg", "ittit", "rbrrg", "mdef,matk,atk,atk,pdef+patk"));
+            fileList.Add(new WeapML("real-orb1.jpg", "itsto", "ggbgb", "atk,def,heal,pdef+patk,matk"));
+            fileList.Add(new WeapML("real-orb2.jpg", "tstoi", "gbgbr", "def,heal,pdef+patk,matk,mdef"));
+            fileList.Add(new WeapML("real-orb3.jpg", "tstoi", "gbgbr", "def,heal,pdef+patk,matk,mdef"));
+            fileList.Add(new WeapML("real-orb4.jpg", "tstoi", "gbgbr", "def,heal,pdef+patk,matk,mdef"));
+            fileList.Add(new WeapML("real-orb6.jpg", "tsois", "gbbrg", "def,heal,matk,mdef,heal"));
+            fileList.Add(new WeapML("real-orb7.jpg", "tsois", "gbbrg", "def,heal,matk,mdef,heal"));
+            fileList.Add(new WeapML("real-orb8.jpg", "tsois", "gbbrg", "def,heal,matk,mdef,heal"));
+            fileList.Add(new WeapML("real-orb9.jpg", "tsois", "gbbrg", "def,heal,matk,mdef,heal"));
+            fileList.Add(new WeapML("real-orb10.jpg", "tsois", "gbbrg", "def,heal,matk,mdef,heal"));
+
+            var mapEffects = new Dictionary<string, int>();
+            mapEffects.Add("heal", 0);
+            mapEffects.Add("patk+", 0);
+            mapEffects.Add("patk-", 0);
+            mapEffects.Add("matk+", 0);
+            mapEffects.Add("matk-", 0);
+            mapEffects.Add("atk+", 0);
+            mapEffects.Add("atk-", 0);
+            mapEffects.Add("pdef+", 0);
+            mapEffects.Add("pdef-", 0);
+            mapEffects.Add("mdef+", 0);
+            mapEffects.Add("mdef-", 0);
+            mapEffects.Add("def+", 0);
+            mapEffects.Add("def-", 0);
+
+            var combatScanner = scanners[scanners.Count - 1] as ScannerCombat;
+            var orgDebugLevel = combatScanner.DebugLevel;
+            combatScanner.DebugLevel = ScannerBase.EDebugLevel.None;
 
             string jsonDesc = "{\"dataset\":[";
             foreach (var fileData in fileList)
             {
-                var srcScreenshot = LoadTestScreenshot("train-smol/" + fileData.fileName);
+                var srcScreenshot = LoadTestScreenshot("train-weapons/" + fileData.fileName);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
-                var combatScanner = scanners[scanners.Count - 1] as ScannerCombat;
                 for (int idx = 0; idx < 5; idx++)
                 {
-                    var values = combatScanner.ExtractActionSlotWeaponData(fastBitmap, idx);
+                    if (fileData.WeaponTypes[idx] != ScannerCombatBase.EWeaponType.Unknown)
+                    {
+                        if (fileData.fileName == "image-elemboost1-scaled.jpg" && idx == 2)
+                        {
+                            int a = 1;
 
-                    jsonDesc += "\n{\"input\":[";
-                    jsonDesc += string.Join(",", values);
-                    jsonDesc += "], \"output\":";
-                    jsonDesc += (int)fileData.WeaponTypes[idx];
-                    jsonDesc += "},";
+                        }
+
+                        var values = combatScanner.ExtractActionSlotWeaponData(fastBitmap, idx);
+                        var elem = combatScanner.ScanElementType(fastBitmap, idx);
+                        if (elem != fileData.ElementTypes[idx])
+                        {
+                            Console.WriteLine("Element type scan mismatch! image:{0}, slot:{1} => has:{2}, expected:{3}",
+                                fileData.fileName, idx, elem, fileData.ElementTypes[idx]);
+                        }
+
+                        jsonDesc += "\n{\"input\":[";
+                        jsonDesc += string.Join(",", values);
+                        jsonDesc += "], \"output\":";
+                        jsonDesc += (int)fileData.WeaponTypes[idx];
+                        jsonDesc += "},";
+                    }
+
+                    string effectCode = fileData.effects[idx];
+                    if (fileData.WeaponTypes[idx] == ScannerCombatBase.EWeaponType.Instrument) { effectCode += "+"; }
+                    else if (fileData.WeaponTypes[idx] == ScannerCombatBase.EWeaponType.Tome) { effectCode += "-"; }
+
+                    if (!mapEffects.ContainsKey(effectCode)) { mapEffects.Add(effectCode, 0); }
+                    mapEffects[effectCode] += 1;
                 }
             }
 
@@ -264,6 +389,16 @@ namespace SINoCOLO
 
             string savePath = @"D:\temp\recording\sino-ml-weapons.json";
             File.WriteAllText(savePath, jsonDesc);
+
+            combatScanner.DebugLevel = orgDebugLevel;
+            Console.WriteLine("Effect icons in training data:");
+            foreach (var kvp in mapEffects)
+            {
+                if (kvp.Key != "x")
+                {
+                    Console.WriteLine("  {0}: {1} {2}", kvp.Key, kvp.Value, kvp.Value == 0 ? " << MISSING!" : "");
+                }
+            }
         }
 
         private void GatherMLDataDemon()

@@ -13,6 +13,7 @@ namespace SINoVision
             Instrument,
             Tome,
             Staff,
+            Orb,
         }
 
         public enum EElementType
@@ -61,7 +62,7 @@ namespace SINoVision
         protected Rectangle[] rectActionSlots = { new Rectangle(17, 501, 52, 52), new Rectangle(80, 501, 52, 52), new Rectangle(143, 501, 52, 52), new Rectangle(206, 501, 52, 52), new Rectangle(269, 501, 52, 52) };
         protected Rectangle rectActionIcon = new Rectangle(39, 4, 10, 10);
         protected Rectangle rectActionAvail = new Rectangle(3, 44, 4, 4);
-        protected Rectangle rectActionElement = new Rectangle(3, 3, 28, 2);
+        protected Rectangle[] rectActionElements = new Rectangle[] { new Rectangle(3, 3, 28, 2), new Rectangle(35, 47, 14, 2), new Rectangle(47, 36, 2, 10) };
         protected Rectangle rectBigButton = new Rectangle(103, 506, 131, 44);
         protected Point[] posBigButton = { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
 
@@ -139,6 +140,61 @@ namespace SINoVision
             }
         }
 
+        protected EElementType ScanElementType(FastBitmapHSV bitmap, Rectangle bounds)
+        {
+            EElementType element = EElementType.Unknown;
+            int countElemR = 0;
+            int countElemG = 0;
+            int countElemB = 0;
+            int countTotal = 0;
+
+            const int hueDrift = 30;
+            const int hueB = 180;
+            const int hueG = 130;
+            const int hueR = 15;
+
+            foreach (var sampleBounds in rectActionElements)
+            {
+                for (int idxY = 0; idxY < sampleBounds.Height; idxY++)
+                {
+                    for (int idxX = 0; idxX < sampleBounds.Width; idxX++)
+                    {
+                        FastPixelHSV testPx = bitmap.GetPixel(bounds.X + sampleBounds.X + idxX, bounds.Y + sampleBounds.Y + idxY);
+                        countTotal++;
+
+                        int testMono = testPx.GetMonochrome();
+                        if (testMono < 210)
+                        {
+                            int testHue = testPx.GetHue();
+                            countElemR += ((testHue > (hueR + 360 - hueDrift)) || (testHue < (hueR + hueDrift))) ? 1 : 0;
+                            countElemG += ((testHue > (hueG - hueDrift)) && (testHue < (hueG + hueDrift))) ? 1 : 0;
+                            countElemB += ((testHue > (hueB - hueDrift)) && (testHue < (hueB + hueDrift))) ? 1 : 0;
+                        }
+                    }
+                }
+            }
+
+            int minThr = countTotal * 30 / 100;
+            if ((countElemR > minThr) && (countElemR > countElemG) && (countElemR > countElemB))
+            {
+                element = EElementType.Fire;
+            }
+            else if ((countElemG > minThr) && (countElemG > countElemR) && (countElemG > countElemB))
+            {
+                element = EElementType.Wind;
+            }
+            else if ((countElemB > minThr) && (countElemB > countElemR) && (countElemB > countElemG))
+            {
+                element = EElementType.Water;
+            }
+
+            if (DebugLevel >= EDebugLevel.Verbose)
+            {
+                Console.WriteLine(">> elem counters: R:{0}, G:{1}, B:{2} => {3}", countElemR, countElemG, countElemB, element);
+            }
+            return element;
+        }
+
         protected void ScanActionSlot(FastBitmapHSV bitmap, Rectangle bounds, ActionData actionData, int slotIdx)
         {
             for (int idxY = 0; idxY < rectActionAvail.Height; idxY++)
@@ -155,48 +211,11 @@ namespace SINoVision
                 }
             }
 
-            int countElemR = 0;
-            int countElemG = 0;
-            int countElemB = 0;
-
             if (actionData.isValid)
             {
-                {
-                    const int hueDrift = 30;
-                    const int hueB = 180;
-                    const int hueG = 130;
-                    const int hueR = 15;
-
-                    for (int idxY = 0; idxY < rectActionElement.Height; idxY++)
-                    {
-                        for (int idxX = 0; idxX < rectActionElement.Width; idxX++)
-                        {
-                            FastPixelHSV testPx = bitmap.GetPixel(bounds.X + rectActionElement.X + idxX, bounds.Y + rectActionElement.Y + idxY);
-                            int testHue = testPx.GetHue();
-
-                            countElemR += ((testHue > (hueR + 360 - hueDrift)) || (testHue < (hueR + hueDrift))) ? 1 : 0;
-                            countElemG += ((testHue > (hueG - hueDrift)) && (testHue < (hueG + hueDrift))) ? 1 : 0;
-                            countElemB += ((testHue > (hueB - hueDrift)) && (testHue < (hueB + hueDrift))) ? 1 : 0;
-                        }
-                    }
-
-                    int minThr = 40;
-                    if ((countElemR > minThr) && (countElemR > countElemG) && (countElemR > countElemB))
-                    {
-                        actionData.element = EElementType.Fire;
-                    }
-                    else if ((countElemG > minThr) && (countElemG > countElemR) && (countElemG > countElemB))
-                    {
-                        actionData.element = EElementType.Wind;
-                    }
-                    else if ((countElemB > minThr) && (countElemB > countElemR) && (countElemB > countElemG))
-                    {
-                        actionData.element = EElementType.Water;
-                    }
-                }
-
                 float[] pixelInput = ExtractActionSlotWeaponData(bitmap, slotIdx);
                 actionData.weaponClass = (EWeaponType)classifierWeapon.Calculate(pixelInput, out float dummyPct);
+                actionData.element = ScanElementType(bitmap, bounds);
             }
 
             if (DebugLevel >= EDebugLevel.Simple)
@@ -224,9 +243,13 @@ namespace SINoVision
                     minMono, maxMono,
                     bounds.X + rectActionAvail.X, bounds.Y + rectActionAvail.Y,
                     rectActionAvail.Width, rectActionAvail.Height);
-
-                Console.WriteLine(">> elem counters: R:{0}, G:{1}, B:{2}", countElemR, countElemG, countElemB);
             }
+        }
+
+        public EElementType ScanElementType(FastBitmapHSV bitmap, int slotIdx)
+        {
+            var element = ScanElementType(bitmap, rectActionSlots[slotIdx]);
+            return element;
         }
 
         public float[] ExtractActionSlotWeaponData(FastBitmapHSV bitmap, int slotIdx)
