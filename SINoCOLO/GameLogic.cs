@@ -396,7 +396,8 @@ namespace SINoCOLO
             if (screenData.BurstState == ScannerColoPurify.EBurstState.ReadyAndCenter && (numBig > 0))
             {
                 float SPAfterBurst = (screenData.SPIsValid ? screenData.SPFillPct : 1.0f) + (numBig * burstBigPct);
-                bool shouldUseBurst = (SPAfterBurst < 0.95);
+                bool hasDemon = (cachedDataColoCombat != null) && (cachedDataColoCombat.demonState != ScannerColoCombat.EDemonState.None);
+                bool shouldUseBurst = (SPAfterBurst < 0.99) || hasDemon;
 
                 specialIdx = (int)(shouldUseBurst ? ScannerColoPurify.ESpecialBox.BurstReady : ScannerColoPurify.ESpecialBox.ReturnToBattle);
                 Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
