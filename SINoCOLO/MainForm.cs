@@ -34,6 +34,7 @@ namespace SINoCOLO
             scanners.Add(new ScannerColoPurify());
             scanners.Add(new ScannerMessageBox());
             scanners.Add(new ScannerCombat());
+            scanners.Add(new ScannerTitleScreen());
 
             foreach (var scanner in scanners)
             {

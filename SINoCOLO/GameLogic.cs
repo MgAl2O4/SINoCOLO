@@ -41,6 +41,7 @@ namespace SINoCOLO
             ColoPurify,
             Combat,
             MessageBox,
+            TitleScreen,
         }
         private EState state;
 
@@ -76,6 +77,7 @@ namespace SINoCOLO
             handled = handled || OnScan_ColoPurify(screenData as ScannerColoPurify.ScreenData);
             handled = handled || OnScan_MessageBox(screenData as ScannerMessageBox.ScreenData);
             handled = handled || OnScan_Combat(screenData as ScannerCombat.ScreenData);
+            handled = handled || OnScan_TitleScreen(screenData as ScannerTitleScreen.ScreenData);
 
             if (!handled)
             {
@@ -91,6 +93,7 @@ namespace SINoCOLO
             handled = handled || DrawScanHighlights_ColoPurify(g, screenData as ScannerColoPurify.ScreenData);
             handled = handled || DrawScanHighlights_MessageBox(g, screenData as ScannerMessageBox.ScreenData);
             handled = handled || DrawScanHighlights_Combat(g, screenData as ScannerCombat.ScreenData);
+            handled = handled || DrawScanHighlights_TitleScreen(g, screenData as ScannerTitleScreen.ScreenData);
 
             if (!handled)
             {
@@ -160,7 +163,7 @@ namespace SINoCOLO
                 {
                     if (boostDesc.Length > 0) { boostDesc += ", "; }
                     boostDesc += elemType.ToString();
-                    
+
                     if (boostUpkeep[idx] < boostUpkeepTicks)
                     {
                         boostDesc += string.Format(" (fading: {0})", boostUpkeep[idx]);
@@ -792,6 +795,52 @@ namespace SINoCOLO
                     DrawActionArea(g, actionBoxes[idx], actionData.weaponClass.ToString(), actionColor, slotIdx == idx);
                 }
             }
+
+            return true;
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private bool OnScan_TitleScreen(ScannerTitleScreen.ScreenData screenData)
+        {
+            if (screenData == null) { return false; }
+
+            if (state != EState.TitleScreen)
+            {
+                state = EState.TitleScreen;
+                OnStateChanged();
+
+                scanSkipCounter = 50; // 5s opening delay
+            }
+
+            cachedDataCombat = null;
+            cachedDataColoCombat = null;
+            cachedDataColoPurify = null;
+            cachedDataMessageBox = null;
+
+            scanSkipCounter--;
+            if (scanSkipCounter > 0)
+            {
+                return true;
+            }
+
+            // fixed delay: 10s between action presses (OnScan interval = 100ms)
+            scanSkipCounter = 100;
+
+            specialIdx = 0;
+            Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
+            RequestMouseClick(actionBox, -1, specialIdx);
+            return true;
+        }
+
+        private bool DrawScanHighlights_TitleScreen(Graphics g, ScannerTitleScreen.ScreenData screenData)
+        {
+            if (screenData == null) { return false; }
+
+            Rectangle bigButtonBox = screenScanner.GetSpecialActionBox(0);
+            bool isStartActive = specialIdx == 0;
+            DrawActionArea(g, bigButtonBox, "START", colorPaletteGreen, isStartActive);
 
             return true;
         }
