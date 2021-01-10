@@ -30,7 +30,7 @@ namespace SINoCOLO
                 scanner.DebugLevel = ScannerBase.EDebugLevel.Verbose;
             }
 
-            GatherMLDataWeapon();
+            //GatherMLDataWeapon();
             //GatherMLDataDemon();
             //GatherMLDataPurify();
             //GatherMLDataButtons();
