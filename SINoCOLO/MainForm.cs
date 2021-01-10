@@ -273,48 +273,13 @@ namespace SINoCOLO
             lines.Add(string.Format("Screenshot:{0} ({1})",
                 cachedSourceScreen != null ? string.Format("{0}x{1}", cachedSourceScreen.Width, cachedSourceScreen.Height) : "n/a",
                 screenReader.GetState()));
-            lines.Add(string.Format("Logic:{0}, delay:{1}{2}",
-                gameLogic.state, gameLogic.GetScanSkipCounter(), gameLogic.GetScanSkipCounter() <= 1 ? " (click)" : ""));
 
-            // scanner status
             foreach (var scanner in scanners)
             {
                 lines.Add(string.Format("  {0} = {1}", scanner.ScannerName, scanner.GetState()));
             }
 
-            // cached data status           
-            if (gameLogic.cachedDataCombat != null)
-            {
-                lines.Add("");
-                lines.Add("Cached Combat:");
-                string[] tokens = gameLogic.cachedDataCombat.ToString().Split('\n');
-                lines.AddRange(tokens);
-            }
-
-            if (gameLogic.cachedDataColoCombat != null)
-            {
-                lines.Add("");
-                lines.Add("Cached ColoCombat:");
-                string[] tokens = gameLogic.cachedDataColoCombat.ToString().Split('\n');
-                lines.AddRange(tokens);
-            }
-
-            if (gameLogic.cachedDataColoPurify != null)
-            {
-                lines.Add("");
-                lines.Add("Cached ColoPurify:");
-                string[] tokens = gameLogic.cachedDataColoPurify.ToString().Split('\n');
-                lines.AddRange(tokens);
-            }
-
-            if (gameLogic.cachedDataMessageBox != null)
-            {
-                lines.Add("");
-                lines.Add("Cached MessageBox:");
-                string[] tokens = gameLogic.cachedDataMessageBox.ToString().Split('\n');
-                lines.AddRange(tokens);
-            }
-
+            gameLogic.AppendDetails(lines);
             textBoxDetails.Lines = lines.ToArray();
         }
     }

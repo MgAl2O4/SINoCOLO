@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SINoCOLO
 {
@@ -17,17 +14,18 @@ namespace SINoCOLO
         public ScannerBase screenScanner;
         public object screenData;
 
-        public ScannerColoCombat.ScreenData cachedDataColoCombat;
-        public ScannerColoPurify.ScreenData cachedDataColoPurify;
-        public ScannerCombat.ScreenData cachedDataCombat;
-        public ScannerMessageBox.ScreenData cachedDataMessageBox;
+        private ScannerColoCombat.ScreenData cachedDataColoCombat;
+        private ScannerColoPurify.ScreenData cachedDataColoPurify;
+        private ScannerCombat.ScreenData cachedDataCombat;
+        private ScannerMessageBox.ScreenData cachedDataMessageBox;
 
         public int slotIdx = -1;
         public int specialIdx = -1;
-
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
+        private int[] boostUpkeep = new int[] { 0, 0, 0, 0 };
+        private int boostUpkeepTicks = 80; // 8s
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
@@ -44,7 +42,7 @@ namespace SINoCOLO
             Combat,
             MessageBox,
         }
-        public EState state;
+        private EState state;
 
         private void OnStateChanged()
         {
@@ -54,8 +52,6 @@ namespace SINoCOLO
             // don't clear purify slot
         }
 
-        public int GetScanSkipCounter() { return scanSkipCounter; }
-
         public void OnScanPrep()
         {
             screenScanner = null;
@@ -63,6 +59,14 @@ namespace SINoCOLO
 
             interpActiveFill -= (float)Math.Truncate(interpActiveFill);
             interpActiveFill += 0.25f;
+
+            for (int idx = 0; idx < boostUpkeep.Length; idx++)
+            {
+                if (boostUpkeep[idx] > 0)
+                {
+                    boostUpkeep[idx]--;
+                }
+            }
         }
 
         public void OnScan()
@@ -141,6 +145,51 @@ namespace SINoCOLO
             g.FillRectangle(useBrush, bounds.X, bounds.Y - textBarHeight, bounds.Width + 1, textBarHeight);
 
             g.DrawString(desc, overlayFont, Brushes.Black, bounds.X + 1.0f, bounds.Y - textBarHeight);
+        }
+
+        public void AppendDetails(List<string> lines)
+        {
+            lines.Add(string.Format("Logic:{0}, delay:{1}{2}",
+                state, scanSkipCounter, scanSkipCounter <= 1 ? " (click)" : ""));
+
+            string boostDesc = "";
+            for (int idx = 0; idx < boostUpkeep.Length; idx++)
+            {
+                var elemType = (ScannerCombatBase.EElementType)idx;
+                if (elemType != ScannerCombatBase.EElementType.Unknown && boostUpkeep[idx] > 0)
+                {
+                    if (boostDesc.Length > 0) { boostDesc += ", "; }
+                    boostDesc += elemType.ToString();
+                    
+                    if (boostUpkeep[idx] < boostUpkeepTicks)
+                    {
+                        boostDesc += string.Format(" (fading: {0})", boostUpkeep[idx]);
+                    }
+                }
+            }
+
+            if (cachedDataCombat != null || cachedDataColoCombat != null || boostDesc.Length > 0)
+            {
+                lines.Add("Boost: " + (boostDesc.Length > 0 ? boostDesc : "n/a"));
+            }
+
+            // cached data status
+            string scannerNamePrefix = "Scanner";
+
+            var cachedScreenData = new object[] { cachedDataCombat, cachedDataColoCombat, cachedDataColoPurify, cachedDataMessageBox };
+            foreach (var item in cachedScreenData)
+            {
+                if (item != null)
+                {
+                    var scannerTypeName = item.GetType().DeclaringType.Name;
+                    if (scannerTypeName.StartsWith(scannerNamePrefix)) { scannerTypeName = scannerTypeName.Remove(0, scannerNamePrefix.Length); }
+
+                    lines.Add("");
+                    lines.Add("Cached " + scannerTypeName + ":");
+                    string[] tokens = item.ToString().Split('\n');
+                    lines.AddRange(tokens);
+                }
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -227,33 +276,45 @@ namespace SINoCOLO
 
             // otherwise, just click actions random valid actions
             {
-                List<int> prioritySlots = new List<int>();
-                List<int> validSlots = new List<int>();
+                var prioritySlotsDemon = new List<int>();
+                var prioritySlotsBoost = new List<int>();
+                var validSlots = new List<int>();
                 for (int idx = 0; idx < screenData.actions.Length; idx++)
-                {                    
+                {
                     if (screenData.actions[idx].isValid)
                     {
                         validSlots.Add(idx);
+
+                        if (screenData.actions[idx].element != ScannerCombatBase.EElementType.Unknown)
+                        {
+                            if (screenData.actions[idx].hasBoost)
+                            {
+                                boostUpkeep[(int)screenData.actions[idx].element] = boostUpkeepTicks;
+                                prioritySlotsBoost.Add(idx);
+                            }
+                            else if (boostUpkeep[(int)screenData.actions[idx].element] > 0)
+                            {
+                                prioritySlotsBoost.Add(idx);
+                            }
+                        }
                     }
 
                     if (screenData.demonState == ScannerColoCombat.EDemonState.Active &&
                         screenData.demonType == screenData.actions[idx].weaponClass)
                     {
-                        prioritySlots.Add(idx);
+                        prioritySlotsDemon.Add(idx);
                     }
                 }
 
-                if (prioritySlots.Count > 0)
+                var slotList =
+                    (prioritySlotsDemon.Count > 0) ? prioritySlotsDemon :
+                    (prioritySlotsBoost.Count > 0) ? prioritySlotsBoost :
+                    validSlots;
+
+                if (slotList.Count > 0)
                 {
                     Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
-                    slotIdx = prioritySlots[randGen.Next(prioritySlots.Count)];
-                    RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);
-                    return true;
-                }
-                else if (validSlots.Count > 0)
-                {
-                    Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
-                    slotIdx = validSlots[randGen.Next(validSlots.Count)];
+                    slotIdx = slotList[randGen.Next(slotList.Count)];
                     RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);
                     return true;
                 }
@@ -290,7 +351,8 @@ namespace SINoCOLO
             bool isActivePurify = specialIdx == (int)ScannerColoCombat.ESpecialBox.EnterPurify;
             DrawActionArea(g, purifyBox, string.Format("SP: {0:P0}", screenData.SPFillPct), colorPaletteBlue, isActivePurify);
 
-            // not really an action area, but show regardless
+            // not really an action area, but show regardless:
+            // - demon state
             switch (screenData.demonState)
             {
                 case ScannerColoCombat.EDemonState.Active:
@@ -304,6 +366,23 @@ namespace SINoCOLO
                 default: break;
             }
 
+            // - NM elemental boost
+            const int idxFire = (int)ScannerCombatBase.EElementType.Fire;
+            const int idxWater = (int)ScannerCombatBase.EElementType.Water;
+            const int idxWind = (int)ScannerCombatBase.EElementType.Wind;
+
+            var boostColor =
+                (boostUpkeep[idxFire] > boostUpkeep[idxWater]) && (boostUpkeep[idxFire] > boostUpkeep[idxWind]) ? colorPaletteRed :
+                (boostUpkeep[idxWater] > boostUpkeep[idxFire]) && (boostUpkeep[idxWater] > boostUpkeep[idxWind]) ? colorPaletteBlue :
+                (boostUpkeep[idxWind] > boostUpkeep[idxFire]) && (boostUpkeep[idxWind] > boostUpkeep[idxWater]) ? colorPaletteGreen :
+                Color.White;
+
+            if (boostColor != Color.White)
+            {
+                DrawActionArea(g, new Rectangle(7, 371, 53, 53), "BOOST", boostColor, false);
+            }
+
+            // weapon icons
             Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
             for (int idx = 0; idx < actionBoxes.Length; idx++)
             {
@@ -627,21 +706,39 @@ namespace SINoCOLO
                 return true;
             }
 
-            // click random valid actions
+            // otherwise, just click actions random valid actions
             {
-                List<int> validSlots = new List<int>();
+                var prioritySlotsBoost = new List<int>();
+                var validSlots = new List<int>();
                 for (int idx = 0; idx < screenData.actions.Length; idx++)
                 {
                     if (screenData.actions[idx].isValid)
                     {
                         validSlots.Add(idx);
+
+                        if (screenData.actions[idx].element != ScannerCombatBase.EElementType.Unknown)
+                        {
+                            if (screenData.actions[idx].hasBoost)
+                            {
+                                boostUpkeep[(int)screenData.actions[idx].element] = boostUpkeepTicks;
+                                prioritySlotsBoost.Add(idx);
+                            }
+                            else if (boostUpkeep[(int)screenData.actions[idx].element] > 0)
+                            {
+                                prioritySlotsBoost.Add(idx);
+                            }
+                        }
                     }
                 }
 
-                if (validSlots.Count > 0)
+                var slotList =
+                    (prioritySlotsBoost.Count > 0) ? prioritySlotsBoost :
+                    validSlots;
+
+                if (slotList.Count > 0)
                 {
                     Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
-                    slotIdx = validSlots[randGen.Next(validSlots.Count)];
+                    slotIdx = slotList[randGen.Next(slotList.Count)];
                     RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);
                     return true;
                 }
@@ -662,6 +759,24 @@ namespace SINoCOLO
                 DrawActionArea(g, bigButtonBox, "RELOAD", colorPaletteYellow, isActiveBigButton);
             }
 
+            // not really an action area, but show regardless:
+            // - NM elemental boost
+            const int idxFire = (int)ScannerCombatBase.EElementType.Fire;
+            const int idxWater = (int)ScannerCombatBase.EElementType.Water;
+            const int idxWind = (int)ScannerCombatBase.EElementType.Wind;
+
+            var boostColor =
+                (boostUpkeep[idxFire] > boostUpkeep[idxWater]) && (boostUpkeep[idxFire] > boostUpkeep[idxWind]) ? colorPaletteRed :
+                (boostUpkeep[idxWater] > boostUpkeep[idxFire]) && (boostUpkeep[idxWater] > boostUpkeep[idxWind]) ? colorPaletteBlue :
+                (boostUpkeep[idxWind] > boostUpkeep[idxFire]) && (boostUpkeep[idxWind] > boostUpkeep[idxWater]) ? colorPaletteGreen :
+                Color.White;
+
+            if (boostColor != Color.White)
+            {
+                DrawActionArea(g, new Rectangle(9, 402, 49, 49), "BOOST", boostColor, false);
+            }
+
+            // weapon icons
             Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
             for (int idx = 0; idx < actionBoxes.Length; idx++)
             {
