@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace SINoVision
 {
@@ -27,12 +25,16 @@ namespace SINoVision
         public class ActionData
         {
             public bool isValid = false;
+            public bool hasBoost = false;
             public EWeaponType weaponClass = EWeaponType.Unknown;
             public EElementType element = EElementType.Unknown;
 
             public override string ToString()
             {
-                return isValid ? string.Format("{0} ({1})", weaponClass, element) : "n/a";
+                return !isValid ? "n/a" :
+                    string.Format("{0} ({1}){2}",
+                        weaponClass, element,
+                        hasBoost ? " (boost)" : "");
             }
         }
 
@@ -59,16 +61,22 @@ namespace SINoVision
         }
 
         protected Rectangle rectSPBar = new Rectangle(86, 484, 164, 1);
-        protected Rectangle[] rectActionSlots = { new Rectangle(17, 501, 52, 52), new Rectangle(80, 501, 52, 52), new Rectangle(143, 501, 52, 52), new Rectangle(206, 501, 52, 52), new Rectangle(269, 501, 52, 52) };
+        protected Rectangle[] rectActionSlots = new Rectangle[] { new Rectangle(17, 501, 52, 52), new Rectangle(80, 501, 52, 52), new Rectangle(143, 501, 52, 52), new Rectangle(206, 501, 52, 52), new Rectangle(269, 501, 52, 52) };
         protected Rectangle rectActionIcon = new Rectangle(39, 4, 10, 10);
         protected Rectangle rectActionAvail = new Rectangle(3, 44, 4, 4);
+        protected Rectangle rectBoostSearch = new Rectangle(1, -2, 13, 24);
         protected Rectangle[] rectActionElements = new Rectangle[] { new Rectangle(3, 3, 28, 2), new Rectangle(35, 47, 14, 2), new Rectangle(47, 36, 2, 10) };
         protected Rectangle rectBigButton = new Rectangle(103, 506, 131, 44);
-        protected Point[] posBigButton = { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
+        protected Point[] posBigButton = new Point[] { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
+        protected Point[] posBoostIn = new Point[] { new Point(7, 5), new Point(7, 8), new Point(7, 11), new Point(7, 17), new Point(10, 8) };
+        protected Point[] posBoostOut = new Point[] { new Point(6, 14), new Point(8, 14), new Point(10, 11), new Point(12, 11) };
 
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
         private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
         private FastPixelMatch matchActionAvail = new FastPixelMatchMono(180, 255);
+        private FastPixelMatch matchBoostIn = new FastPixelMatchHueMono(-10, 60, 80, 255);
+        private FastPixelMatch matchBoostOut = new FastPixelMatchHSV(-40, 30, 0, 100, 0, 40);
+        private FastPixelMatch matchBoostInW = new FastPixelMatchMono(220, 255);
 
         protected MLClassifierWeaponType classifierWeapon = new MLClassifierWeaponType();
 
@@ -216,6 +224,7 @@ namespace SINoVision
                 float[] pixelInput = ExtractActionSlotWeaponData(bitmap, slotIdx);
                 actionData.weaponClass = (EWeaponType)classifierWeapon.Calculate(pixelInput, out float dummyPct);
                 actionData.element = ScanElementType(bitmap, bounds);
+                actionData.hasBoost = HasElemBoost(bitmap, slotIdx);
             }
 
             if (DebugLevel >= EDebugLevel.Simple)
@@ -295,6 +304,93 @@ namespace SINoVision
 
             var hasSpecialAction = (maxHDiff < 20);
             return hasSpecialAction ? samples : null;
+        }
+
+        public bool HasElemBoost(FastBitmapHSV bitmap, int slotIdx)
+        {
+            int posX = rectActionSlots[slotIdx].X + rectBoostSearch.X;
+            int posY = rectActionSlots[slotIdx].Y + rectBoostSearch.Y;
+            for (int offsetY = 0; offsetY < rectBoostSearch.Height / 2; offsetY++)
+            {
+                bool hasMarker = HasElemBoostMarker(bitmap, posX, posY + offsetY, slotIdx);
+                if (hasMarker)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected bool HasElemBoostMarker(FastBitmapHSV bitmap, int posX, int posY, int slotIdx)
+        {
+            // samplesIn: hue: 20 +- 30, higher Y = lower hue, first 3 (center column) can be a super bright wildcard
+            // samplesOut: similar hue, low V (dark)
+
+            FastPixelHSV[] samplesIn = new FastPixelHSV[posBoostIn.Length];
+            int numHueDec = 0;
+            int numWildCards = 0;
+            int numMatching = 0;
+            for (int idx = 0; idx < samplesIn.Length; idx++)
+            {
+                samplesIn[idx] = bitmap.GetPixel(posX + posBoostIn[idx].X, posY + posBoostIn[idx].Y);
+                bool isMatching = matchBoostIn.IsMatching(samplesIn[idx]);
+                numMatching += isMatching ? 1 : 0;
+
+                if ((idx > 0) && (posBoostIn[idx - 1].Y < posBoostIn[idx].Y))
+                {
+                    numHueDec += (samplesIn[idx - 1].GetHue() >= samplesIn[idx].GetHue()) ? 1 : 0;
+                }
+
+                if (idx < 3 && !isMatching)
+                {
+                    numWildCards += matchBoostInW.IsMatching(samplesIn[idx]) ? 1 : 0;
+                }
+            }
+
+            bool matchIn = ((numMatching + numWildCards) == samplesIn.Length) && (numHueDec == 3) && (numWildCards < 2);
+            
+            FastPixelHSV[] samplesOut = new FastPixelHSV[posBoostOut.Length];
+            bool matchOut = true;
+            for (int idx = 0; idx < samplesOut.Length; idx++)
+            {
+                samplesOut[idx] = bitmap.GetPixel(posX + posBoostOut[idx].X, posY + posBoostOut[idx].Y);
+                matchOut = matchOut && matchBoostOut.IsMatching(samplesOut[idx]);
+            }
+
+            var showLogs =
+                //(slotIdx == 2) && (posY == 501);
+                //((slotIdx == 1) || (slotIdx == 3)) && (matchIn && matchOut);
+                false;
+
+            if (DebugLevel >= EDebugLevel.Verbose && showLogs)
+            {
+                Console.WriteLine("HasElemBoostMarker[{0}], Y:{1}, In.HueDec:{2}, matchIn:{3}, matchOut:{4} => {5}",
+                    slotIdx, posY, numHueDec, matchIn, matchOut, matchIn && matchOut);
+
+                string desc = "";
+                for (int idx = 0; idx < samplesIn.Length; idx++)
+                {
+                    if (idx > 0) { desc += ", "; }
+                    desc += string.Format("({0},{1} = {2}):{3}", 
+                        posX + posBoostIn[idx].X, posY + posBoostIn[idx].Y,
+                        samplesIn[idx], 
+                        matchBoostIn.IsMatching(samplesIn[idx]) ? "Yes" : matchBoostInW.IsMatching(samplesIn[idx]) ? "Maybe" : "No");
+                }
+                Console.WriteLine("   IN({0}): {1}", matchBoostIn, desc);
+
+                desc = "";
+                for (int idx = 0; idx < samplesOut.Length; idx++)
+                {
+                    if (idx > 0) { desc += ", "; }
+                    desc += string.Format("({0},{1} = {2}):{3}",
+                        posX + posBoostOut[idx].X, posY + posBoostOut[idx].Y,
+                        samplesOut[idx], matchBoostOut.IsMatching(samplesOut[idx]));
+                }
+                Console.WriteLine("  OUT({0}): {1}", matchBoostOut, desc);
+            }
+
+            return matchIn && matchOut;
         }
     }
 }

@@ -95,11 +95,17 @@ namespace SINoVision
 
         public override bool IsMatching(FastPixelHSV pixel)
         {
-            int Hue = pixel.GetHue();
             int Saturation = pixel.GetSaturation();
-            return (Hue >= HueMin) && (Hue <= HueMax) &&
-                (Saturation >= SaturationMin) && (Saturation <= SaturationMax) &&
-                (pixel.Value >= ValueMin) && (pixel.Value <= ValueMax);
+            if ((Saturation < SaturationMin) || (Saturation > SaturationMax) || 
+                 (pixel.Value < ValueMin) || (pixel.Value > ValueMax))
+            {
+                return false;
+            }
+
+            int Hue = pixel.GetHue();
+            if (HueMin < 0 && Hue > 200) { Hue -= 360; }
+
+            return (Hue >= HueMin) && (Hue <= HueMax);
         }
 
         public override string ToString()

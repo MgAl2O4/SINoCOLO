@@ -59,7 +59,7 @@ def run_optimization(x, y, weights, biases, num_classes):
 
 class NNTraining():
     def __init__(self, inputFile, outputFile):
-        path = 'D:/temp/recording/'
+        path = 'data/'
         self.inputFile = path + inputFile
         self.outputFile = path + outputFile
         pass

@@ -11,9 +11,9 @@ namespace SINoCOLO
 {
     public partial class MainForm : Form
     {
-        private string samplesFolder = @"D:\Projects\Git\SINoCOLO\samples\";
-        private List<ScannerBase> scanners = new List<ScannerBase>();
-        
+        private string samplesFolder = @"..\..\..\samples\";
+        private string jsonFolder = @"..\..\..\ML\data\";
+        private List<ScannerBase> scanners = new List<ScannerBase>();        
 
         public MainForm()
         {
@@ -30,16 +30,7 @@ namespace SINoCOLO
                 scanner.DebugLevel = ScannerBase.EDebugLevel.Verbose;
             }
 
-            /*var listBounds = new List<Rectangle>();
-            foreach (var path in Directory.EnumerateFiles(samplesFolder + "test-purify-pvp/"))
-            {
-                var srcScreenshot = LoadTestScreenshot("test-purify-pvp/" + Path.GetFileName(path));
-                var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
-                scanners[1].Process(fastBitmap);
-                ScreenshotUtilities.SaveBitmapWithShapes(fastBitmap, listBounds, samplesFolder + Path.GetFileName(path));
-            }*/
-
-            //GatherMLDataWeapon();
+            GatherMLDataWeapon();
             //GatherMLDataDemon();
             //GatherMLDataPurify();
             //GatherMLDataButtons();
@@ -85,7 +76,7 @@ namespace SINoCOLO
             processedScreenshot.Save(savePath, ImageFormat.Png);
         }
 
-        private Bitmap LoadTestScreenshot(string sampleName)
+        private Bitmap LoadTestScreenshot(string sampleName, bool canResave = true)
         {
             string samplePath = samplesFolder + sampleName;
             if (!File.Exists(samplePath))
@@ -100,7 +91,7 @@ namespace SINoCOLO
                 return srcBitmap;
             }
 
-            // fixed crop, too lazy to calc
+            // fixed crop with source size:462x864, too lazy to calc
             Rectangle cropRect_462_864 = new Rectangle(2, 45, 458, 814);
 
             Rectangle cropRect = cropRect_462_864;
@@ -121,7 +112,7 @@ namespace SINoCOLO
                 srcBitmap = scaledBitmap;
 
                 string scaledPath = samplesFolder + Path.GetFileNameWithoutExtension(sampleName) + "-scaled.jpg";
-                if (!File.Exists(scaledPath))
+                if (!File.Exists(scaledPath) && canResave)
                 {
                     srcBitmap.Save(scaledPath);
                 }
@@ -152,9 +143,12 @@ namespace SINoCOLO
                     ElementTypes[idx] = GetWeaponElementCode(elemCode[idx]);
                 }
 
-                if (meta == "boost:wind") { BoostElement = ScannerCombatBase.EElementType.Wind; }
-                else if (meta == "boost:water") { BoostElement = ScannerCombatBase.EElementType.Water; }
-                else if (meta == "boost:fire") { BoostElement = ScannerCombatBase.EElementType.Fire; }
+                if (meta != null)
+                {
+                    if (meta.Contains("boost:wind")) { BoostElement = ScannerCombatBase.EElementType.Wind; }
+                    if (meta.Contains("boost:water")) { BoostElement = ScannerCombatBase.EElementType.Water; }
+                    if (meta.Contains("boost:fire")) { BoostElement = ScannerCombatBase.EElementType.Fire; }
+                }
             }
 
             private ScannerCombatBase.EWeaponType GetWeaponTypeCode(char c)
@@ -347,20 +341,13 @@ namespace SINoCOLO
             string jsonDesc = "{\"dataset\":[";
             foreach (var fileData in fileList)
             {
-                var srcScreenshot = LoadTestScreenshot("train-weapons/" + fileData.fileName);
+                var srcScreenshot = LoadTestScreenshot("train-weapons/" + fileData.fileName, false);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
                 for (int idx = 0; idx < 5; idx++)
                 {
                     if (fileData.WeaponTypes[idx] != ScannerCombatBase.EWeaponType.Unknown)
                     {
-                        if (fileData.fileName == "image-elemboost1-scaled.jpg" && idx == 2)
-                        {
-                            int a = 1;
-
-                        }
-
-                        var values = combatScanner.ExtractActionSlotWeaponData(fastBitmap, idx);
                         var elem = combatScanner.ScanElementType(fastBitmap, idx);
                         if (elem != fileData.ElementTypes[idx])
                         {
@@ -368,6 +355,15 @@ namespace SINoCOLO
                                 fileData.fileName, idx, elem, fileData.ElementTypes[idx]);
                         }
 
+                        var boost = combatScanner.HasElemBoost(fastBitmap, idx);
+                        var shouldBeBoosted = (fileData.ElementTypes[idx] == fileData.BoostElement);
+                        if (boost != shouldBeBoosted)
+                        {
+                            Console.WriteLine("Element boost scan mismatch! image:{0}, slot:{1} => has:{2}, expected:{3}",
+                                fileData.fileName, idx, boost, shouldBeBoosted);
+                        }
+
+                        var values = combatScanner.ExtractActionSlotWeaponData(fastBitmap, idx);
                         jsonDesc += "\n{\"input\":[";
                         jsonDesc += string.Join(",", values);
                         jsonDesc += "], \"output\":";
@@ -387,7 +383,8 @@ namespace SINoCOLO
             jsonDesc = jsonDesc.Remove(jsonDesc.Length - 1, 1);
             jsonDesc += "\n]}";
 
-            string savePath = @"D:\temp\recording\sino-ml-weapons.json";
+            string savePath = jsonFolder + "sino-ml-weapons.json";
+            Directory.CreateDirectory(jsonFolder);
             File.WriteAllText(savePath, jsonDesc);
 
             combatScanner.DebugLevel = orgDebugLevel;
@@ -464,7 +461,7 @@ namespace SINoCOLO
             string jsonDesc = "{\"dataset\":[";
             foreach (var kvp in fileMap)
             {
-                var srcScreenshot = LoadTestScreenshot("train-demon/" + kvp.Key);
+                var srcScreenshot = LoadTestScreenshot("train-demon/" + kvp.Key, false);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
                 var combatScanner = scanners[0] as ScannerColoCombat;
@@ -483,7 +480,8 @@ namespace SINoCOLO
             jsonDesc = jsonDesc.Remove(jsonDesc.Length - 1, 1);
             jsonDesc += "\n]}";
 
-            string savePath = @"D:\temp\recording\sino-ml-demon.json";
+            string savePath = jsonFolder + "sino-ml-demon.json";
+            Directory.CreateDirectory(jsonFolder);
             File.WriteAllText(savePath, jsonDesc);
         }
 
@@ -672,7 +670,7 @@ namespace SINoCOLO
             string jsonDesc = "{\"dataset\":[";
             foreach (var fileData in fileList)
             {
-                var srcScreenshot = LoadTestScreenshot("train-purify-pvp/" + fileData.fileName);
+                var srcScreenshot = LoadTestScreenshot("train-purify-pvp/" + fileData.fileName, false);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
                 var combatScanner = scanners[1] as ScannerColoPurify;
@@ -691,7 +689,8 @@ namespace SINoCOLO
             jsonDesc = jsonDesc.Remove(jsonDesc.Length - 1, 1);
             jsonDesc += "\n]}";
 
-            string savePath = @"D:\temp\recording\sino-ml-purify.json";
+            string savePath = jsonFolder + "sino-ml-purify.json";
+            Directory.CreateDirectory(jsonFolder);
             File.WriteAllText(savePath, jsonDesc);
         }
 
@@ -714,7 +713,7 @@ namespace SINoCOLO
             string jsonDesc = "{\"dataset\":[";
             foreach (var fileData in fileList)
             {
-                var srcScreenshot = LoadTestScreenshot("train-smol/" + fileData.fileName);
+                var srcScreenshot = LoadTestScreenshot("train-smol/" + fileData.fileName, false);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
                 var buttonsScanner = scanners[2] as ScannerMessageBox;
@@ -737,7 +736,8 @@ namespace SINoCOLO
             jsonDesc = jsonDesc.Remove(jsonDesc.Length - 1, 1);
             jsonDesc += "\n]}";
 
-            string savePath = @"D:\temp\recording\sino-ml-buttons.json";
+            string savePath = jsonFolder + "sino-ml-buttons.json";
+            Directory.CreateDirectory(jsonFolder);
             File.WriteAllText(savePath, jsonDesc);
         }
     }
