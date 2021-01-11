@@ -15,6 +15,7 @@ namespace SINoCOLO
         private GameLogic gameLogic = new GameLogic();
         private Bitmap cachedSourceScreen = null;
         private bool hasDetailCtrl = true;
+        private bool selectInstanceMode = false;
         private int numHighFreqTicks = 0;
         private int numScanDelayTicks = 0;
 
@@ -120,10 +121,19 @@ namespace SINoCOLO
 
         private void SetScreenState(ScreenReader.EState NewState)
         {
+            selectInstanceMode = false;
             switch (NewState)
             {
                 case ScreenReader.EState.MissingGameProcess:
-                    labelStatus.Text = "Can't find BlueStacks process";
+                    if (screenReader.GetAvailableGames().Count > 1)
+                    {
+                        labelStatus.Text = "Multiple BlueStacks instaces found - click here to select";
+                        selectInstanceMode = true;
+                    }
+                    else
+                    {
+                        labelStatus.Text = "Can't find BlueStacks process";
+                    }
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
@@ -148,7 +158,15 @@ namespace SINoCOLO
 
         private void topPanelClick(object sender, EventArgs e)
         {
-            checkBoxClicks.Checked = !checkBoxClicks.Checked;
+            if (selectInstanceMode)
+            {
+                var selectForm = new InstanceSelectForm{ screenReader = screenReader };
+                selectForm.ShowDialog();
+            }
+            else
+            {
+                checkBoxClicks.Checked = !checkBoxClicks.Checked;
+            }
         }
 
         private void pictureBoxAnalyzed_MouseMove(object sender, MouseEventArgs e)
