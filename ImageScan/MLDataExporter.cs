@@ -120,12 +120,27 @@ namespace SINoCOLO
             }
         }
 
+        private struct StatML
+        {
+            public string fileName;
+            public int[,] friendStats;
+            public int[,] enemyStats;
+
+            public StatML(string path, int[,] friendStats, int[,] enemyStats)
+            {
+                fileName = path;
+                this.friendStats = friendStats;
+                this.enemyStats = enemyStats;
+            }
+        }
+
         public void DoTheThing()
         {
             //ExportWeapons();
             //ExportDemon();
             //ExportPurify();
             //ExportButtons();
+            ExportStats();
 
             if (numSavedFiles > 0)
             {
@@ -641,6 +656,72 @@ namespace SINoCOLO
             }
 
             FinishDataExport("sino-ml-buttons.json");
+        }
+
+        private void ExportStats()
+        {
+            var fileList = new List<StatML>();
+            fileList.Add(new StatML("image-elemboost1-scaled.jpg",
+                new int[5, 4]{ { 9, 9, 12, 4 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, {11, 9, 11, 11 }, {7, 6, 10, -6 } },
+                new int[5, 4]{ { 19, 20, 19, 15 }, { 7, 20, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 8, 17, 3, 8 } }));
+            fileList.Add(new StatML("image-elemboost2-scaled.jpg",
+                new int[5, 4] { { 9, 10, 12, 5 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, { 11, 9, 11, 11 }, { 7, 6, 10, -6 } },
+                new int[5, 4] { { 19, 20, 19, 15 }, { 6, 19, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 7, 17, 3, 11 } }));
+            fileList.Add(new StatML("image-elemboost3-scaled.jpg",
+                new int[5, 4] { { 9, 10, 12, 5 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, { 11, 10, 11, 12 }, { 7, 6, 10, -6 } },
+                new int[5, 4] { { 19, 20, 19, 15 }, { 6, 19, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 7, 17, 3, 11 } }));
+
+            var combatScanner = new ScannerColoCombat { DebugLevel = ScannerBase.EDebugLevel.None };
+            var mapValues = new Dictionary<int, int>();
+            for (int idx = -20; idx <= 20; idx++)
+            {
+                mapValues.Add(idx, 0);
+            }
+
+            StartDataExport("stats");
+            foreach (var fileData in fileList)
+            {
+                var srcScreenshot = LoadScreenshot("train-stats/" + fileData.fileName);
+                var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
+
+                int exportHelper(int[,] statList, string logType)
+                {
+                    for (int idx = 0; idx < 5; idx++)
+                    {
+                        for (int statIdx = 0; statIdx < 4; statIdx++)
+                        {
+                            ScannerCombatBase.EStatMode statMode;
+                            var values = combatScanner.ExtractFriendStatData(fastBitmap, idx, statIdx, out statMode);
+                            var numValue = statList[idx, statIdx];
+                            
+                            ExportValues(values, numValue);
+                            mapValues[numValue]++;
+
+                            bool hasTypeError =
+                                (numValue > 0 && statMode != ScannerCombatBase.EStatMode.Buff) ||
+                                (numValue < 0 && statMode != ScannerCombatBase.EStatMode.Debuff) ||
+                                (numValue == 0 && statMode != ScannerCombatBase.EStatMode.None);
+                            if (hasTypeError)
+                            {
+                                Console.WriteLine("Stat type mismatch! image:{0}, player:{1}, stat:{2}, type:{3} => has:{4}, num:{5}",
+                                    fileData.fileName, idx, statIdx, logType, statMode, numValue);
+                            }
+                        }
+                    }
+                    return 0;
+                }
+
+                exportHelper(fileData.friendStats, "friend");
+                exportHelper(fileData.enemyStats, "enemy");
+            }
+
+            FinishDataExport("sino-ml-stats.json");
+
+            Console.WriteLine("Number icons in training data:");
+            foreach (var kvp in mapValues)
+            {
+                Console.WriteLine("  {0}: {1} {2}", kvp.Key, kvp.Value, kvp.Value == 0 ? " << MISSING!" : "");
+            }
         }
     }
 }

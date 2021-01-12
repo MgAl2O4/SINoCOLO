@@ -45,6 +45,9 @@ namespace SINoVision
         private Point[] posDemonPrepI = { new Point(250, 87), new Point(247, 87), new Point(243, 87), new Point(235, 86), new Point(228, 86), new Point(223, 86) };
         private Point[] posDemonPrepO = { new Point(249, 88), new Point(246, 88), new Point(241, 87), new Point(237, 86), new Point(226, 86), new Point(220, 86) };
 
+        private Point[] posStatFriend = { new Point(90, 175), new Point(93, 286), new Point(95, 398), new Point(22, 229), new Point(21, 334) };
+        private Point[] posStatEnemy = { new Point(198, 175), new Point(196, 287), new Point(194, 398), new Point(266, 229), new Point(268, 344) };
+
         private Rectangle rectPurify = new Rectangle(266, 459, 67, 28);
         private Rectangle rectDemonType = new Rectangle(147, 55, 10, 10);
         private Rectangle rectDemonL = new Rectangle(18, 76, 50, 10);
@@ -349,6 +352,16 @@ namespace SINoVision
             }
 
             return values;
+        }
+
+        public float[] ExtractFriendStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, out EStatMode statMode)
+        {
+            return ExtractStatData(bitmap, posStatFriend, playerIdx, statIdx, out statMode);
+        }
+
+        public float[] ExtractEnemyStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, out EStatMode statMode)
+        {
+            return ExtractStatData(bitmap, posStatEnemy, playerIdx, statIdx, out statMode);
         }
     }
 }

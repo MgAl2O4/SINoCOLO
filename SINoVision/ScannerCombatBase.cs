@@ -22,6 +22,13 @@ namespace SINoVision
             Wind,
         }
 
+        public enum EStatMode      
+        { 
+            None,
+            Buff,
+            Debuff,
+        }
+
         public class ActionData
         {
             public bool isValid = false;
@@ -70,6 +77,7 @@ namespace SINoVision
         protected Point[] posBigButton = new Point[] { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
         protected Point[] posBoostIn = new Point[] { new Point(7, 5), new Point(7, 8), new Point(7, 11), new Point(7, 17), new Point(10, 8) };
         protected Point[] posBoostOut = new Point[] { new Point(6, 14), new Point(8, 14), new Point(10, 11), new Point(12, 11) };
+        protected Point[] posStatOffset = { new Point(1, 3), new Point(14, 3), new Point(26, 3), new Point(37, 3) };
 
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
         private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
@@ -391,6 +399,40 @@ namespace SINoVision
             }
 
             return matchIn && matchOut;
+        }
+
+        protected float[] ExtractStatData(FastBitmapHSV bitmap, Point[] playerPos, int playerIdx, int statIdx, out EStatMode statMode)
+        {
+            // scan area: 9x7
+            float[] values = new float[9 * 7];
+            for (int idx = 0; idx < values.Length; idx++)
+            {
+                values[idx] = 0.0f;
+            }
+
+            const int monoSteps = 16;
+            const float monoScale = 1.0f / monoSteps;
+            float accHue = 0.0f;
+
+            for (int idxY = 0; idxY < 7; idxY++)
+            {
+                for (int idxX = 0; idxX < 9; idxX++)
+                {
+                    FastPixelHSV pixel = bitmap.GetPixel(playerPos[playerIdx].X + posStatOffset[statIdx].X + idxX, playerPos[playerIdx].Y + posStatOffset[statIdx].Y + idxY);
+                    int monoV = pixel.GetMonochrome() / (256 / monoSteps);
+
+                    values[idxX + (idxY * 9)] = monoV * monoScale;
+                    accHue += pixel.GetHue();
+                }
+            }
+
+            float avgHue = (accHue / values.Length);
+            statMode =
+                (avgHue >= 0.0f && avgHue < 80.0f) ? EStatMode.Buff :
+                (avgHue >= 150.0f && avgHue < 220.0f) ? EStatMode.Debuff :
+                EStatMode.None;
+
+            return values;
         }
     }
 }
