@@ -694,7 +694,10 @@ namespace SINoCOLO
                     // - none: ignore
                     // - repeat: press retry if found
                     // - advance: press next if found, press ok when retry is found
-                    waitingForCombatReport = false;
+                    if (!screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].isDisabled)
+                    {
+                        waitingForCombatReport = false;
+                    }
 
                     btnType = screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType;
                     if ((storyMode == EStoryMode.FarmStage && btnType == ScannerMessageBox.EButtonType.Retry) ||

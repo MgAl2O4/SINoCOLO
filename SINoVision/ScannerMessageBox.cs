@@ -51,6 +51,7 @@ namespace SINoVision
         {
             public EButtonType buttonType;
             public EButtonColor buttonColor;
+            public bool isDisabled;
         }
 
         public class ScreenData
@@ -63,10 +64,11 @@ namespace SINoVision
                 string desc = "Type:" + mode.ToString();
                 for (int idx = 1; idx < actions.Length; idx++)
                 {
-                    desc += string.Format("\n[{0}] {1}:{2} ({3})",
+                    desc += string.Format("\n[{0}] {1}:{2}{3} ({4})",
                         idx,
                         actions[idx].buttonType,
                         actions[idx].buttonColor,
+                        actions[idx].isDisabled ? ":Disabled" : "",
                         (EButtonPos)idx);
                 }
 
@@ -181,6 +183,13 @@ namespace SINoVision
                 {
                     float[] values = ExtractButtonData(bitmap, idx);
                     scanOb.buttonType = (EButtonType)classifierButtons.Calculate(values, out float DummyPct);
+
+                    switch (scanOb.buttonColor)
+                    {
+                        case EButtonColor.Red: scanOb.isDisabled = avgPx[idx].GetValue() < 40; break;
+                        case EButtonColor.White: scanOb.isDisabled = avgPx[idx].GetValue() < 70; break;
+                        default: break;
+                    }
                 }
 
                 screenData.actions[idx] = scanOb;
