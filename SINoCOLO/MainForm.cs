@@ -274,11 +274,15 @@ namespace SINoCOLO
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            string[] itemDesc = new string[4];
+            itemDesc[(int)GameLogic.EStoryMode.None] = "Ignore";
+            itemDesc[(int)GameLogic.EStoryMode.AdvanceChapter] = "Complete Chapter";
+            itemDesc[(int)GameLogic.EStoryMode.FarmStage] = "Farm Stage";
+            itemDesc[(int)GameLogic.EStoryMode.FarmEvent] = "Farm Event";
+
             comboBoxStoryMode.Items.Clear();
-            comboBoxStoryMode.Items.Add("Ignore"); // EStoryMode.None
-            comboBoxStoryMode.Items.Add("Complete Chapter"); // EStoryMode.AdvanceChapter
-            comboBoxStoryMode.Items.Add("Farm Stage"); // EStoryMode.FarmStage
-            comboBoxStoryMode.SelectedIndex = 2;
+            comboBoxStoryMode.Items.AddRange(itemDesc);
+            comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.FarmStage;
 
 #if !DEBUG
             buttonDetails_Click(null, null);

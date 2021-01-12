@@ -12,6 +12,7 @@ namespace SINoCOLO
             None,
             AdvanceChapter,
             FarmStage,
+            FarmEvent,
         }
 
         public enum EUnknownBehavior
@@ -48,6 +49,7 @@ namespace SINoCOLO
         private DateTime lastCombatTime;
         private bool waitingForCombat = false;
         private bool waitingForCombatReport = false;
+        private bool waitingForEventSummary = false;
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
@@ -694,9 +696,10 @@ namespace SINoCOLO
                     // - none: ignore
                     // - repeat: press retry if found
                     // - advance: press next if found, press ok when retry is found
-                    if (!screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].isDisabled)
+                    if (!screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].isDisabled && waitingForCombatReport)
                     {
                         waitingForCombatReport = false;
+                        waitingForEventSummary = true;
                     }
 
                     btnType = screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType;
@@ -706,17 +709,31 @@ namespace SINoCOLO
 #if DEBUG
                         Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2} => retry!", screenData.mode, storyMode, btnType);
 #endif // DEBUG
-                        scanSkipCounter = randGen.Next(25, 30);
                         specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
                         waitingForCombat = (btnType == ScannerMessageBox.EButtonType.Next);
                     }
-
-                    if (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Retry)
+                    else if (storyMode == EStoryMode.FarmEvent && !waitingForCombatReport)
+                    {
+#if DEBUG
+                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2}, wait:{3} => {4}!", 
+                            screenData.mode, storyMode, btnType, waitingForEventSummary,
+                            waitingForEventSummary ? "ok" : "retry");
+#endif // DEBUG
+                        if (waitingForEventSummary)
+                        {
+                            specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportOk;
+                            waitingForEventSummary = false;
+                        }
+                        else
+                        {
+                            specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                        }
+                    }
+                    else if (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Retry)
                     {
 #if DEBUG
                         Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2} => ok!", screenData.mode, storyMode, btnType);
 #endif // DEBUG
-                        scanSkipCounter = randGen.Next(25, 30);
                         specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportOk;
                     }
                     break;
@@ -1001,7 +1018,7 @@ namespace SINoCOLO
 
                 case EUnknownBehavior.PressRankUp:
                     // if combat was over a minute ago, click SKIP once, maybe it's verse 10 story epilogue?
-                    if (storyMode == EStoryMode.AdvanceChapter || storyMode == EStoryMode.FarmStage)
+                    if (storyMode == EStoryMode.AdvanceChapter || storyMode == EStoryMode.FarmStage || storyMode == EStoryMode.FarmEvent)
                     {
                         if (timeSinceCombat.TotalMinutes >= 1)
                         {
