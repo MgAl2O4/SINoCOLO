@@ -737,6 +737,13 @@ namespace SINoCOLO
                     specialIdx = (int)ScannerMessageBox.EButtonPos.CenterTwoRight;
                     break;
 
+                case ScannerMessageBox.EMessageType.CombatStart:
+#if DEBUG
+                    Console.WriteLine("[MessageBox:{0}]", screenData.mode);
+#endif // DEBUG
+                    waitingForCombat = (storyMode == EStoryMode.AdvanceChapter);
+                    break;
+
                 default: break;
             }
 
@@ -976,27 +983,47 @@ namespace SINoCOLO
 
             var actionBox = rectUnknownBehavior[(int)unknownBehavior];
             var timeSinceCombat = DateTime.Now - lastCombatTime;
+            var newBehavior = unknownBehavior;
             specialIdx = 0;
 
             switch (unknownBehavior)
             {
                 case EUnknownBehavior.PressSkip:
-                    RequestMouseClick(actionBox, -1, specialIdx);
+                    if (storyMode == EStoryMode.AdvanceChapter)
+                    {
+                        RequestMouseClick(actionBox, -1, specialIdx);
+                    }
+                    else
+                    {
+                        newBehavior = EUnknownBehavior.None;
+                    }
                     break;
 
                 case EUnknownBehavior.PressRankUp:
                     // if combat was over a minute ago, click SKIP once, maybe it's verse 10 story epilogue?
-                    if (timeSinceCombat.TotalMinutes >= 1)
+                    if (storyMode == EStoryMode.AdvanceChapter || storyMode == EStoryMode.FarmStage)
                     {
-                        specialIdx = 1;
-                        actionBox = rectUnknownBehavior[(int)EUnknownBehavior.PressSkip];
-                        lastCombatTime = DateTime.Now;
-                    }
+                        if (timeSinceCombat.TotalMinutes >= 1)
+                        {
+                            specialIdx = 1;
+                            actionBox = rectUnknownBehavior[(int)EUnknownBehavior.PressSkip];
+                            lastCombatTime = DateTime.Now;
+                        }
 
-                    RequestMouseClick(actionBox, -1, specialIdx);
+                        RequestMouseClick(actionBox, -1, specialIdx);
+                    }
+                    else
+                    {
+                        newBehavior = EUnknownBehavior.None;
+                    }
                     break;
 
                 default: break;
+            }
+
+            if (unknownBehavior != newBehavior)
+            {
+                unknownBehavior = newBehavior;
             }
         }
 
