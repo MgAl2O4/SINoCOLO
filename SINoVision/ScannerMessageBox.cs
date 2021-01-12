@@ -75,7 +75,7 @@ namespace SINoVision
         }
 
         private FastPixelMatch matchAvgRed = new FastPixelMatchHSV(10, 20, 50, 70, 20, 50);
-        private FastPixelMatch matchAvgWhite = new FastPixelMatchHSV(25, 40, 15, 40, 20, 90);
+        private FastPixelMatch matchAvgWhite = new FastPixelMatchHSV(25, 40, 5, 40, 20, 90);
         private FastPixelMatch matchAvgSpec = new FastPixelMatchHSV(20, 40, 20, 40, 40, 80);
 
         private Rectangle rectOkButton = new Rectangle(118, 547, 95, 27);

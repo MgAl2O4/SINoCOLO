@@ -631,6 +631,7 @@ namespace SINoCOLO
             fileList.Add(new ButtonML("real-buttons.jpg", "reportRetry:retry, reportOk:ok"));
             fileList.Add(new ButtonML("real-buttonNext1.jpg", "reportRetry:next, reportOk:ok"));
             fileList.Add(new ButtonML("real-buttonNext2.jpg", "reportRetry:next, reportOk:ok"));
+            fileList.Add(new ButtonML("real-buttonNext3.jpg", "reportRetry:next, reportOk:ok"));
             fileList.Add(new ButtonML("real-source4.jpg", "reportRetry:retry, reportOk:ok"));
             fileList.Add(new ButtonML("real-source5.jpg", "reportRetry:retry, reportOk:ok"));
             fileList.Add(new ButtonML("real-source6.jpg", "reportRetry:retry, reportOk:ok"));
