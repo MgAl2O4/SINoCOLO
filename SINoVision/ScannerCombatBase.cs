@@ -204,6 +204,46 @@ namespace SINoVision
                 element = EElementType.Water;
             }
 
+            if (element == EElementType.Unknown)
+            {
+                countElemR = 0;
+                countElemG = 0;
+                countElemB = 0;
+
+                for (int idxY = 0; idxY < bounds.Height; idxY++)
+                {
+                    for (int idxX = 0; idxX < bounds.Width; idxX++)
+                    {
+                        FastPixelHSV testPx = bitmap.GetPixel(bounds.X + idxX, bounds.Y + idxY);
+
+                        int testMono = testPx.GetMonochrome();
+                        if (testMono < 210)
+                        {
+                            int testHue = testPx.GetHue();
+                            countElemR += ((testHue > (hueR + 360 - hueDrift)) || (testHue < (hueR + hueDrift))) ? 1 : 0;
+                            countElemG += ((testHue > (hueG - hueDrift)) && (testHue < (hueG + hueDrift))) ? 1 : 0;
+                            countElemB += ((testHue > (hueB - hueDrift)) && (testHue < (hueB + hueDrift))) ? 1 : 0;
+                        }
+                    }
+                }
+
+                countTotal = bounds.Width * bounds.Height;
+
+                minThr = countTotal * 30 / 100;
+                if ((countElemR > minThr) && (countElemR > countElemG) && (countElemR > countElemB))
+                {
+                    element = EElementType.Fire;
+                }
+                else if ((countElemG > minThr) && (countElemG > countElemR) && (countElemG > countElemB))
+                {
+                    element = EElementType.Wind;
+                }
+                else if ((countElemB > minThr) && (countElemB > countElemR) && (countElemB > countElemG))
+                {
+                    element = EElementType.Water;
+                }
+            }
+
             if (DebugLevel >= EDebugLevel.Verbose)
             {
                 Console.WriteLine(">> elem counters: R:{0}, G:{1}, B:{2} => {3}", countElemR, countElemG, countElemB, element);
