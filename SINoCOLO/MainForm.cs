@@ -43,6 +43,7 @@ namespace SINoCOLO
             }
 
             gameLogic.OnMouseClickRequested += GameLogic_OnMouseClickRequested;
+            gameLogic.OnSaveScreenshot += GameLogic_OnSaveScreenshot;
 
             // show version number
             Text += " v" + typeof(Program).Assembly.GetName().Version.Major;            
@@ -65,6 +66,22 @@ namespace SINoCOLO
             }
         }
 
+        private void GameLogic_OnSaveScreenshot()
+        {
+            if (cachedSourceScreen != null)
+            {
+                for (int idx = 1; idx < 1000000; idx++)
+                {
+                    string testPath = "image-err" + idx + ".jpg";
+                    if (!System.IO.File.Exists(testPath))
+                    {
+                        cachedSourceScreen.Save(testPath);
+                        break;
+                    }
+                }
+            }
+        }
+
         private void Scan()
         {
             gameLogic.OnScanPrep();
@@ -80,6 +97,7 @@ namespace SINoCOLO
                 {
                     var forcedSize = screenReader.GetExpectedSize();
                     var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
+
                     foreach (var scanner in scanners)
                     {
                         var resultOb = scanner.Process(fastBitmap);
@@ -87,16 +105,16 @@ namespace SINoCOLO
                         {
                             gameLogic.screenScanner = scanner;
                             gameLogic.screenData = resultOb;
-                            gameLogic.OnScan();
-
-                            if (hasDetailCtrl)
-                            {
-                                using (Graphics graphics = Graphics.FromImage(srcScreenshot))
-                                {
-                                    gameLogic.DrawScanHighlights(graphics);
-                                }
-                            }
                             break;
+                        }
+                    }
+
+                    gameLogic.OnScan();
+                    if (hasDetailCtrl)
+                    {
+                        using (Graphics graphics = Graphics.FromImage(srcScreenshot))
+                        {
+                            gameLogic.DrawScanHighlights(graphics);
                         }
                     }
                 }
@@ -122,38 +140,41 @@ namespace SINoCOLO
         private void SetScreenState(ScreenReader.EState NewState)
         {
             selectInstanceMode = false;
+            string statusDesc = "Status: ";
             switch (NewState)
             {
                 case ScreenReader.EState.MissingGameProcess:
                     if (screenReader.GetAvailableGames().Count > 1)
                     {
-                        labelStatus.Text = "Multiple BlueStacks instaces found - click here to select";
+                        statusDesc += "Multiple BlueStacks instaces found - click here to select";
                         selectInstanceMode = true;
                     }
                     else
                     {
-                        labelStatus.Text = "Can't find BlueStacks process";
+                        statusDesc += "Can't find BlueStacks process";
                     }
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
                 case ScreenReader.EState.MissingGameWindow:
-                    labelStatus.Text = "Can't find BlueStacks window";
+                    statusDesc += "Can't find BlueStacks window";
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
                 case ScreenReader.EState.WindowTooSmall:
-                    labelStatus.Text = "BlueStacks window is too small";
+                    statusDesc += "BlueStacks window is too small";
                     panelStatus.BackColor = Color.MistyRose;
                     break;
 
                 case ScreenReader.EState.Success:
-                    labelStatus.Text = "Game active: " +
+                    statusDesc += "Game active: " +
                         (gameLogic.screenScanner == null ? "[Unknown state]" : gameLogic.screenScanner.ScannerName);
 
                     panelStatus.BackColor = checkBoxClicks.Checked ? Color.LightGreen : Color.LightYellow;
                     break;
             }
+
+            labelStatus.Text = statusDesc;
         }
 
         private void topPanelClick(object sender, EventArgs e)
@@ -234,6 +255,7 @@ namespace SINoCOLO
                 buttonDetails.Text = "Show details";
 
                 Size = MinimumSize;
+                MaximumSize = MinimumSize;
             }
             else
             {
@@ -243,6 +265,7 @@ namespace SINoCOLO
                 labelScreenshotFailed.Visible = false;
                 buttonDetails.Text = "Hide details";
 
+                MaximumSize = new Size(0, 0);
                 Size = new Size(MinimumSize.Width, 734);
             }
 
@@ -251,6 +274,12 @@ namespace SINoCOLO
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            comboBoxStoryMode.Items.Clear();
+            comboBoxStoryMode.Items.Add("Ignore"); // EStoryMode.None
+            comboBoxStoryMode.Items.Add("Complete Chapter"); // EStoryMode.AdvanceChapter
+            comboBoxStoryMode.Items.Add("Farm Stage"); // EStoryMode.FarmStage
+            comboBoxStoryMode.SelectedIndex = 2;
+
 #if !DEBUG
             buttonDetails_Click(null, null);
 #endif // !DEBUG
@@ -300,6 +329,17 @@ namespace SINoCOLO
 
             gameLogic.AppendDetails(lines);
             textBoxDetails.Lines = lines.ToArray();
+        }
+
+        private void comboBoxStoryMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var mode = GameLogic.EStoryMode.None;
+            if (comboBoxStoryMode.SelectedIndex > 0)
+            {
+                mode = (GameLogic.EStoryMode)comboBoxStoryMode.SelectedIndex;
+            }
+
+            gameLogic.SetStoryMode(mode);
         }
     }
 }

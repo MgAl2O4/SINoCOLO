@@ -315,6 +315,14 @@ namespace SINoCOLO
             if (availableGameInfo.Count == 1)
             {
                 cachedGameInfo = availableGameInfo[0];
+                SetSelectedWindow(cachedGameInfo.windowMain.Handle);
+            }
+
+            // reset forced selection once it's no longer available
+            if (selectedWindow != IntPtr.Zero && 
+                (cachedGameInfo == null || cachedGameInfo.windowMain.Handle != selectedWindow))
+            {
+                SetSelectedWindow(IntPtr.Zero);
             }
         }
 

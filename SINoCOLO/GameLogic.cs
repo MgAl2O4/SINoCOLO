@@ -7,8 +7,24 @@ namespace SINoCOLO
 {
     class GameLogic
     {
+        public enum EStoryMode
+        {
+            None,
+            AdvanceChapter,
+            FarmStage,
+        }
+
+        public enum EUnknownBehavior
+        {
+            None,
+            PressSkip,
+            PressRankUp,
+        }
+
         public delegate void MouseClickDelegate(int posX, int posY);
+        public delegate void SaveScreenshotDelegate();
         public event MouseClickDelegate OnMouseClickRequested;
+        public event SaveScreenshotDelegate OnSaveScreenshot;
         private Random randGen = new Random();
 
         public ScannerBase screenScanner;
@@ -26,6 +42,12 @@ namespace SINoCOLO
         private int purifySlot = 0;
         private int[] boostUpkeep = new int[] { 0, 0, 0, 0 };
         private int boostUpkeepTicks = 80; // 8s
+        private EStoryMode storyMode = EStoryMode.None;
+        private EUnknownBehavior unknownBehavior = EUnknownBehavior.None;
+        private DateTime lastClickTime;
+        private DateTime lastCombatTime;
+        private bool waitingForCombat = false;
+        private bool waitingForCombatReport = false;
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
@@ -33,6 +55,12 @@ namespace SINoCOLO
         private Color colorPaletteBlue = Color.FromArgb(0x9b, 0xf6, 0xff);
         private Color colorPaletteYellow = Color.FromArgb(0xfd, 0xff, 0xb6);
         private Color colorPaletteActive = Color.FromArgb(0xff, 0xc6, 0xff);
+
+        private Rectangle[] rectUnknownBehavior = new Rectangle[] {
+            new Rectangle(0, 0, 0, 0),
+            new Rectangle(277, 573, 49, 15),
+            new Rectangle(75, 332, 80, 20),
+        };
 
         public enum EState
         {
@@ -50,6 +78,7 @@ namespace SINoCOLO
             slotIdx = -1;
             specialIdx = -1;
             scanSkipCounter = 0;
+            unknownBehavior = EUnknownBehavior.None;
             // don't clear purify slot
         }
 
@@ -73,50 +102,98 @@ namespace SINoCOLO
         public void OnScan()
         {
             bool handled = false;
-            handled = handled || OnScan_ColoCombat(screenData as ScannerColoCombat.ScreenData);
-            handled = handled || OnScan_ColoPurify(screenData as ScannerColoPurify.ScreenData);
-            handled = handled || OnScan_MessageBox(screenData as ScannerMessageBox.ScreenData);
-            handled = handled || OnScan_Combat(screenData as ScannerCombat.ScreenData);
-            handled = handled || OnScan_TitleScreen(screenData as ScannerTitleScreen.ScreenData);
+            if (screenData != null)
+            {
+                handled = handled || OnScan_ColoCombat(screenData as ScannerColoCombat.ScreenData);
+                handled = handled || OnScan_ColoPurify(screenData as ScannerColoPurify.ScreenData);
+                handled = handled || OnScan_MessageBox(screenData as ScannerMessageBox.ScreenData);
+                handled = handled || OnScan_Combat(screenData as ScannerCombat.ScreenData);
+                handled = handled || OnScan_TitleScreen(screenData as ScannerTitleScreen.ScreenData);
+            }
 
             if (!handled)
             {
-                state = EState.Unknown;
-                OnStateChanged();
+                var prevState = state;
+                if (prevState != EState.Unknown)
+                {
+                    state = EState.Unknown;
+                    OnStateChanged();
+
+                    /*if (prevState == EState.MessageBox)
+                    {
+                        OnSaveScreenshot?.Invoke();
+                    }*/
+
+                    if (storyMode != EStoryMode.None && (prevState == EState.Combat || waitingForCombatReport))
+                    {
+                        unknownBehavior = EUnknownBehavior.PressRankUp;
+                        waitingForCombatReport = true;
+                    }
+                    else if (storyMode == EStoryMode.AdvanceChapter && prevState == EState.MessageBox && waitingForCombat)
+                    {
+                        unknownBehavior = EUnknownBehavior.PressSkip;
+                    }
+
+#if DEBUG
+                    Console.WriteLine("Changing to Unknown state. Prev:{0}, story:{1}, waitCombat:{2}, waitReport:{3} => {4}",
+                        prevState, storyMode, waitingForCombat, waitingForCombatReport, unknownBehavior);
+#endif // DEBUG
+                }
+
+                if (unknownBehavior != EUnknownBehavior.None)
+                {
+                    OnScan_Unknown();
+                }
             }
+        }
+
+        public void SetStoryMode(EStoryMode mode)
+        {
+            storyMode = mode;
         }
 
         public void DrawScanHighlights(Graphics g)
         {
             bool handled = false;
-            handled = handled || DrawScanHighlights_ColoCombat(g, screenData as ScannerColoCombat.ScreenData);
-            handled = handled || DrawScanHighlights_ColoPurify(g, screenData as ScannerColoPurify.ScreenData);
-            handled = handled || DrawScanHighlights_MessageBox(g, screenData as ScannerMessageBox.ScreenData);
-            handled = handled || DrawScanHighlights_Combat(g, screenData as ScannerCombat.ScreenData);
-            handled = handled || DrawScanHighlights_TitleScreen(g, screenData as ScannerTitleScreen.ScreenData);
+            if (screenData != null)
+            {
+                handled = handled || DrawScanHighlights_ColoCombat(g, screenData as ScannerColoCombat.ScreenData);
+                handled = handled || DrawScanHighlights_ColoPurify(g, screenData as ScannerColoPurify.ScreenData);
+                handled = handled || DrawScanHighlights_MessageBox(g, screenData as ScannerMessageBox.ScreenData);
+                handled = handled || DrawScanHighlights_Combat(g, screenData as ScannerCombat.ScreenData);
+                handled = handled || DrawScanHighlights_TitleScreen(g, screenData as ScannerTitleScreen.ScreenData);
+            }
 
             if (!handled)
             {
-                Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
-                if (actionBoxes != null)
+                if (screenScanner != null)
                 {
-                    for (int idx = 0; idx < actionBoxes.Length; idx++)
+                    Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
+                    if (actionBoxes != null)
                     {
-                        string actionDesc = "ACTION #" + idx;
-                        DrawActionArea(g, actionBoxes[idx], actionDesc, colorPaletteBlue, slotIdx == idx);
+                        for (int idx = 0; idx < actionBoxes.Length; idx++)
+                        {
+                            string actionDesc = "ACTION #" + idx;
+                            DrawActionArea(g, actionBoxes[idx], actionDesc, colorPaletteBlue, slotIdx == idx);
+                        }
+                    }
+
+                    for (int idx = 0; idx < 16; idx++)
+                    {
+                        Rectangle specialBox = screenScanner.GetSpecialActionBox(idx);
+                        if (specialBox.Width <= 0)
+                        {
+                            break;
+                        }
+
+                        string actionDesc = "SPECIAL #" + idx;
+                        DrawActionArea(g, specialBox, actionDesc, colorPaletteBlue, specialIdx == idx);
                     }
                 }
 
-                for (int idx = 0; idx < 16; idx++)
+                if (state == EState.Unknown)
                 {
-                    Rectangle specialBox = screenScanner.GetSpecialActionBox(idx);
-                    if (specialBox.Width <= 0)
-                    {
-                        break;
-                    }
-
-                    string actionDesc = "SPECIAL #" + idx;
-                    DrawActionArea(g, specialBox, actionDesc, colorPaletteBlue, specialIdx == idx);
+                    DrawScanHighlights_Unknown(g);
                 }
             }
         }
@@ -129,6 +206,8 @@ namespace SINoCOLO
             int posX = actionBox.X + randGen.Next(0, actionBox.Width);
             int posY = actionBox.Y + randGen.Next(0, actionBox.Height);
             OnMouseClickRequested.Invoke(posX, posY);
+
+            lastClickTime = DateTime.Now;
         }
 
         private void DrawActionArea(Graphics g, Rectangle bounds, string desc, Color color, bool isActive)
@@ -154,6 +233,8 @@ namespace SINoCOLO
         {
             lines.Add(string.Format("Logic:{0}, delay:{1}{2}",
                 state, scanSkipCounter, scanSkipCounter <= 1 ? " (click)" : ""));
+
+            lines.Add(string.Format("Story:{0}, behavior:{1}, wait(combat:{2}, report:{3})", storyMode, unknownBehavior, waitingForCombat, waitingForCombatReport));
 
             string boostDesc = "";
             for (int idx = 0; idx < boostUpkeep.Length; idx++)
@@ -204,11 +285,13 @@ namespace SINoCOLO
             {
                 state = EState.ColoCombat;
                 OnStateChanged();
+
+                cachedDataCombat = null;
+                cachedDataMessageBox = null;
             }
 
             cachedDataColoCombat = screenData;
-            cachedDataCombat = null;
-            cachedDataMessageBox = null;
+
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
@@ -595,31 +678,59 @@ namespace SINoCOLO
 
             cachedDataMessageBox = screenData;
 
-            scanSkipCounter--;
-            if (scanSkipCounter > 0)
+            TimeSpan timeSinceLastClick = DateTime.Now - lastClickTime;
+            if (timeSinceLastClick.TotalSeconds < 1.5)
             {
                 return true;
             }
 
-            // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
-            scanSkipCounter = randGen.Next(5, 8);
             specialIdx = -1;
 
+            var btnType = ScannerMessageBox.EButtonType.Unknown;
             switch (screenData.mode)
             {
                 case ScannerMessageBox.EMessageType.CombatReport:
-                    if (screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType == ScannerMessageBox.EButtonType.Retry)
+                    // combat report = depends on story mode
+                    // - none: ignore
+                    // - repeat: press retry if found
+                    // - advance: press next if found, press ok when retry is found
+                    waitingForCombatReport = false;
+
+                    btnType = screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType;
+                    if ((storyMode == EStoryMode.FarmStage && btnType == ScannerMessageBox.EButtonType.Retry) ||
+                        (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Next))
                     {
+#if DEBUG
+                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2} => retry!", screenData.mode, storyMode, btnType);
+#endif // DEBUG
                         scanSkipCounter = randGen.Next(25, 30);
                         specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                        waitingForCombat = (btnType == ScannerMessageBox.EButtonType.Next);
+                    }
+
+                    if (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Retry)
+                    {
+#if DEBUG
+                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2} => ok!", screenData.mode, storyMode, btnType);
+#endif // DEBUG
+                        scanSkipCounter = randGen.Next(25, 30);
+                        specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportOk;
                     }
                     break;
 
                 case ScannerMessageBox.EMessageType.Ok:
+                    // Ok only = press it
+#if DEBUG
+                    Console.WriteLine("[MessageBox:{0}] => ok!", screenData.mode);
+#endif // DEBUG
                     specialIdx = (int)ScannerMessageBox.EButtonPos.Center;
                     break;
 
                 case ScannerMessageBox.EMessageType.OkCancel:
+                    // Ok/Cancel = press Ok
+#if DEBUG
+                    Console.WriteLine("[MessageBox:{0}] => ok!", screenData.mode);
+#endif // DEBUG
                     specialIdx = (int)ScannerMessageBox.EButtonPos.CenterTwoRight;
                     break;
 
@@ -683,12 +794,15 @@ namespace SINoCOLO
             {
                 state = EState.Combat;
                 OnStateChanged();
+
+                cachedDataColoCombat = null;
+                cachedDataColoPurify = null;
+                cachedDataMessageBox = null;
+                waitingForCombat = false;
             }
 
             cachedDataCombat = screenData;
-            cachedDataColoCombat = null;
-            cachedDataColoPurify = null;
-            cachedDataMessageBox = null;
+            lastCombatTime = DateTime.Now;
 
             scanSkipCounter--;
             if (scanSkipCounter > 0)
@@ -812,12 +926,14 @@ namespace SINoCOLO
                 OnStateChanged();
 
                 scanSkipCounter = 50; // 5s opening delay
-            }
+                waitingForCombatReport = false;
+                waitingForCombat = false;
 
-            cachedDataCombat = null;
-            cachedDataColoCombat = null;
-            cachedDataColoPurify = null;
-            cachedDataMessageBox = null;
+                cachedDataCombat = null;
+                cachedDataColoCombat = null;
+                cachedDataColoPurify = null;
+                cachedDataMessageBox = null;
+            }
 
             scanSkipCounter--;
             if (scanSkipCounter > 0)
@@ -844,5 +960,59 @@ namespace SINoCOLO
 
             return true;
         }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        private void OnScan_Unknown()
+        {
+            var timeSinceLastClick = DateTime.Now - lastClickTime;
+            if (timeSinceLastClick.TotalSeconds < 2)
+            {
+                return;
+            }
+
+            var actionBox = rectUnknownBehavior[(int)unknownBehavior];
+            var timeSinceCombat = DateTime.Now - lastCombatTime;
+            specialIdx = 0;
+
+            switch (unknownBehavior)
+            {
+                case EUnknownBehavior.PressSkip:
+                    RequestMouseClick(actionBox, -1, specialIdx);
+                    break;
+
+                case EUnknownBehavior.PressRankUp:
+                    // if combat was over a minute ago, click SKIP once, maybe it's verse 10 story epilogue?
+                    if (timeSinceCombat.TotalMinutes >= 1)
+                    {
+                        specialIdx = 1;
+                        actionBox = rectUnknownBehavior[(int)EUnknownBehavior.PressSkip];
+                        lastCombatTime = DateTime.Now;
+                    }
+
+                    RequestMouseClick(actionBox, -1, specialIdx);
+                    break;
+
+                default: break;
+            }
+        }
+
+        private void DrawScanHighlights_Unknown(Graphics g)
+        {
+            switch (unknownBehavior)
+            {
+                case EUnknownBehavior.PressSkip:
+                    DrawActionArea(g, rectUnknownBehavior[(int)unknownBehavior], "SKIP", colorPaletteGreen, specialIdx == 0);
+                    break;
+
+                case EUnknownBehavior.PressRankUp:
+                    DrawActionArea(g, rectUnknownBehavior[(int)unknownBehavior], "Next Screen", colorPaletteGreen, specialIdx == 0);
+                    DrawActionArea(g, rectUnknownBehavior[(int)unknownBehavior], "SKIP", colorPaletteGreen, specialIdx == 1);
+                    break;
+
+                default: break;
+            }
+        }
+
     }
 }

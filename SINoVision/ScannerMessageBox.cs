@@ -12,6 +12,7 @@ namespace SINoVision
             OkCancel,
             Close,
             CombatReport,
+            CombatStart,
         }
 
         public enum EButtonPos
@@ -22,6 +23,8 @@ namespace SINoVision
             CenterTwoRight,
             CombatReportRetry,
             CombatReportOk,
+            CombatStart,
+            CombatDetails,
         }
 
         public enum EButtonType   
@@ -32,19 +35,28 @@ namespace SINoVision
             Retry,
             Next,
             Ok,
+            Start,
+            Details,
+        }
+
+        public enum EButtonColor
+        {
+            Unknown,
+            Red,
+            White,
+            Spec,
         }
 
         public class ActionData
         {
             public EButtonType buttonType;
-            public bool isRed;
-            public bool isWhite;
+            public EButtonColor buttonColor;
         }
 
         public class ScreenData
         {
             public EMessageType mode;
-            public ActionData[] actions = new ActionData[6];
+            public ActionData[] actions = new ActionData[8];
 
             public override string ToString()
             {
@@ -54,7 +66,7 @@ namespace SINoVision
                     desc += string.Format("\n[{0}] {1}:{2} ({3})",
                         idx,
                         actions[idx].buttonType,
-                        actions[idx].isRed ? "red" : actions[idx].isWhite ? "white" : "??",
+                        actions[idx].buttonColor,
                         (EButtonPos)idx);
                 }
 
@@ -62,12 +74,15 @@ namespace SINoVision
             }
         }
 
-        private FastPixelMatch matchAvgRed = new FastPixelMatchHSV(10, 20, 50, 70, 40, 50);
-        private FastPixelMatch matchAvgWhite = new FastPixelMatchHSV(25, 40, 20, 40, 80, 90);
+        private FastPixelMatch matchAvgRed = new FastPixelMatchHSV(10, 20, 50, 70, 20, 50);
+        private FastPixelMatch matchAvgWhite = new FastPixelMatchHSV(25, 40, 15, 40, 20, 90);
+        private FastPixelMatch matchAvgSpec = new FastPixelMatchHSV(20, 40, 20, 40, 40, 80);
 
         private Rectangle rectOkButton = new Rectangle(118, 547, 95, 27);
         private Rectangle rectCombatRetryButton = new Rectangle(11, 549, 95, 27);
         private Rectangle rectCombatOkButton = new Rectangle(123, 549, 95, 27);
+        private Rectangle rectCombatStartButton = new Rectangle(123, 496, 95, 27);
+        private Rectangle rectCombatDetailsButton = new Rectangle(234, 408, 95, 27);
         private Rectangle rectTwoButtonsLeft = new Rectangle(65, 547, 95, 27);
         private Rectangle rectTwoButtonsRight = new Rectangle(177, 547, 95, 27);
         private Rectangle[] rectButtonPos;
@@ -84,13 +99,15 @@ namespace SINoVision
 
             classifierButtons.InitializeModel();
             
-            rectButtonPos = new Rectangle[6];
+            rectButtonPos = new Rectangle[8];
             rectButtonPos[(int)EButtonPos.Unknown] = Rectangle.Empty;
             rectButtonPos[(int)EButtonPos.Center] = rectOkButton;
             rectButtonPos[(int)EButtonPos.CenterTwoLeft] = rectTwoButtonsLeft;
             rectButtonPos[(int)EButtonPos.CenterTwoRight] = rectTwoButtonsRight;
             rectButtonPos[(int)EButtonPos.CombatReportRetry] = rectCombatRetryButton;
             rectButtonPos[(int)EButtonPos.CombatReportOk] = rectCombatOkButton;
+            rectButtonPos[(int)EButtonPos.CombatStart] = rectCombatStartButton;
+            rectButtonPos[(int)EButtonPos.CombatDetails] = rectCombatDetailsButton;
         }
 
         public override string GetState()
@@ -154,10 +171,13 @@ namespace SINoVision
                 avgPx[idx] = GetAverageColor(bitmap, rectButtonPos[idx]);
 
                 var scanOb = new ActionData();
-                scanOb.isRed = matchAvgRed.IsMatching(avgPx[idx]);
-                scanOb.isWhite = matchAvgWhite.IsMatching(avgPx[idx]);
+                scanOb.buttonColor =
+                    matchAvgRed.IsMatching(avgPx[idx]) ? EButtonColor.Red :
+                    matchAvgWhite.IsMatching(avgPx[idx]) ? EButtonColor.White :
+                    matchAvgSpec.IsMatching(avgPx[idx]) ? EButtonColor.Spec :
+                    EButtonColor.Unknown;
 
-                if (scanOb.isWhite || scanOb.isRed)
+                if (scanOb.buttonColor != EButtonColor.Unknown)
                 {
                     float[] values = ExtractButtonData(bitmap, idx);
                     scanOb.buttonType = (EButtonType)classifierButtons.Calculate(values, out float DummyPct);
@@ -166,26 +186,33 @@ namespace SINoVision
                 screenData.actions[idx] = scanOb;
             }
 
-            if (screenData.actions[(int)EButtonPos.CombatReportOk].isRed &&
+            if (screenData.actions[(int)EButtonPos.CombatReportOk].buttonColor == EButtonColor.Red &&
                 screenData.actions[(int)EButtonPos.CombatReportOk].buttonType == EButtonType.Ok &&
-                screenData.actions[(int)EButtonPos.CombatReportRetry].isWhite &&
+                screenData.actions[(int)EButtonPos.CombatReportRetry].buttonColor == EButtonColor.White &&
                 (screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Retry || screenData.actions[(int)EButtonPos.CombatReportRetry].buttonType == EButtonType.Next))
             {
                 screenData.mode = EMessageType.CombatReport;
             }
-            else if (screenData.actions[(int)EButtonPos.Center].isRed && 
+            else if (screenData.actions[(int)EButtonPos.CombatStart].buttonColor == EButtonColor.Red &&
+                screenData.actions[(int)EButtonPos.CombatStart].buttonType == EButtonType.Start &&
+                screenData.actions[(int)EButtonPos.CombatDetails].buttonColor == EButtonColor.Spec &&
+                (screenData.actions[(int)EButtonPos.CombatDetails].buttonType == EButtonType.Details))
+            {
+                screenData.mode = EMessageType.CombatStart;
+            }
+            else if (screenData.actions[(int)EButtonPos.Center].buttonColor == EButtonColor.Red && 
                 screenData.actions[(int)EButtonPos.Center].buttonType == EButtonType.Ok)
             {
                 screenData.mode = EMessageType.Ok;
             }
-            else if (screenData.actions[(int)EButtonPos.CenterTwoLeft].isWhite && 
+            else if (screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonColor == EButtonColor.White && 
                 screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonType == EButtonType.Cancel &&
-                screenData.actions[(int)EButtonPos.CenterTwoRight].isRed && 
+                screenData.actions[(int)EButtonPos.CenterTwoRight].buttonColor == EButtonColor.Red && 
                 screenData.actions[(int)EButtonPos.CenterTwoRight].buttonType == EButtonType.Ok)
             {
                 screenData.mode = EMessageType.OkCancel;
             }
-            else if (screenData.actions[(int)EButtonPos.Center].isWhite &&
+            else if (screenData.actions[(int)EButtonPos.Center].buttonColor == EButtonColor.White &&
                 screenData.actions[(int)EButtonPos.Center].buttonType == EButtonType.Close)
             {
                 screenData.mode = EMessageType.Close;
@@ -197,13 +224,12 @@ namespace SINoVision
             }
             if (DebugLevel >= EDebugLevel.Verbose)
             {
-                Console.WriteLine("  filterRed:({0}), filterWhite:({1})", matchAvgRed, matchAvgWhite);
+                Console.WriteLine("  filterRed:({0}), filterWhite:({1}), filterSpec({2})", matchAvgRed, matchAvgWhite, matchAvgSpec);
                 for (int idx = 1; idx < avgPx.Length; idx++)
                 {
-                    Console.WriteLine("  [{0}]:({1}), isRed:{2}, isWhite:{3}, class:{4}",
+                    Console.WriteLine("  [{0}]:({1}), color:{2}, class:{3}",
                         (EButtonPos)idx, avgPx[idx], 
-                        screenData.actions[idx].isRed,
-                        screenData.actions[idx].isWhite,
+                        screenData.actions[idx].buttonColor,
                         screenData.actions[idx].buttonType);
                 }
             }

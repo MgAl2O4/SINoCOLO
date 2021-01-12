@@ -33,9 +33,10 @@ namespace SINoCOLO
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pictureBoxAnalyzed = new System.Windows.Forms.PictureBox();
             this.panelStatus = new System.Windows.Forms.Panel();
+            this.comboBoxStoryMode = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.checkBoxClicks = new System.Windows.Forms.CheckBox();
             this.labelStatus = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.timerScan = new System.Windows.Forms.Timer(this.components);
             this.buttonDetails = new System.Windows.Forms.Button();
             this.labelScreenshotFailed = new System.Windows.Forms.Label();
@@ -62,19 +63,41 @@ namespace SINoCOLO
             this.panelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelStatus.Controls.Add(this.comboBoxStoryMode);
+            this.panelStatus.Controls.Add(this.label1);
             this.panelStatus.Controls.Add(this.checkBoxClicks);
             this.panelStatus.Controls.Add(this.labelStatus);
-            this.panelStatus.Controls.Add(this.label1);
             this.panelStatus.Location = new System.Drawing.Point(12, 12);
             this.panelStatus.Name = "panelStatus";
             this.panelStatus.Size = new System.Drawing.Size(654, 45);
             this.panelStatus.TabIndex = 2;
             this.panelStatus.Click += new System.EventHandler(this.topPanelClick);
             // 
+            // comboBoxStoryMode
+            // 
+            this.comboBoxStoryMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBoxStoryMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxStoryMode.FormattingEnabled = true;
+            this.comboBoxStoryMode.Location = new System.Drawing.Point(534, 19);
+            this.comboBoxStoryMode.Name = "comboBoxStoryMode";
+            this.comboBoxStoryMode.Size = new System.Drawing.Size(115, 21);
+            this.comboBoxStoryMode.TabIndex = 4;
+            this.comboBoxStoryMode.SelectedIndexChanged += new System.EventHandler(this.comboBoxStoryMode_SelectedIndexChanged);
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(494, 22);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(34, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Story:";
+            // 
             // checkBoxClicks
             // 
             this.checkBoxClicks.AutoSize = true;
-            this.checkBoxClicks.Location = new System.Drawing.Point(52, 21);
+            this.checkBoxClicks.Location = new System.Drawing.Point(6, 21);
             this.checkBoxClicks.Name = "checkBoxClicks";
             this.checkBoxClicks.Size = new System.Drawing.Size(123, 17);
             this.checkBoxClicks.TabIndex = 2;
@@ -84,22 +107,12 @@ namespace SINoCOLO
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(49, 5);
+            this.labelStatus.Location = new System.Drawing.Point(3, 5);
             this.labelStatus.Name = "labelStatus";
-            this.labelStatus.Size = new System.Drawing.Size(53, 13);
+            this.labelStatus.Size = new System.Drawing.Size(49, 13);
             this.labelStatus.TabIndex = 1;
-            this.labelStatus.Text = "Unknown";
+            this.labelStatus.Text = "Status: --";
             this.labelStatus.Click += new System.EventHandler(this.topPanelClick);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 5);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(40, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Status:";
-            this.label1.Click += new System.EventHandler(this.topPanelClick);
             // 
             // timerScan
             // 
@@ -172,12 +185,13 @@ namespace SINoCOLO
         private System.Windows.Forms.PictureBox pictureBoxAnalyzed;
         private System.Windows.Forms.Panel panelStatus;
         private System.Windows.Forms.Label labelStatus;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer timerScan;
         private System.Windows.Forms.CheckBox checkBoxClicks;
         private System.Windows.Forms.Button buttonDetails;
         private System.Windows.Forms.Label labelScreenshotFailed;
         private System.Windows.Forms.TextBox textBoxDetails;
+        private System.Windows.Forms.ComboBox comboBoxStoryMode;
+        private System.Windows.Forms.Label label1;
     }
 }
 

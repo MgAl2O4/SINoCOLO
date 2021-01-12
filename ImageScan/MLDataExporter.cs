@@ -95,7 +95,7 @@ namespace SINoCOLO
             public ButtonML(string path, string typeCode)
             {
                 fileName = path;
-                ButtonSlots = new ScannerMessageBox.EButtonType[6];
+                ButtonSlots = new ScannerMessageBox.EButtonType[8];
 
                 string[] tokens = typeCode.Split(new char[] { ':', ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 for (int idx = 0; idx < tokens.Length; idx += 2)
@@ -108,12 +108,16 @@ namespace SINoCOLO
                     else if (tokens[idx] == "center") { buttonPos = ScannerMessageBox.EButtonPos.Center; }
                     else if (tokens[idx] == "centerL") { buttonPos = ScannerMessageBox.EButtonPos.CenterTwoLeft; }
                     else if (tokens[idx] == "centerR") { buttonPos = ScannerMessageBox.EButtonPos.CenterTwoRight; }
+                    else if (tokens[idx] == "combatS") { buttonPos = ScannerMessageBox.EButtonPos.CombatStart; }
+                    else if (tokens[idx] == "combatD") { buttonPos = ScannerMessageBox.EButtonPos.CombatDetails; }
 
                     if (tokens[idx + 1] == "retry") { buttonType = ScannerMessageBox.EButtonType.Retry; }
                     else if (tokens[idx + 1] == "ok") { buttonType = ScannerMessageBox.EButtonType.Ok; }
                     else if (tokens[idx + 1] == "cancel") { buttonType = ScannerMessageBox.EButtonType.Cancel; }
                     else if (tokens[idx + 1] == "close") { buttonType = ScannerMessageBox.EButtonType.Close; }
                     else if (tokens[idx + 1] == "next") { buttonType = ScannerMessageBox.EButtonType.Next; }
+                    else if (tokens[idx + 1] == "start") { buttonType = ScannerMessageBox.EButtonType.Start; }
+                    else if (tokens[idx + 1] == "details") { buttonType = ScannerMessageBox.EButtonType.Details; }
 
                     ButtonSlots[(int)buttonPos] = buttonType;
                 }
@@ -140,7 +144,7 @@ namespace SINoCOLO
             //ExportDemon();
             //ExportPurify();
             //ExportButtons();
-            ExportStats();
+            //ExportStats();
 
             if (numSavedFiles > 0)
             {
@@ -636,6 +640,7 @@ namespace SINoCOLO
             fileList.Add(new ButtonML("real-msgClose.jpg", "center:close"));
             fileList.Add(new ButtonML("real-msgClose2.jpg", "center:close"));
             fileList.Add(new ButtonML("real-msgOkCancel.jpg", "centerL:cancel, centerR:ok"));
+            fileList.Add(new ButtonML("real-msgCombatStart.jpg", "combatS:start, combatD:details"));
 
             var buttonsScanner = new ScannerMessageBox { DebugLevel = ScannerBase.EDebugLevel.None };
 
