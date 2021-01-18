@@ -181,7 +181,12 @@ namespace SINoCOLO
         {
             if (selectInstanceMode)
             {
-                var selectForm = new InstanceSelectForm{ screenReader = screenReader };
+                var showLocation = new Point(Location.X, Location.Y + Math.Min(Size.Height, 100));
+                var selectForm = new InstanceSelectForm{ 
+                    screenReader = screenReader,
+                    StartPosition = FormStartPosition.Manual,
+                    Location = showLocation
+                };
                 selectForm.ShowDialog();
             }
             else
