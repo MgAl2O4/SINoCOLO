@@ -58,6 +58,10 @@ namespace SINoCOLO
         private Color colorPaletteYellow = Color.FromArgb(0xfd, 0xff, 0xb6);
         private Color colorPaletteActive = Color.FromArgb(0xff, 0xc6, 0xff);
 
+        private Rectangle rectBoostElem = new Rectangle(7, 371, 53, 53);
+        private Rectangle rectDemonType = new Rectangle(144, 86, 51, 51);
+        private Rectangle rectDemonWarning = new Rectangle(83, 73, 171, 21);
+        private Rectangle rectBurstActive = new Rectangle(0, 60, 1000, 1000);
         private Rectangle[] rectUnknownBehavior = new Rectangle[] {
             new Rectangle(0, 0, 0, 0),
             new Rectangle(277, 573, 49, 15),
@@ -290,6 +294,8 @@ namespace SINoCOLO
 
                 cachedDataCombat = null;
                 cachedDataMessageBox = null;
+                waitingForCombatReport = false;
+                waitingForCombat = false;
             }
 
             cachedDataColoCombat = screenData;
@@ -444,11 +450,11 @@ namespace SINoCOLO
             switch (screenData.demonState)
             {
                 case ScannerColoCombat.EDemonState.Active:
-                    DrawActionArea(g, new Rectangle(144, 86, 51, 51), screenData.demonType.ToString(), colorPaletteYellow, false);
+                    DrawActionArea(g, rectDemonType, screenData.demonType.ToString(), colorPaletteYellow, false);
                     break;
 
                 case ScannerColoCombat.EDemonState.Preparing:
-                    DrawActionArea(g, new Rectangle(83, 73, 171, 21), "DEMON SOON", colorPaletteYellow, false);
+                    DrawActionArea(g, rectDemonWarning, "DEMON SOON", colorPaletteYellow, false);;
                     break;
 
                 default: break;
@@ -467,7 +473,7 @@ namespace SINoCOLO
 
             if (boostColor != Color.White)
             {
-                DrawActionArea(g, new Rectangle(7, 371, 53, 53), "BOOST", boostColor, false);
+                DrawActionArea(g, rectBoostElem, "BOOST", boostColor, false);
             }
 
             // weapon icons
@@ -534,7 +540,7 @@ namespace SINoCOLO
                 return true;
             }
 
-            scanSkipCounter = randGen.Next(2, 5);
+            scanSkipCounter = randGen.Next(1, 3);
 
             const float burstBigPct = 90.0f / 400.0f;
             int numSmall = 0;
@@ -622,8 +628,7 @@ namespace SINoCOLO
             if (screenData.BurstState == ScannerColoPurify.EBurstState.Active)
             {
                 // not really an action area, but show regardless
-                Rectangle labelBox = new Rectangle(0, 60, 1000, 1000);
-                DrawActionArea(g, labelBox, "BURST IN PROGRESS", colorPaletteRed, false);
+                DrawActionArea(g, rectBurstActive, "BURST IN PROGRESS", colorPaletteRed, false);
             }
             else
             {
@@ -917,7 +922,7 @@ namespace SINoCOLO
 
             if (boostColor != Color.White)
             {
-                DrawActionArea(g, new Rectangle(9, 402, 49, 49), "BOOST", boostColor, false);
+                DrawActionArea(g, rectBoostElem, "BOOST", boostColor, false);
             }
 
             // weapon icons
