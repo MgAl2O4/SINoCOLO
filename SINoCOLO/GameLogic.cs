@@ -318,7 +318,8 @@ namespace SINoCOLO
             // priority check: low SP = purify
             float SPPct = (screenData.SPIsValid && !screenData.SPIsObstructed) ? screenData.SPFillPct : 1.0f;
             float SPPctUnsafe = screenData.SPIsValid ? screenData.SPFillPct : 1.0f;
-            if (SPPct < 0.3f)
+            float SPToPurify = (screenData.demonState == ScannerColoCombat.EDemonState.Active) ? 0.1f : 0.3f;
+            if (SPPct < SPToPurify)
             {
                 specialIdx = (int)ScannerColoCombat.ESpecialBox.EnterPurify;
                 actionBox = screenScanner.GetSpecialActionBox(specialIdx);
