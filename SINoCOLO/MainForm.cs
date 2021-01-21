@@ -44,6 +44,7 @@ namespace SINoCOLO
 
             gameLogic.OnMouseClickRequested += GameLogic_OnMouseClickRequested;
             gameLogic.OnSaveScreenshot += GameLogic_OnSaveScreenshot;
+            gameLogic.OnEventCounterUpdated += GameLogic_OnEventCounterUpdated;
 
             // show version number
             Text += " v" + typeof(Program).Assembly.GetName().Version.Major;            
@@ -79,6 +80,14 @@ namespace SINoCOLO
                         break;
                     }
                 }
+            }
+        }
+
+        private void GameLogic_OnEventCounterUpdated()
+        {
+            if (gameLogic.eventCounter != numericEventRepeat.Value)
+            {
+                numericEventRepeat.Value = gameLogic.eventCounter;
             }
         }
 
@@ -181,7 +190,7 @@ namespace SINoCOLO
         {
             if (selectInstanceMode)
             {
-                var showLocation = new Point(Location.X, Location.Y + Math.Min(Size.Height, 100));
+                var showLocation = new Point(Location.X + 20, Location.Y + Math.Min(Size.Height, 20));
                 var selectForm = new InstanceSelectForm{ 
                     screenReader = screenReader,
                     StartPosition = FormStartPosition.Manual,
@@ -289,6 +298,7 @@ namespace SINoCOLO
             comboBoxStoryMode.Items.AddRange(itemDesc);
             comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.FarmStage;
 
+            numericEventRepeat_ValueChanged(null, null);
 #if !DEBUG
             buttonDetails_Click(null, null);
 #endif // !DEBUG
@@ -348,7 +358,16 @@ namespace SINoCOLO
                 mode = (GameLogic.EStoryMode)comboBoxStoryMode.SelectedIndex;
             }
 
+            var showEventCounter = (mode == GameLogic.EStoryMode.FarmEvent);
+            numericEventRepeat.Visible = showEventCounter;
+            labelStoryMode.Visible = !showEventCounter;
+
             gameLogic.SetStoryMode(mode);
+        }
+
+        private void numericEventRepeat_ValueChanged(object sender, EventArgs e)
+        {
+            gameLogic.eventCounter = (int)numericEventRepeat.Value;
         }
     }
 }

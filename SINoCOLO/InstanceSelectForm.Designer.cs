@@ -54,7 +54,7 @@ namespace SINoCOLO
             this.listBox1.FormattingEnabled = true;
             this.listBox1.Location = new System.Drawing.Point(15, 25);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(362, 160);
+            this.listBox1.Size = new System.Drawing.Size(362, 69);
             this.listBox1.TabIndex = 1;
             this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
             // 
@@ -62,7 +62,7 @@ namespace SINoCOLO
             // 
             this.buttonSelect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSelect.Location = new System.Drawing.Point(15, 191);
+            this.buttonSelect.Location = new System.Drawing.Point(15, 106);
             this.buttonSelect.Name = "buttonSelect";
             this.buttonSelect.Size = new System.Drawing.Size(362, 23);
             this.buttonSelect.TabIndex = 2;
@@ -80,7 +80,7 @@ namespace SINoCOLO
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(395, 224);
+            this.ClientSize = new System.Drawing.Size(395, 139);
             this.Controls.Add(this.buttonSelect);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.label1);

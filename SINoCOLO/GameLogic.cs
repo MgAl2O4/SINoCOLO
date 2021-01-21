@@ -24,8 +24,11 @@ namespace SINoCOLO
 
         public delegate void MouseClickDelegate(int posX, int posY);
         public delegate void SaveScreenshotDelegate();
+        public delegate void UpdateEventCounter();
+
         public event MouseClickDelegate OnMouseClickRequested;
         public event SaveScreenshotDelegate OnSaveScreenshot;
+        public event UpdateEventCounter OnEventCounterUpdated;
         private Random randGen = new Random();
 
         public ScannerBase screenScanner;
@@ -38,6 +41,7 @@ namespace SINoCOLO
 
         public int slotIdx = -1;
         public int specialIdx = -1;
+        public int eventCounter = 0;
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
@@ -685,8 +689,9 @@ namespace SINoCOLO
 
             cachedDataMessageBox = screenData;
 
+            double clickDelay = 1.5;
             TimeSpan timeSinceLastClick = DateTime.Now - lastClickTime;
-            if (timeSinceLastClick.TotalSeconds < 1.5)
+            if (timeSinceLastClick.TotalSeconds < clickDelay)
             {
                 return true;
             }
@@ -705,6 +710,14 @@ namespace SINoCOLO
                     {
                         waitingForCombatReport = false;
                         waitingForEventSummary = true;
+
+                        // additional wait for bonus scores to settle
+                        if (storyMode == EStoryMode.FarmEvent)
+                        {
+                            lastClickTime = DateTime.Now;
+                            lastClickTime.AddSeconds(3 - clickDelay);
+                            return true;
+                        }
                     }
 
                     btnType = screenData.actions[(int)ScannerMessageBox.EButtonPos.CombatReportRetry].buttonType;
@@ -720,18 +733,23 @@ namespace SINoCOLO
                     else if (storyMode == EStoryMode.FarmEvent && !waitingForCombatReport)
                     {
 #if DEBUG
-                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2}, wait:{3} => {4}!", 
-                            screenData.mode, storyMode, btnType, waitingForEventSummary,
-                            waitingForEventSummary ? "ok" : "retry");
+                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2}, wait:{3}, counter:{4} => {5}!", 
+                            screenData.mode, storyMode, btnType, waitingForEventSummary, eventCounter,
+                            waitingForEventSummary ? "ok" : (eventCounter > 1) ? "retry" : "ok");
 #endif // DEBUG
                         if (waitingForEventSummary)
                         {
+                            // click ok once => move to screen with rewards
                             specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportOk;
                             waitingForEventSummary = false;
                         }
                         else
                         {
-                            specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                            // click retry if counter allows, otherwise keep clicking ok
+                            eventCounter = (eventCounter > 0) ? (eventCounter - 1) : 0;
+                            OnEventCounterUpdated?.Invoke();
+
+                            specialIdx = (eventCounter <= 0) ? (int)ScannerMessageBox.EButtonPos.CombatReportOk : (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
                         }
                     }
                     else if (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Retry)
