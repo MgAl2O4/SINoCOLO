@@ -336,7 +336,9 @@ namespace SINoCOLO
             }
 
             // don't click on action area (including big button) if summon selector is active
-            if (screenData.hasSummonSelection)
+            if (screenData.hasSummonSelection && 
+                (screenData.specialAction == ScannerColoCombat.ESpecialAction.None ||
+                 screenData.specialAction == ScannerColoCombat.ESpecialAction.Reload))
             {
                 specialIdx = -1;
                 slotIdx = -1;
