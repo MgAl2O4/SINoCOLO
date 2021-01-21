@@ -457,7 +457,9 @@ namespace SINoCOLO
                 default: break;
             }
 
-            if (screenData.hasSummonSelection)
+            if (screenData.hasSummonSelection &&
+                (screenData.specialAction == ScannerColoCombat.ESpecialAction.None ||
+                 screenData.specialAction == ScannerColoCombat.ESpecialAction.Reload))
             {
                 DrawActionArea(g, rectSummonSelector, "SUMMON", colorPaletteBlue, false);
             }
