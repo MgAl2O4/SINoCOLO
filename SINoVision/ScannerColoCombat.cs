@@ -90,6 +90,7 @@ namespace SINoVision
                     scannerState = 3;
                     var outputOb = new ScreenData();
                     ScanSP(bitmap, outputOb);
+                    ScanSummonSelector(bitmap, outputOb);
 
                     for (int idx = 0; idx < outputOb.actions.Length; idx++)
                     {

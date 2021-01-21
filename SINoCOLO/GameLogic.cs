@@ -66,6 +66,7 @@ namespace SINoCOLO
         private Rectangle rectDemonType = new Rectangle(144, 86, 51, 51);
         private Rectangle rectDemonWarning = new Rectangle(83, 73, 171, 21);
         private Rectangle rectBurstActive = new Rectangle(0, 60, 1000, 1000);
+        private Rectangle rectSummonSelector = new Rectangle(8, 465, 66, 27);
         private Rectangle[] rectUnknownBehavior = new Rectangle[] {
             new Rectangle(0, 0, 0, 0),
             new Rectangle(277, 573, 49, 15),
@@ -334,6 +335,14 @@ namespace SINoCOLO
                 return true;
             }
 
+            // don't click on action area (including big button) if summon selector is active
+            if (screenData.hasSummonSelection)
+            {
+                specialIdx = -1;
+                slotIdx = -1;
+                return true;
+            }
+
             // if big button is showing up:
             // - click it on reload
             switch (screenData.specialAction)
@@ -443,6 +452,11 @@ namespace SINoCOLO
                     break;
 
                 default: break;
+            }
+
+            if (screenData.hasSummonSelection)
+            {
+                DrawActionArea(g, rectSummonSelector, "SUMMON", colorPaletteBlue, false);
             }
 
             Rectangle purifyBox = screenScanner.GetSpecialActionBox((int)ScannerColoCombat.ESpecialBox.EnterPurify);
@@ -863,6 +877,14 @@ namespace SINoCOLO
             // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
             scanSkipCounter = randGen.Next(5, 8);
 
+            // don't click on action area (including big button) if summon selector is active
+            if (screenData.hasSummonSelection)
+            {
+                specialIdx = -1;
+                slotIdx = -1;
+                return true;
+            }
+
             // if big button is showing up:
             // - click it on reload
             if (screenData.reloadActive)
@@ -924,6 +946,11 @@ namespace SINoCOLO
                 Rectangle bigButtonBox = screenScanner.GetSpecialActionBox(0);
                 bool isActiveBigButton = specialIdx == 0;
                 DrawActionArea(g, bigButtonBox, "RELOAD", colorPaletteYellow, isActiveBigButton);
+            }
+
+            if (screenData.hasSummonSelection)
+            {
+                DrawActionArea(g, rectSummonSelector, "SUMMON", colorPaletteBlue, false);
             }
 
             // not really an action area, but show regardless:

@@ -47,6 +47,7 @@ namespace SINoVision
 
         public class ScreenDataBase
         {
+            public bool hasSummonSelection = false;
             public bool SPIsValid = false;
             public bool SPIsObstructed = false;
             public float SPFillPct = 0;
@@ -58,6 +59,7 @@ namespace SINoVision
                 string desc = "SP> " + (!SPIsValid ? "n/a" :
                     string.Format("{0:P0}{1}", SPFillPct, SPIsObstructed ? ", obstructed" : ""));
 
+                desc += "\nSummon> " + (hasSummonSelection ? "opened" : "nope");
                 for (int idx = 0; idx < actions.Length; idx++)
                 {
                     desc += "\nAction[" + idx + "]> " + actions[idx];
@@ -74,6 +76,7 @@ namespace SINoVision
         protected Rectangle rectBoostSearch = new Rectangle(1, -2, 13, 24);
         protected Rectangle[] rectActionElements = new Rectangle[] { new Rectangle(3, 3, 28, 2), new Rectangle(35, 47, 14, 2), new Rectangle(47, 36, 2, 10) };
         protected Rectangle rectBigButton = new Rectangle(103, 506, 131, 44);
+        protected Rectangle rectSummonSelector = new Rectangle(13, 466, 15, 5);
         protected Point[] posBigButton = new Point[] { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
         protected Point[] posBoostIn = new Point[] { new Point(7, 5), new Point(7, 8), new Point(7, 11), new Point(7, 17), new Point(10, 8) };
         protected Point[] posBoostOut = new Point[] { new Point(6, 14), new Point(8, 14), new Point(10, 11), new Point(12, 11) };
@@ -85,6 +88,7 @@ namespace SINoVision
         private FastPixelMatch matchBoostIn = new FastPixelMatchHueMono(-10, 60, 80, 255);
         private FastPixelMatch matchBoostOut = new FastPixelMatchHSV(-40, 30, 0, 100, 0, 40);
         private FastPixelMatch matchBoostInW = new FastPixelMatchMono(220, 255);
+        private FastPixelMatch matchSummonIcon = new FastPixelMatchMono(220, 255);
 
         protected MLClassifierWeaponType classifierWeapon = new MLClassifierWeaponType();
 
@@ -153,6 +157,21 @@ namespace SINoVision
                 Console.WriteLine("  filterFull({0}), filterEmpty({1})", matchSPFull, matchSPEmpty);
                 Console.WriteLine("  numMatchFull: {0}, numMatchEmpty: {1}, matchedPct: {2}, numChanges:{3}",
                     numMatchFull, numMatchEmpty, matchedPct, numChanges);
+            }
+        }
+
+        protected void ScanSummonSelector(FastBitmapHSV bitmap, ScreenDataBase screenData)
+        {
+            float fillPct = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonIcon);
+            screenData.hasSummonSelection = fillPct < 0.3f;
+
+            if (DebugLevel >= EDebugLevel.Simple)
+            {
+                Console.WriteLine("{0} ScanSummonSelector: {1}", ScannerName, screenData.hasSummonSelection);
+            }
+            if (DebugLevel >= EDebugLevel.Verbose)
+            {
+                Console.WriteLine("  fillPct: {0}", fillPct);
             }
         }
 
