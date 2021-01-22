@@ -348,7 +348,7 @@ namespace SINoCOLO
                     return true;
 
                 case ScannerColoCombat.ESpecialAction.AttackShip:
-                    if (SPPctUnsafe < 0.7f)
+                    if (SPPctUnsafe < 0.9f)
                     {
                         specialIdx = (int)ScannerColoCombat.ESpecialBox.EnterPurify;
                         actionBox = screenScanner.GetSpecialActionBox(specialIdx);
