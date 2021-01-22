@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieExtract", "MovieExtract\MovieExtract.csproj", "{E858C254-4CCD-45F8-A51B-B1B8366570D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util-MovieExtract", "Util-MovieExtract\Util-MovieExtract.csproj", "{E858C254-4CCD-45F8-A51B-B1B8366570D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageScan", "ImageScan\ImageScan.csproj", "{F4E6E766-9E81-40FC-A187-168CE59AD94D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util-ImageDebug", "Util-ImageDebug\Util-ImageDebug.csproj", "{F4E6E766-9E81-40FC-A187-168CE59AD94D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SINoVision", "SINoVision\SINoVision.csproj", "{29DD44C2-B523-40E9-8994-D30A22581FE9}"
 EndProject
