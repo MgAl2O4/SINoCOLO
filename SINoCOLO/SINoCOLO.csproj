@@ -74,6 +74,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScreenReader.cs" />
+    <Compile Include="TrackerActionBoost.cs" />
     <Compile Include="WindowFlashForm.cs">
       <SubType>Form</SubType>
     </Compile>

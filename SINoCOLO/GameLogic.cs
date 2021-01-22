@@ -45,10 +45,9 @@ namespace SINoCOLO
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
-        private int[] boostUpkeep = new int[] { 0, 0, 0, 0 };
-        private int boostUpkeepTicks = 80; // 8s
         private EStoryMode storyMode = EStoryMode.None;
         private EUnknownBehavior unknownBehavior = EUnknownBehavior.None;
+        private TrackerActionBoost actionBoost = new TrackerActionBoost();
         private DateTime lastClickTime;
         private DateTime lastCombatTime;
         private bool waitingForCombat = false;
@@ -101,13 +100,7 @@ namespace SINoCOLO
             interpActiveFill -= (float)Math.Truncate(interpActiveFill);
             interpActiveFill += 0.25f;
 
-            for (int idx = 0; idx < boostUpkeep.Length; idx++)
-            {
-                if (boostUpkeep[idx] > 0)
-                {
-                    boostUpkeep[idx]--;
-                }
-            }
+            actionBoost.Tick();
         }
 
         public void OnScan()
@@ -246,26 +239,10 @@ namespace SINoCOLO
                 state, scanSkipCounter, scanSkipCounter <= 1 ? " (click)" : ""));
 
             lines.Add(string.Format("Story:{0}, behavior:{1}, wait(combat:{2}, report:{3})", storyMode, unknownBehavior, waitingForCombat, waitingForCombatReport));
-
-            string boostDesc = "";
-            for (int idx = 0; idx < boostUpkeep.Length; idx++)
+            
+            if (cachedDataCombat != null || cachedDataColoCombat != null)
             {
-                var elemType = (ScannerCombatBase.EElementType)idx;
-                if (elemType != ScannerCombatBase.EElementType.Unknown && boostUpkeep[idx] > 0)
-                {
-                    if (boostDesc.Length > 0) { boostDesc += ", "; }
-                    boostDesc += elemType.ToString();
-
-                    if (boostUpkeep[idx] < boostUpkeepTicks)
-                    {
-                        boostDesc += string.Format(" (fading: {0})", boostUpkeep[idx]);
-                    }
-                }
-            }
-
-            if (cachedDataCombat != null || cachedDataColoCombat != null || boostDesc.Length > 0)
-            {
-                lines.Add("Boost: " + (boostDesc.Length > 0 ? boostDesc : "n/a"));
+                actionBoost.AppendDetails(lines);
             }
 
             // cached data status
@@ -386,6 +363,8 @@ namespace SINoCOLO
 
             // otherwise, just click actions random valid actions
             {
+                actionBoost.UpdateActions(screenData.actions);
+
                 var prioritySlotsDemon = new List<int>();
                 var prioritySlotsBoost = new List<int>();
                 var validSlots = new List<int>();
@@ -395,17 +374,10 @@ namespace SINoCOLO
                     {
                         validSlots.Add(idx);
 
-                        if (screenData.actions[idx].element != ScannerCombatBase.EElementType.Unknown)
+                        var isBoosted = actionBoost.IsBoosted(screenData.actions[idx]);
+                        if (isBoosted)
                         {
-                            if (screenData.actions[idx].hasBoost)
-                            {
-                                boostUpkeep[(int)screenData.actions[idx].element] = boostUpkeepTicks;
-                                prioritySlotsBoost.Add(idx);
-                            }
-                            else if (boostUpkeep[(int)screenData.actions[idx].element] > 0)
-                            {
-                                prioritySlotsBoost.Add(idx);
-                            }
+                            prioritySlotsBoost.Add(idx);
                         }
                     }
 
@@ -484,18 +456,15 @@ namespace SINoCOLO
             }
 
             // - NM elemental boost
-            const int idxFire = (int)ScannerCombatBase.EElementType.Fire;
-            const int idxWater = (int)ScannerCombatBase.EElementType.Water;
-            const int idxWind = (int)ScannerCombatBase.EElementType.Wind;
-
-            var boostColor =
-                (boostUpkeep[idxFire] > boostUpkeep[idxWater]) && (boostUpkeep[idxFire] > boostUpkeep[idxWind]) ? colorPaletteRed :
-                (boostUpkeep[idxWater] > boostUpkeep[idxFire]) && (boostUpkeep[idxWater] > boostUpkeep[idxWind]) ? colorPaletteBlue :
-                (boostUpkeep[idxWind] > boostUpkeep[idxFire]) && (boostUpkeep[idxWind] > boostUpkeep[idxWater]) ? colorPaletteGreen :
-                Color.White;
-
-            if (boostColor != Color.White)
+            var hasBoost = actionBoost.GetBoostDesc(out ScannerCombatBase.EElementType bestElement);
+            if (hasBoost)
             {
+                Color boostColor =
+                    (bestElement == ScannerCombatBase.EElementType.Fire) ? colorPaletteRed :
+                    (bestElement == ScannerCombatBase.EElementType.Wind) ? colorPaletteGreen :
+                    (bestElement == ScannerCombatBase.EElementType.Water) ? colorPaletteBlue :
+                    Color.White;
+
                 DrawActionArea(g, rectBoostElem, "BOOST", boostColor, false);
             }
 
@@ -902,6 +871,8 @@ namespace SINoCOLO
 
             // otherwise, just click actions random valid actions
             {
+                actionBoost.UpdateActions(screenData.actions);
+
                 var prioritySlotsBoost = new List<int>();
                 var validSlots = new List<int>();
                 for (int idx = 0; idx < screenData.actions.Length; idx++)
@@ -910,17 +881,10 @@ namespace SINoCOLO
                     {
                         validSlots.Add(idx);
 
-                        if (screenData.actions[idx].element != ScannerCombatBase.EElementType.Unknown)
+                        var isBoosted = actionBoost.IsBoosted(screenData.actions[idx]);
+                        if (isBoosted)
                         {
-                            if (screenData.actions[idx].hasBoost)
-                            {
-                                boostUpkeep[(int)screenData.actions[idx].element] = boostUpkeepTicks;
-                                prioritySlotsBoost.Add(idx);
-                            }
-                            else if (boostUpkeep[(int)screenData.actions[idx].element] > 0)
-                            {
-                                prioritySlotsBoost.Add(idx);
-                            }
+                            prioritySlotsBoost.Add(idx);
                         }
                     }
                 }
@@ -960,18 +924,15 @@ namespace SINoCOLO
 
             // not really an action area, but show regardless:
             // - NM elemental boost
-            const int idxFire = (int)ScannerCombatBase.EElementType.Fire;
-            const int idxWater = (int)ScannerCombatBase.EElementType.Water;
-            const int idxWind = (int)ScannerCombatBase.EElementType.Wind;
-
-            var boostColor =
-                (boostUpkeep[idxFire] > boostUpkeep[idxWater]) && (boostUpkeep[idxFire] > boostUpkeep[idxWind]) ? colorPaletteRed :
-                (boostUpkeep[idxWater] > boostUpkeep[idxFire]) && (boostUpkeep[idxWater] > boostUpkeep[idxWind]) ? colorPaletteBlue :
-                (boostUpkeep[idxWind] > boostUpkeep[idxFire]) && (boostUpkeep[idxWind] > boostUpkeep[idxWater]) ? colorPaletteGreen :
-                Color.White;
-
-            if (boostColor != Color.White)
+            var hasBoost = actionBoost.GetBoostDesc(out ScannerCombatBase.EElementType bestElement);
+            if (hasBoost)
             {
+                Color boostColor =
+                    (bestElement == ScannerCombatBase.EElementType.Fire) ? colorPaletteRed :
+                    (bestElement == ScannerCombatBase.EElementType.Wind) ? colorPaletteGreen :
+                    (bestElement == ScannerCombatBase.EElementType.Water) ? colorPaletteBlue :
+                    Color.White;
+
                 DrawActionArea(g, rectBoostElem, "BOOST", boostColor, false);
             }
 
