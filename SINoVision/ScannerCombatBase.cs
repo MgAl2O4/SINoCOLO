@@ -88,7 +88,8 @@ namespace SINoVision
         private FastPixelMatch matchBoostIn = new FastPixelMatchHueMono(-10, 60, 80, 255);
         private FastPixelMatch matchBoostOut = new FastPixelMatchHSV(-40, 30, 0, 100, 0, 40);
         private FastPixelMatch matchBoostInW = new FastPixelMatchMono(220, 255);
-        private FastPixelMatch matchSummonIcon = new FastPixelMatchMono(220, 255);
+        private FastPixelMatch matchSummonIcon = new FastPixelMatchMono(180, 255);
+        private FastPixelMatch matchSummonBack = new FastPixelMatchHSV(10, 40, 0, 100, 0, 100);
 
         protected MLClassifierWeaponType classifierWeapon = new MLClassifierWeaponType();
 
@@ -162,8 +163,13 @@ namespace SINoVision
 
         protected void ScanSummonSelector(FastBitmapHSV bitmap, ScreenDataBase screenData)
         {
-            float fillPct = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonIcon);
-            screenData.hasSummonSelection = fillPct < 0.3f;
+            float fillPctB = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonBack);
+            bool hasFillB = (fillPctB > 0.95f);
+
+            float fillPctF = !hasFillB ? 10.0f :
+                ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonIcon);
+            
+            screenData.hasSummonSelection = hasFillB && (fillPctF < 0.3f);
 
             if (DebugLevel >= EDebugLevel.Simple)
             {
@@ -171,7 +177,7 @@ namespace SINoVision
             }
             if (DebugLevel >= EDebugLevel.Verbose)
             {
-                Console.WriteLine("  fillPct: {0}", fillPct);
+                Console.WriteLine("  fillPctF: {0}, fillPctB: {1}", fillPctF, fillPctB);
             }
         }
 
