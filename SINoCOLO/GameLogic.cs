@@ -42,6 +42,8 @@ namespace SINoCOLO
         public int slotIdx = -1;
         public int specialIdx = -1;
         public int eventCounter = 0;
+        public bool canClick = false;
+
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
@@ -77,9 +79,10 @@ namespace SINoCOLO
             Unknown,
             ColoCombat,
             ColoPurify,
-            Combat,
             MessageBox,
             TitleScreen,
+            Combat,
+            Purify,
         }
         private EState state;
 
@@ -111,8 +114,9 @@ namespace SINoCOLO
                 handled = handled || OnScan_ColoCombat(screenData as ScannerColoCombat.ScreenData);
                 handled = handled || OnScan_ColoPurify(screenData as ScannerColoPurify.ScreenData);
                 handled = handled || OnScan_MessageBox(screenData as ScannerMessageBox.ScreenData);
-                handled = handled || OnScan_Combat(screenData as ScannerCombat.ScreenData);
                 handled = handled || OnScan_TitleScreen(screenData as ScannerTitleScreen.ScreenData);
+                handled = handled || OnScan_Combat(screenData as ScannerCombat.ScreenData);
+                handled = handled || OnScan_Purify(screenData as ScannerPurify.ScreenData);
             }
 
             if (!handled)
@@ -164,8 +168,9 @@ namespace SINoCOLO
                 handled = handled || DrawScanHighlights_ColoCombat(g, screenData as ScannerColoCombat.ScreenData);
                 handled = handled || DrawScanHighlights_ColoPurify(g, screenData as ScannerColoPurify.ScreenData);
                 handled = handled || DrawScanHighlights_MessageBox(g, screenData as ScannerMessageBox.ScreenData);
-                handled = handled || DrawScanHighlights_Combat(g, screenData as ScannerCombat.ScreenData);
                 handled = handled || DrawScanHighlights_TitleScreen(g, screenData as ScannerTitleScreen.ScreenData);
+                handled = handled || DrawScanHighlights_Combat(g, screenData as ScannerCombat.ScreenData);
+                handled = handled || DrawScanHighlights_Purify(g, screenData as ScannerPurify.ScreenData);
             }
 
             if (!handled)
@@ -734,8 +739,11 @@ namespace SINoCOLO
                         else
                         {
                             // click retry if counter allows, otherwise keep clicking ok
-                            eventCounter = (eventCounter > 0) ? (eventCounter - 1) : 0;
-                            OnEventCounterUpdated?.Invoke();
+                            if (canClick)
+                            {
+                                eventCounter = (eventCounter > 0) ? (eventCounter - 1) : 0;
+                                OnEventCounterUpdated?.Invoke();
+                            }
 
                             specialIdx = (eventCounter <= 0) ? (int)ScannerMessageBox.EButtonPos.CombatReportOk : (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
                         }
@@ -1006,6 +1014,65 @@ namespace SINoCOLO
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private bool OnScan_Purify(ScannerPurify.ScreenData screenData)
+        {
+            if (screenData == null) { return false; }
+            if (state != EState.Purify)
+            {
+                state = EState.Purify;
+                OnStateChanged();
+
+                cachedDataMessageBox = null;
+                purifySlot = randGen.Next(10);
+            }
+
+            scanSkipCounter--;
+            if (scanSkipCounter > 0)
+            {
+                return true;
+            }
+
+            scanSkipCounter = randGen.Next(1, 3);
+
+            // if burst is ready, spam away
+            if (screenData.hasBurstInCenter)
+            {
+                specialIdx = 0;
+                Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
+                RequestMouseClick(actionBox, -1, specialIdx);
+                return true;
+            }
+
+            // otherwise just click on slots and hope for the best
+            Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
+            purifySlot = (purifySlot + 1) % actionBoxes.Length;
+            RequestMouseClick(actionBoxes[purifySlot], purifySlot, -1);
+            return true;
+        }
+
+        private bool DrawScanHighlights_Purify(Graphics g, ScannerPurify.ScreenData screenData)
+        {
+            if (screenData == null) { return false; }
+
+            if (screenData.hasBurstInCenter)
+            {
+                Rectangle burstBox = screenScanner.GetSpecialActionBox(0);
+                DrawActionArea(g, burstBox, "BURST", colorPaletteGreen, specialIdx == 0);
+            }
+
+            Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
+            for (int idx = 0; idx < actionBoxes.Length; idx++)
+            {
+                DrawActionArea(g, actionBoxes[idx], "Maybe?", Color.White, slotIdx == idx);
+            }
+
+            return true;
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         private void OnScan_Unknown()
         {
             var timeSinceLastClick = DateTime.Now - lastClickTime;

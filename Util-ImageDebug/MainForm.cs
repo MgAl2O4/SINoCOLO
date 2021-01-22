@@ -22,9 +22,10 @@ namespace SINoCOLO
 
             scanners.Add(new ScannerColoCombat());
             scanners.Add(new ScannerColoPurify());
+            scanners.Add(new ScannerTitleScreen());
             scanners.Add(new ScannerMessageBox());
             scanners.Add(new ScannerCombat());
-            scanners.Add(new ScannerTitleScreen());
+            scanners.Add(new ScannerPurify());
 
             foreach (var scanner in scanners)
             {

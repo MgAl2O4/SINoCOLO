@@ -167,7 +167,7 @@ namespace SINoVision
             var avgPx = ScreenshotUtilities.GetAverageColor(bitmap, rectSummonSelectorA);
             var iconFillPct = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelectorB, matchSummonIcon);
             var isAvgMatching = matchSummonBack.IsMatching(avgPx);
-            var isIconMatching = (iconFillPct > 0.15f) && (iconFillPct < 0.35f);
+            var isIconMatching = (iconFillPct > 0.10f) && (iconFillPct < 0.35f);
 
             screenData.hasSummonSelection = isAvgMatching && isIconMatching;
 
