@@ -76,7 +76,8 @@ namespace SINoVision
         protected Rectangle rectBoostSearch = new Rectangle(1, -2, 13, 24);
         protected Rectangle[] rectActionElements = new Rectangle[] { new Rectangle(3, 3, 28, 2), new Rectangle(35, 47, 14, 2), new Rectangle(47, 36, 2, 10) };
         protected Rectangle rectBigButton = new Rectangle(103, 506, 131, 44);
-        protected Rectangle rectSummonSelector = new Rectangle(13, 466, 15, 5);
+        protected Rectangle rectSummonSelectorA = new Rectangle(10, 466, 60, 5);
+        protected Rectangle rectSummonSelectorB = new Rectangle(19, 474, 9, 9);
         protected Point[] posBigButton = new Point[] { new Point(106, 506), new Point(170, 506), new Point(230, 506), new Point(106, 551), new Point(170, 551), new Point(230, 551) };
         protected Point[] posBoostIn = new Point[] { new Point(7, 5), new Point(7, 8), new Point(7, 11), new Point(7, 17), new Point(10, 8) };
         protected Point[] posBoostOut = new Point[] { new Point(6, 14), new Point(8, 14), new Point(10, 11), new Point(12, 11) };
@@ -89,7 +90,7 @@ namespace SINoVision
         private FastPixelMatch matchBoostOut = new FastPixelMatchHSV(-40, 30, 0, 100, 0, 40);
         private FastPixelMatch matchBoostInW = new FastPixelMatchMono(220, 255);
         private FastPixelMatch matchSummonIcon = new FastPixelMatchMono(180, 255);
-        private FastPixelMatch matchSummonBack = new FastPixelMatchHSV(10, 40, 0, 100, 0, 100);
+        private FastPixelMatch matchSummonBack = new FastPixelMatchHSV(15, 25, 40, 60, 20, 30);
 
         protected MLClassifierWeaponType classifierWeapon = new MLClassifierWeaponType();
 
@@ -163,13 +164,12 @@ namespace SINoVision
 
         protected void ScanSummonSelector(FastBitmapHSV bitmap, ScreenDataBase screenData)
         {
-            float fillPctB = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonBack);
-            bool hasFillB = (fillPctB > 0.95f);
+            var avgPx = ScreenshotUtilities.GetAverageColor(bitmap, rectSummonSelectorA);
+            var iconFillPct = ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelectorB, matchSummonIcon);
+            var isAvgMatching = matchSummonBack.IsMatching(avgPx);
+            var isIconMatching = (iconFillPct > 0.15f) && (iconFillPct < 0.35f);
 
-            float fillPctF = !hasFillB ? 10.0f :
-                ScreenshotUtilities.CountFillPct(bitmap, rectSummonSelector, matchSummonIcon);
-            
-            screenData.hasSummonSelection = hasFillB && (fillPctF < 0.3f);
+            screenData.hasSummonSelection = isAvgMatching && isIconMatching;
 
             if (DebugLevel >= EDebugLevel.Simple)
             {
@@ -177,7 +177,9 @@ namespace SINoVision
             }
             if (DebugLevel >= EDebugLevel.Verbose)
             {
-                Console.WriteLine("  fillPctF: {0}, fillPctB: {1}", fillPctF, fillPctB);
+                Console.WriteLine("  avgPx: ({0}) vs ({1}) => {2}, fillIcon: {3} => {4}",
+                    avgPx, matchSummonBack, isAvgMatching,
+                    iconFillPct, isIconMatching);
             }
         }
 

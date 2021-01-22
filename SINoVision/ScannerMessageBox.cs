@@ -145,32 +145,12 @@ namespace SINoVision
             return Rectangle.Empty;
         }
 
-        protected FastPixelHSV GetAverageColor(FastBitmapHSV bitmap, Rectangle bounds)
-        {
-            float hueAcc = 0.0f;
-            float satAcc = 0.0f;
-            float valAcc = 0.0f;
-            float scale = 1.0f / bounds.Width;
-
-            for (int idx = 0; idx < bounds.Width; idx++)
-            {
-                FastPixelHSV testPx = bitmap.GetPixel(bounds.X + idx, bounds.Y);
-                hueAcc += testPx.GetHue();
-                satAcc += testPx.GetSaturation();
-                valAcc += testPx.GetValue();
-            }
-
-            FastPixelHSV avgPx = new FastPixelHSV();
-            avgPx.SetHSV((int)(hueAcc * scale), (int)(satAcc * scale), (int)(valAcc * scale));
-            return avgPx;
-        }
-
         protected bool HasOkButtonArea(FastBitmapHSV bitmap, ScreenData screenData)
         {
             FastPixelHSV[] avgPx = new FastPixelHSV[rectButtonPos.Length];
             for (int idx = 1; idx < avgPx.Length; idx++)
             {
-                avgPx[idx] = GetAverageColor(bitmap, rectButtonPos[idx]);
+                avgPx[idx] = ScreenshotUtilities.GetAverageColor(bitmap, rectButtonPos[idx]);
 
                 var scanOb = new ActionData();
                 scanOb.buttonColor =
