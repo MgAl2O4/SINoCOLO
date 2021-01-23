@@ -1023,6 +1023,10 @@ namespace SINoCOLO
                 state = EState.Purify;
                 OnStateChanged();
 
+                waitingForCombat = false;
+                waitingForCombatReport = false;
+                waitingForEventSummary = false;
+
                 cachedDataMessageBox = null;
                 purifySlot = randGen.Next(10);
             }
