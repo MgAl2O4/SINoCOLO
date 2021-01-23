@@ -1037,7 +1037,8 @@ namespace SINoCOLO
                 return true;
             }
 
-            scanSkipCounter = randGen.Next(1, 3);
+            // all the speeds!
+            scanSkipCounter = 0;
 
             // if burst is ready, spam away
             if (screenData.hasBurstInCenter)
