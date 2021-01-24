@@ -16,11 +16,11 @@ namespace SINoVision
             }
         }
 
-        private FastPixelMatch matchLabelI = new FastPixelMatchMono(230, 255);
+        private FastPixelMatch matchLabelI = new FastPixelMatchMono(170, 255);
         private FastPixelMatch matchLabelO = new FastPixelMatchMono(0, 140);
         private FastPixelMatch matchTimerI = new FastPixelMatchMono(170, 245);
         private FastPixelMatch matchTimerO = new FastPixelMatchHSV(-5, 15, 50, 100, 10, 60);
-        private FastPixelMatch matchPause = new FastPixelMatchMono(230, 255);
+        private FastPixelMatch matchPause = new FastPixelMatchMono(200, 255);
         private FastPixelMatch matchBurstCenter = new FastPixelMatchHueMono(20, 40, 130, 195);
 
         private Rectangle rectBurstCenter = new Rectangle(153, 343, 30, 2);
