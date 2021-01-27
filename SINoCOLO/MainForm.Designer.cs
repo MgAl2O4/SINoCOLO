@@ -125,6 +125,7 @@ namespace SINoCOLO
             this.checkBoxClicks.TabIndex = 2;
             this.checkBoxClicks.Text = "Enable mouse clicks";
             this.checkBoxClicks.UseVisualStyleBackColor = true;
+            this.checkBoxClicks.CheckedChanged += new System.EventHandler(this.checkBoxClicks_CheckedChanged);
             // 
             // labelStatus
             // 

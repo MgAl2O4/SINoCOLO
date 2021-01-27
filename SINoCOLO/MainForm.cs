@@ -206,6 +206,11 @@ namespace SINoCOLO
             }
         }
 
+        private void checkBoxClicks_CheckedChanged(object sender, EventArgs e)
+        {
+            gameLogic.canClick = checkBoxClicks.Checked;
+        }
+
         private void pictureBoxAnalyzed_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
