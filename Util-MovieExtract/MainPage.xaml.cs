@@ -30,8 +30,6 @@ namespace SINoCOLO
         private ImageStream frameStream = null;
 
         private List<ScannerBase> scanners = new List<ScannerBase>();
-        private ScannerColoPurify scannerPurify = null;
-        private FastBitmapHSV cachedBitmap = null;
 
         public MainPage()
         {
@@ -40,8 +38,9 @@ namespace SINoCOLO
             scanners.Add(new ScannerColoCombat());
             scanners.Add(new ScannerColoPurify());
             scanners.Add(new ScannerMessageBox());
-
-            scannerPurify = scanners[1] as ScannerColoPurify;
+            scanners.Add(new ScannerTitleScreen());
+            scanners.Add(new ScannerCombat());
+            scanners.Add(new ScannerPurify());
         }
 
         private async Task LoadMovieData()
@@ -64,6 +63,9 @@ namespace SINoCOLO
             IDictionary<string, object> encodingProperties = await pickedFile.Properties.RetrievePropertiesAsync(encodingPropertiesToRetrieve);
             frameHeight = (uint)encodingProperties["System.Video.FrameHeight"];
             frameWidth = (uint)encodingProperties["System.Video.FrameWidth"];
+
+            previewImage.Width = frameWidth;
+            previewImage.Height = frameHeight;
             ///
 
             //Use Windows.Media.Editing to get ImageStream
@@ -89,7 +91,7 @@ namespace SINoCOLO
             await AnalyzeFrame();
         }
 
-        private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        private async void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             if (!ignoreTimeSync)
             {
@@ -101,7 +103,7 @@ namespace SINoCOLO
             int timeSec = (int)timeSlider.Value;
             int timeMSec = (int)Math.Floor(timeSlider.Value * 1000) % 1000;
             TimeSpan timeOfFrame = new TimeSpan(0, 0, 0, timeSec, timeMSec);
-            LoadFrame(timeOfFrame);
+            await LoadFrame(timeOfFrame);
         }
 
         private void timeText_TextChanged(object sender, TextChangedEventArgs e)
@@ -178,45 +180,68 @@ namespace SINoCOLO
             int pixelH = _bitmap.PixelHeight;
             byte[] usePixels = null;
 
-            /*if (pixelW == 460 && pixelH == 864)
+            BitmapBounds cropBounds = new BitmapBounds() { X = 0, Y = 0, Width = 0, Height = 0 };
+            if (pixelW == 462 && pixelH == 864)
             {
+                cropBounds = new BitmapBounds() { X = 1, Y = 46, Width = 458, Height = 813 };
+            }
+            else if (pixelW == 440 && pixelH == 822)
+            {
+                cropBounds = new BitmapBounds() { X = 2, Y = 42, Width = 436, Height = 778 };
+            }
+
+            if (cropBounds.Width > 0)
+            { 
+                var scaledW = 338;
+                var scaledH = 600;
+
                 try
                 {
-                    using (InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream())
+                    // transform: crop
+                    InMemoryRandomAccessStream streamCrop = new InMemoryRandomAccessStream();
                     {
-                        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, stream);
-                        encoder.SetPixelData(BitmapPixelFormat.Rgba8, BitmapAlphaMode.Ignore, (uint)pixelW, (uint)pixelH, 96, 96, pixels.ToArray());
-
-                        encoder.BitmapTransform.Bounds = new BitmapBounds()
-                        {
-                            X = 2,
-                            Y = 45,
-                            Height = 456,
-                            Width = 814
-                        };
-
+                        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, streamCrop);
+                        encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore, (uint)pixelW, (uint)pixelH, 96, 96, pixels.ToArray());
+                        encoder.BitmapTransform.Bounds = cropBounds;
                         await encoder.FlushAsync();
+                    }
 
-                        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+                    InMemoryRandomAccessStream streamSize = new InMemoryRandomAccessStream();
+                    {
+                        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(streamCrop);
                         var pixelsProvider = await decoder.GetPixelDataAsync();
-                        pixelW = (int)encoder.BitmapTransform.Bounds.Width;
-                        pixelH = (int)encoder.BitmapTransform.Bounds.Height;
+                        var inPixels = pixelsProvider.DetachPixelData();
+
+                        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, streamSize);
+                        encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore, (uint)cropBounds.Width, (uint)cropBounds.Height, 96, 96, inPixels);
+                        encoder.BitmapTransform.ScaledHeight = (uint)scaledH;
+                        encoder.BitmapTransform.ScaledWidth = (uint)scaledW;
+                        encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Linear;
+                        await encoder.FlushAsync();
+                    }
+
+                    {
+                        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(streamSize);
+                        var pixelsProvider = await decoder.GetPixelDataAsync();
+                        pixelW = (int)scaledW;
+                        pixelH = (int)scaledH;
                         usePixels = pixelsProvider.DetachPixelData();
                     }
+
+                    streamCrop.Dispose();
+                    streamSize.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    int a = 1;
                 }
-            }*/
+            }
 
             try
             {
                 byte[] pixelData = (usePixels != null) ? usePixels : pixels.ToArray();
                 var analyzeBitmap = ScreenshotUtilities.ConvertToFastBitmap(pixelData, pixelW, pixelH);
-                cachedBitmap = analyzeBitmap;
 
-                /*foreach (var scanner in scanners)
+                foreach (var scanner in scanners)
                 {
                     object resultOb = scanner.Process(analyzeBitmap);
                     if (resultOb != null)
@@ -224,30 +249,25 @@ namespace SINoCOLO
                         textScanResults.Text = scanner.ScannerName + " found!\n\n" + resultOb;
                         break;
                     }
-                }*/
-
-                var showBitmapPixels = new byte[pixelW * pixelH * 4];
-                int writeIdx = 0;
-                for (int idxY = 0; idxY < analyzeBitmap.Height; idxY++)
-                {
-                    for (int idxX = 0; idxX < analyzeBitmap.Width; idxX++)
-                    {
-                        FastPixelHSV testPx = analyzeBitmap.GetPixel(idxX, idxY);
-                        showBitmapPixels[writeIdx + 0] = (byte)testPx.GetMonochrome();      // B
-                        showBitmapPixels[writeIdx + 1] = (byte)testPx.GetMonochrome();      // G
-                        showBitmapPixels[writeIdx + 2] = (byte)testPx.GetMonochrome();      // R
-                        showBitmapPixels[writeIdx + 3] = 255;                               // A
-
-                        writeIdx += 4;
-                    }
                 }
 
-                var showBitmap = new WriteableBitmap(pixelW, pixelH);
-                using (Stream stream = showBitmap.PixelBuffer.AsStream())
+                StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+                StorageFile exportFile = await storageFolder.CreateFileAsync("image-test.jpg", CreationCollisionOption.ReplaceExisting);
+
+                using (IRandomAccessStream stream = await exportFile.OpenAsync(FileAccessMode.ReadWrite))
                 {
-                    await stream.WriteAsync(showBitmapPixels, 0, showBitmapPixels.Length);
+                    var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream);
+                    byte[] bytes = pixels.ToArray();
+                    encoder.SetPixelData(BitmapPixelFormat.Bgra8,
+                                            BitmapAlphaMode.Ignore,
+                                            (uint)pixelW,
+                                            (uint)pixelH,
+                                            200,
+                                            200,
+                                            pixelData);
+
+                    await encoder.FlushAsync();
                 }
-                processedImage.Source = showBitmap;
             }
             catch (Exception ex)
             {
@@ -267,6 +287,11 @@ namespace SINoCOLO
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
+            await ExportFramesPurify();
+        }
+
+        private async Task ExportFramesPurify()
+        { 
             var purifyTime = new List<Tuple<float, float>>();
             purifyTime.Add(new Tuple<float, float>(73.0f, 92.5f));
             purifyTime.Add(new Tuple<float, float>(157.25f, 180.25f));
@@ -300,8 +325,7 @@ namespace SINoCOLO
                             var pixels = await _bitmap.GetPixelsAsync();
                             using (IRandomAccessStream stream = await exportFile.OpenAsync(FileAccessMode.ReadWrite))
                             {
-                                var encoder = await
-                                BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream);
+                                var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream);
                                 byte[] bytes = pixels.ToArray();
                                 encoder.SetPixelData(BitmapPixelFormat.Bgra8,
                                                         BitmapAlphaMode.Ignore,

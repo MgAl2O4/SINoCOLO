@@ -6,16 +6,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" d:DesignWidth="1252" d:DesignHeight="894" Loaded="Page_Loaded">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" d:DesignHeight="894" Loaded="Page_Loaded" Width="974">
 
     <Grid>
         <Image x:Name="previewImage" HorizontalAlignment="Left" Height="864" Margin="10,0,0,0" VerticalAlignment="Center" Width="462"/>
-        <Slider x:Name="timeSlider" HorizontalAlignment="Left" Margin="477,15,0,0" VerticalAlignment="Top" Width="145" ValueChanged="Slider_ValueChanged" SmallChange="0.25"/>
+        <Slider x:Name="timeSlider" HorizontalAlignment="Left" Margin="477,15,0,0" VerticalAlignment="Top" Width="365" ValueChanged="Slider_ValueChanged" SmallChange="0.25"/>
         <TextBox x:Name="timeText" HorizontalAlignment="Left" Margin="477,52,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="timeText_TextChanged"/>
         <Button Content="Extract" Margin="558,52,0,0" VerticalAlignment="Top" Width="68" Click="ClickSaveFrame"/>
-        <Button Content="Load" Margin="710,15,0,0" VerticalAlignment="Top" Width="65" Click="ClickLoadMovie"/>
-        <TextBox x:Name="textScanResults" Margin="477,113,472,10" Text="TextBox" TextWrapping="Wrap"/>
-        <Image x:Name="processedImage" Height="864" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="462"/>
+        <Button Content="Load movie" Margin="847,15,12,0" VerticalAlignment="Top" Click="ClickLoadMovie" HorizontalAlignment="Stretch"/>
+        <TextBox x:Name="textScanResults" Margin="477,113,12,10" Text="TextBox" TextWrapping="Wrap"/>
         <Button Content="Save ML" Margin="631,52,0,0" VerticalAlignment="Top" Click="Button_Click" Width="144"/>
 
     </Grid>

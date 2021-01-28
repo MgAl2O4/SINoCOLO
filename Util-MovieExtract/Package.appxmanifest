@@ -7,7 +7,7 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="1840a06e-74ec-41e3-91ff-bcef60fa8bc4"
+    Name="SINoCOLO"
     Publisher="CN=IceSpectral"
     Version="1.0.0.0" />
 
@@ -15,7 +15,7 @@
 
   <Properties>
     <DisplayName>SINoCOLO</DisplayName>
-    <PublisherDisplayName>IceSpectral</PublisherDisplayName>
+    <PublisherDisplayName>MgAl2O4</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
