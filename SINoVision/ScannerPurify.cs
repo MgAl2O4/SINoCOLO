@@ -32,12 +32,14 @@ namespace SINoVision
         private Point[] posTimeI = { new Point(154, 19), new Point(154, 22), new Point(161, 19), new Point(161, 22) };
         private Point[] posTimeO = { new Point(156, 18), new Point(156, 23), new Point(163, 18), new Point(163, 23) };
         private Point[] posPauseI = { new Point(303, 24), new Point(308, 24) };
+        private Point[] posHeaderPattern = { new Point(217, 17), new Point(149, 18), new Point(7, 17) };
 
         private Point[] posActionSlots = {
             new Point(184, 203), new Point(242, 276), new Point(255, 360), new Point(224, 455),
             new Point(146, 445), new Point(64, 395), new Point(47, 298), new Point(97, 219),
         };
 
+        private MLClassifierPurifyHeader classifierHeader = new MLClassifierPurifyHeader();
         private string[] scannerStates = new string[] { "Idle", "NoTimer", "Ok" };
 
         public ScannerPurify()
@@ -50,6 +52,8 @@ namespace SINoVision
             {
                 rectActions[idx] = new Rectangle(posActionSlots[idx].X, posActionSlots[idx].Y, 32, 32);
             }
+
+            classifierHeader.InitializeModel();
         }
 
         public override string GetState()
@@ -60,12 +64,17 @@ namespace SINoVision
         public override object Process(FastBitmapHSV bitmap)
         {
             scannerState = 1;
-            var hasTimer = HasTimerMarkers(bitmap);
-            if (hasTimer)
+            bool isValid = HasTimerMarkers(bitmap);
+            if (!isValid)
+            {
+                isValid = HasPurifyHeader(bitmap);
+            }
+
+            if (isValid)
             {
                 scannerState = 2;
                 var outputOb = new ScreenData();
-                
+
                 ScanPauseButton(bitmap, outputOb);
                 ScanBurst(bitmap, outputOb);
 
@@ -180,6 +189,56 @@ namespace SINoVision
             {
                 Console.WriteLine(">> centerFillPct: {0}", centerFillPct);
             }
+        }
+
+        public float[] ExtractHeaderPatternData(FastBitmapHSV bitmap, int patternIdx)
+        {
+            // scan area: 20x8
+            float[] values = new float[20 * 8];
+            for (int idx = 0; idx < values.Length; idx++)
+            {
+                values[idx] = 0.0f;
+            }
+
+            const int monoSteps = 16;
+            const float monoScale = 1.0f / monoSteps;
+
+            for (int idxY = 0; idxY < 8; idxY++)
+            {
+                for (int idxX = 0; idxX < 20; idxX++)
+                {
+                    FastPixelHSV pixel = bitmap.GetPixel(posHeaderPattern[patternIdx].X + idxX, posHeaderPattern[patternIdx].Y + idxY);
+                    int monoV = pixel.GetMonochrome() / (256 / monoSteps);
+
+                    values[idxX + (idxY * 20)] = monoV * monoScale;
+                }
+            }
+
+            return values;
+        }
+
+        protected bool HasPurifyHeader(FastBitmapHSV bitmap)
+        {
+            // failsafe, classifier based
+
+            int thrMatching = posHeaderPattern.Length - 1;
+            int numMatching = 0;
+
+            for (int idx = 0; idx < posHeaderPattern.Length; idx++)
+            {
+                float[] values = ExtractHeaderPatternData(bitmap, idx);
+                int headerClass = classifierHeader.Calculate(values, out float dummyPct);
+                bool matching = headerClass == (idx + 1);
+                numMatching += matching ? 1 : 0;
+            }
+
+            if (DebugLevel >= EDebugLevel.Verbose)
+            {
+                Console.WriteLine("{0} HasPurifyHeader: numMatching:{1}, threshold:{2} => {3}",
+                    ScannerName, numMatching, thrMatching, numMatching >= thrMatching);
+            }
+
+            return numMatching >= thrMatching;
         }
     }
 }

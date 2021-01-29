@@ -145,6 +145,7 @@ namespace SINoCOLO
             //ExportPurify();
             //ExportButtons();
             //ExportStats();
+            //ExportPurifyPvE();
 
             if (numSavedFiles > 0)
             {
@@ -728,6 +729,69 @@ namespace SINoCOLO
             {
                 Console.WriteLine("  {0}: {1} {2}", kvp.Key, kvp.Value, kvp.Value == 0 ? " << MISSING!" : "");
             }
+        }
+
+        private void ExportPurifyPvE()
+        {
+            var fileMap = new Dictionary<string, bool>();
+            fileMap.Add("real-source1.jpg", false);
+            fileMap.Add("real-source2.jpg", false);
+            fileMap.Add("real-source3.jpg", false);
+            fileMap.Add("real-source4.jpg", false);
+            fileMap.Add("real-source5.jpg", false);
+            fileMap.Add("real-source25.jpg", false);
+            fileMap.Add("real-source31.jpg", false);
+            fileMap.Add("real-source32.jpg", false);
+            fileMap.Add("real-source33.jpg", false);
+            fileMap.Add("real-source34.jpg", false);
+
+            fileMap.Add("image-diff1.jpg", true);
+            fileMap.Add("real-source21.jpg", true);
+            fileMap.Add("real-source22.jpg", true);
+            fileMap.Add("real-source23.jpg", true);
+            fileMap.Add("real-source102.jpg", true);
+            fileMap.Add("real-source103.jpg", true);
+            fileMap.Add("real-source104.jpg", true);
+            fileMap.Add("real-source105.jpg", true);
+            fileMap.Add("real-source106.jpg", true);
+            fileMap.Add("real-source107.jpg", true);
+            fileMap.Add("real-source108.jpg", true);
+            fileMap.Add("real-source109.jpg", true);
+            fileMap.Add("real-source110.jpg", true);
+            fileMap.Add("real-source111.jpg", true);
+            fileMap.Add("real-source112.jpg", true);
+            fileMap.Add("real-source113.jpg", true);
+            fileMap.Add("real-source114.jpg", true);
+            fileMap.Add("real-source115.jpg", true);
+            fileMap.Add("real-source116.jpg", true);
+            fileMap.Add("real-source117.jpg", true);
+            fileMap.Add("real-source118.jpg", true);
+            fileMap.Add("real-source119.jpg", true);
+            fileMap.Add("real-source120.jpg", true);
+            fileMap.Add("real-source121.jpg", true);
+            fileMap.Add("real-source123.jpg", true);
+            fileMap.Add("real-source124.jpg", true);
+            fileMap.Add("real-source125.jpg", true);
+            fileMap.Add("real-source126.jpg", true);
+            fileMap.Add("real-source127.jpg", true);
+            fileMap.Add("real-source128.jpg", true);
+
+            var purifyScanner = new ScannerPurify { DebugLevel = ScannerBase.EDebugLevel.None };
+
+            StartDataExport("purifyPvE");
+            foreach (var kvp in fileMap)
+            {
+                var srcScreenshot = LoadScreenshot("train-purify-pve/" + kvp.Key);
+                var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
+
+                for (int idx = 0; idx < 3; idx++)
+                {
+                    var values = purifyScanner.ExtractHeaderPatternData(fastBitmap, idx);
+                    ExportValues(values, kvp.Value ? (idx + 1) : 0);
+                }
+            }
+
+            FinishDataExport("sino-ml-purifyPvE.json");
         }
     }
 }
