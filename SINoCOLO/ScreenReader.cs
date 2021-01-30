@@ -50,6 +50,7 @@ namespace SINoCOLO
         public EState GetState() { return currentState; }
         public Size GetExpectedSize() { return finalSize; }
         public List<GameInfo> GetAvailableGames() { return availableGameInfo; }
+        public GameInfo GetCachedGame() { return cachedGameInfo; }
 
         public void SetSelectedWindow(IntPtr windowHandle) { selectedWindow = windowHandle; }
 

@@ -18,6 +18,7 @@ namespace SINoCOLO
         private bool selectInstanceMode = false;
         private int numHighFreqTicks = 0;
         private int numScanDelayTicks = 0;
+        private string cachedTitle;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
@@ -48,7 +49,9 @@ namespace SINoCOLO
             gameLogic.OnEventCounterUpdated += GameLogic_OnEventCounterUpdated;
 
             // show version number
-            Text += " v" + typeof(Program).Assembly.GetName().Version.Major;            
+            var assembly = typeof(Program).Assembly.GetName();
+            cachedTitle = string.Format("{0} v{1}", assembly.Name, assembly.Version.Major);
+            Text = cachedTitle;
         }
 
         private long MakeMouseMsgLParam(int posX, int posY)
@@ -185,6 +188,18 @@ namespace SINoCOLO
             }
 
             labelStatus.Text = statusDesc;
+
+            string newTitle = cachedTitle;
+            var cachedGame = screenReader.GetCachedGame();
+            if (cachedGame != null)
+            {
+                newTitle += " [" + cachedGame.windowTitle + "]";
+            }
+
+            if (Text != newTitle)
+            {
+                Text = newTitle;
+            }
         }
 
         private void topPanelClick(object sender, EventArgs e)
