@@ -24,6 +24,8 @@ namespace SINoVision
         {
             BigButton,
             EnterPurify,
+            CloseChatA,
+            CloseChatB,
         }
 
         public class ScreenData : ScannerCombatBase.ScreenDataBase
@@ -80,8 +82,11 @@ namespace SINoVision
         public override object Process(FastBitmapHSV bitmap)
         {
             scannerState = 1;
+            int chatLineMode = 0;
+
             var hasTextBox = HasChatBoxArea(bitmap);
-            if (hasTextBox)
+            var hasOpenedChat = HasOpenedChatLine(bitmap, out chatLineMode);
+            if (hasTextBox || hasOpenedChat)
             {
                 scannerState = 2;
                 var hasLifeforceMeter = HasLifeforceMeter(bitmap);
@@ -89,6 +94,8 @@ namespace SINoVision
                 {
                     scannerState = 3;
                     var outputOb = new ScreenData();
+                    outputOb.chatMode = (EChatMode)chatLineMode;
+
                     ScanSP(bitmap, outputOb);
                     ScanSummonSelector(bitmap, outputOb);
 
@@ -113,13 +120,13 @@ namespace SINoVision
 
         public override Rectangle GetSpecialActionBox(int actionType)
         {
-            if (actionType == (int)ESpecialBox.BigButton)
+            switch (actionType)
             {
-                return rectBigButton;
-            }
-            else if (actionType == (int)ESpecialBox.EnterPurify)
-            {
-                return rectPurify;
+                case (int)ESpecialBox.BigButton: return rectBigButton;
+                case (int)ESpecialBox.EnterPurify: return rectPurify;
+                case (int)ESpecialBox.CloseChatA: return rectChatLineConfirmA;
+                case (int)ESpecialBox.CloseChatB: return rectChatLineConfirmB;
+                default: break;
             }
 
             return Rectangle.Empty;

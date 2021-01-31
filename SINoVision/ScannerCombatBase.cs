@@ -29,6 +29,13 @@ namespace SINoVision
             Debuff,
         }
 
+        public enum EChatMode
+        {
+            None,
+            TextLineA,
+            TextLineB,
+        }
+
         public class ActionData
         {
             public bool isValid = false;
@@ -47,6 +54,7 @@ namespace SINoVision
 
         public class ScreenDataBase
         {
+            public EChatMode chatMode = EChatMode.None;
             public bool hasSummonSelection = false;
             public bool SPIsValid = false;
             public bool SPIsObstructed = false;
@@ -58,6 +66,11 @@ namespace SINoVision
             {
                 string desc = "SP> " + (!SPIsValid ? "n/a" :
                     string.Format("{0:P0}{1}", SPFillPct, SPIsObstructed ? ", obstructed" : ""));
+
+                if (chatMode != 0)
+                {
+                    desc += "\nChat> mode:" + chatMode;
+                }
 
                 desc += "\nSummon> " + (hasSummonSelection ? "opened" : "nope");
                 for (int idx = 0; idx < actions.Length; idx++)

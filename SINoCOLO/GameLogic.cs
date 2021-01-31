@@ -297,6 +297,19 @@ namespace SINoCOLO
             scanSkipCounter = randGen.Next(5, 8);
             Rectangle actionBox;
 
+            // close the chat if needed
+            if (screenData.chatMode != ScannerCombatBase.EChatMode.None)
+            {
+                specialIdx =
+                    (screenData.chatMode == ScannerCombatBase.EChatMode.TextLineA) ? (int)ScannerColoCombat.ESpecialBox.CloseChatA :
+                    (int)ScannerColoCombat.ESpecialBox.CloseChatB;
+
+                actionBox = screenScanner.GetSpecialActionBox(specialIdx);
+                RequestMouseClick(actionBox, -1, specialIdx);
+                scanSkipCounter = 15;
+                return true;
+            }
+
             // priority check: low SP = purify
             float SPPct = (screenData.SPIsValid && !screenData.SPIsObstructed) ? screenData.SPFillPct : 1.0f;
             float SPPctUnsafe = screenData.SPIsValid ? screenData.SPFillPct : 1.0f;
@@ -432,6 +445,17 @@ namespace SINoCOLO
                     break;
 
                 default: break;
+            }
+
+            if (screenData.chatMode != ScannerCombatBase.EChatMode.None)
+            {
+                int chatAction =
+                    (screenData.chatMode == ScannerCombatBase.EChatMode.TextLineA) ? (int)ScannerColoCombat.ESpecialBox.CloseChatA :
+                    (int)ScannerColoCombat.ESpecialBox.CloseChatB;
+
+                Rectangle actionBox = screenScanner.GetSpecialActionBox(chatAction);
+                bool isActiveAction = specialIdx == chatAction;
+                DrawActionArea(g, actionBox, "CHAT", colorPaletteYellow, isActiveAction);
             }
 
             if (screenData.hasSummonSelection &&
@@ -867,11 +891,24 @@ namespace SINoCOLO
                 return true;
             }
 
+            // close the chat if needed
+            if (screenData.chatMode != ScannerCombatBase.EChatMode.None)
+            {
+                specialIdx =
+                    (screenData.chatMode == ScannerCombatBase.EChatMode.TextLineA) ? (int)ScannerCombat.ESpecialBox.CloseChatA :
+                    (int)ScannerCombat.ESpecialBox.CloseChatB;
+
+                Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
+                RequestMouseClick(actionBox, -1, specialIdx);
+                scanSkipCounter = 15;
+                return true;
+            }
+
             // if big button is showing up:
             // - click it on reload
-            if (screenData.reloadActive)
+            if (screenData.specialAction == ScannerCombat.ESpecialAction.Reload)
             {
-                specialIdx = 0;
+                specialIdx = (int)ScannerCombat.ESpecialBox.BigButton;
                 Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
                 RequestMouseClick(actionBox, -1, specialIdx);
                 return true;
@@ -918,16 +955,27 @@ namespace SINoCOLO
         {
             if (screenData == null) { return false; }
 
-            if (screenData.reloadActive)
+            if (screenData.specialAction == ScannerCombat.ESpecialAction.Reload)
             {
-                Rectangle bigButtonBox = screenScanner.GetSpecialActionBox(0);
-                bool isActiveBigButton = specialIdx == 0;
-                DrawActionArea(g, bigButtonBox, "RELOAD", colorPaletteYellow, isActiveBigButton);
+                Rectangle actionBox = screenScanner.GetSpecialActionBox((int)ScannerCombat.ESpecialBox.BigButton);
+                bool isActiveAction = specialIdx == (int)ScannerCombat.ESpecialBox.BigButton;
+                DrawActionArea(g, actionBox, "RELOAD", colorPaletteYellow, isActiveAction);
             }
 
             if (screenData.hasSummonSelection)
             {
                 DrawActionArea(g, rectSummonSelector, "SUMMON", colorPaletteBlue, false);
+            }
+
+            if (screenData.chatMode != ScannerCombatBase.EChatMode.None)
+            {
+                int chatAction =
+                    (screenData.chatMode == ScannerCombatBase.EChatMode.TextLineA) ? (int)ScannerCombat.ESpecialBox.CloseChatA :
+                    (int)ScannerCombat.ESpecialBox.CloseChatB;
+
+                Rectangle actionBox = screenScanner.GetSpecialActionBox(chatAction);
+                bool isActiveAction = specialIdx == chatAction;
+                DrawActionArea(g, actionBox, "CHAT", colorPaletteYellow, isActiveAction);
             }
 
             // not really an action area, but show regardless:

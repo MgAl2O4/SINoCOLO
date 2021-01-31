@@ -5,14 +5,27 @@ namespace SINoVision
 {
     public class ScannerCombat : ScannerCombatBase
     {
+        public enum ESpecialAction
+        {
+            None,
+            Reload,
+        }
+
+        public enum ESpecialBox
+        {
+            BigButton,
+            CloseChatA,
+            CloseChatB,
+        }
+
         public class ScreenData : ScannerCombatBase.ScreenDataBase
         {
-            public bool reloadActive;
+            public ESpecialAction specialAction = ESpecialAction.None;
 
             public override string ToString()
             {
                 string desc = base.ToString();
-                desc += string.Format("\nReloadActive> {0}", reloadActive);
+                desc += string.Format("\nSpecialAction> {0}", specialAction);
                 return desc;
             }
         }
@@ -39,8 +52,11 @@ namespace SINoVision
         public override object Process(FastBitmapHSV bitmap)
         {
             scannerState = 1;
+            int chatLineMode = 0;
+
             var hasTextBox = HasChatBoxArea(bitmap);
-            if (hasTextBox)
+            var hasOpenedChat = HasOpenedChatLine(bitmap, out chatLineMode);
+            if (hasTextBox || hasOpenedChat)
             {
                 scannerState = 2;
                 var hasRewardChests = HasRewardChests(bitmap);
@@ -48,6 +64,8 @@ namespace SINoVision
                 {
                     scannerState = 3;
                     var outputOb = new ScreenData();
+                    outputOb.chatMode = (EChatMode)chatLineMode;
+
                     ScanSP(bitmap, outputOb);
                     ScanSummonSelector(bitmap, outputOb);
 
@@ -71,7 +89,15 @@ namespace SINoVision
 
         public override Rectangle GetSpecialActionBox(int actionType)
         {
-            return rectBigButton;
+            switch (actionType)
+            {
+                case (int)ESpecialBox.BigButton: return rectBigButton;
+                case (int)ESpecialBox.CloseChatA: return rectChatLineConfirmA;
+                case (int)ESpecialBox.CloseChatB: return rectChatLineConfirmB;
+                default: break;
+            }
+
+            return Rectangle.Empty;
         }
 
         protected void GetAverageChestColor(FastBitmapHSV bitmap, Point chestPos, out int avgHue, out int avgSat)
@@ -130,7 +156,7 @@ namespace SINoVision
                     bool hasMatch = matchSpecialReload.IsMatching(samples[idx]);
                     if (hasMatch)
                     {
-                        screenData.reloadActive = true;
+                        screenData.specialAction = ESpecialAction.Reload;
                         break;
                     }
                 }
@@ -138,7 +164,7 @@ namespace SINoVision
 
             if (DebugLevel >= EDebugLevel.Simple)
             {
-                Console.WriteLine("{0} ReloadActive: {1}", ScannerName, screenData.reloadActive);
+                Console.WriteLine("{0} ScanSpecialAction: {1}", ScannerName, screenData.specialAction);
             }
             if (DebugLevel >= EDebugLevel.Verbose)
             {
