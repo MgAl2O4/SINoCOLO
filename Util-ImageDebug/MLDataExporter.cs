@@ -677,6 +677,72 @@ namespace SINoCOLO
             fileList.Add(new StatML("image-elemboost3-scaled.jpg",
                 new int[5, 4] { { 9, 10, 12, 5 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, { 11, 10, 11, 12 }, { 7, 6, 10, -6 } },
                 new int[5, 4] { { 19, 20, 19, 15 }, { 6, 19, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 7, 17, 3, 11 } }));
+            fileList.Add(new StatML("stat-0.jpg",
+                new int[5, 4] { { 0, 0, 0, 0 }, { 0, 0, 0, -100 }, { -100, 0, 1, 0 }, { 0, 0, -1, 0 }, { 0, -2, -1, 0 } },
+                new int[5, 4] { { 0, -1, 0, -2 }, { 0, -1, 1, -1 }, { 0, 0, 0, 1 }, { 0, 100, 0, 0 }, { 0, 0, 0, -2 } }));
+            fileList.Add(new StatML("stat-1.jpg",
+                new int[5, 4] { { -100, 0, -100, 0 }, { 0, 0, 0, -100 }, { -100, 0, 1, 0 }, { 0, 0, -1, 0 }, { -100, -2, -1, 0 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 100, 1, -1 }, { 0, 0, 0, 1 }, { 0, 100, 0, -100 }, { 100, 0, -100, -2 } }));
+            fileList.Add(new StatML("stat-2.jpg",
+                new int[5, 4] { { -2, 0, -2, 0 }, { 0, 0, 0, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, 0 }, { -1, -2, -1, 0 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -1 }, { 0, 0, 0, 1 }, { 0, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-3.jpg",
+                new int[5, 4] { { -2, 0, -2, 0 }, { 0, 0, 0, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, 0 }, { -1, -2, -1, 0 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -1 }, { 0, 0, 0, 1 }, { 0, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-4.jpg",
+                new int[5, 4] { { -1, -100, -1, -100 }, { 0, -100, 100, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, -100 }, { -1, -2, 100, 0 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -1 }, { -100, 0, 0, 1 }, { 100, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-5.jpg",
+                new int[5, 4] { { -1, -100, -1, -100 }, { 0, -100, 100, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, -100 }, { 100, -3, 100, -100 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -1 }, { -100, 0, 0, 1 }, { 100, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-6.jpg",
+                new int[5, 4] { { -1, -3, -1, -2 }, { 0, -1, 1, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, -2 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -200 }, { -1, 0, 0, 1 }, { 1, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-7.jpg",
+                new int[5, 4] { { -1, -3, -1, -2 }, { 0, -1, 1, -1 }, { -1, 0, 1, 0 }, { 0, 0, -1, -2 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 0, 1, 1, -1 }, { -1, 0, 0, 1 }, { 1, 1, 0, -1 }, { 1, 0, -1, -2 } }));
+            fileList.Add(new StatML("stat-8.jpg",
+                new int[5, 4] { { -100, -100, -100, -100 }, { 0, -100, 100, -100 }, { -100, -100, 100, -100 }, { 0, 0, -100, -100 }, { 100, -100, 100, -100 } },
+                new int[5, 4] { { 0, -100, 0, -100 }, { 0, 100, 100, -100 }, { -100, 0, 0, 100 }, { 100, 100, 0, -100 }, { 100, 0, -100, -100 } }));
+            fileList.Add(new StatML("stat-9.jpg",
+                new int[5, 4] { { -2, -3, -2, -2 }, { 0, -1, 1, -1 }, { -1, -100, 2, -100 }, { -100, 0, -1, -2 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { 0, -1, 0, -3 }, { 100, 1, 1, -1 }, { -1, 0, 0, 1 }, { 1, 1, 0, -1 }, { 1, 100, -1, -2 } }));
+            fileList.Add(new StatML("stat-10.jpg",
+                new int[5, 4] { { -2, -5, -2, -2 }, { 0, -1, 1, -1 }, { -1, -1, 2, -3 }, { -1, 0, -1, -2 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { -100, -1, -100, -3 }, { 1, 2, 1, 100 }, { -1, -100, 0, 1 }, { 1, 1, 100, -1 }, { 1, 1, -1, -2 } }));
+            fileList.Add(new StatML("stat-11.jpg",
+                new int[5, 4] { { -2, -5, -2, -2 }, { 0, -2, 1, -2 }, { -1, -1, 2, -3 }, { -1, 0, -1, -2 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { -2, -1, -2, -3 }, { 1, 2, 1, 1 }, { -1, -1, 0, 1 }, { 1, -100, 1, -1 }, { 1, 1, -1, -2 } }));
+            fileList.Add(new StatML("stat-12.jpg",
+                new int[5, 4] { { -2, -5, -2, -2 }, { 0, -2, 1, -2 }, { -1, -1, 2, -3 }, { -1, 0, -1, -2 }, { 2, -3, 3, -2 } },
+                new int[5, 4] { { -2, -1, -2, -3 }, { 1, 3, 1, 1 }, { -1, -1, 0, 1 }, { 1, -100, 1, -1 }, { 2, 1, -1, -2 } }));
+            fileList.Add(new StatML("stat-13.jpg",
+                new int[5, 4] { { -2, -5, -2, -2 }, { -2, -1, -1, -1 }, { 1, -2, 3, -3 }, { -1, -1, -1, -3 }, { 1, -3, 2, -2 } },
+                new int[5, 4] { { -1, -1, -2, -2 }, { 1, 3, 2, 1 }, { -3, -2, -2, -1 }, { 1, -4, 2, -1 }, { 2, 2, 1, -2 } }));
+            fileList.Add(new StatML("stat-14.jpg",
+                new int[5, 4] { { -2, -6, -2, -3 }, { -2, -2, 1, -1 }, { 1, -2, 4, -4 }, { -1, -3, -2, -4 }, { 1, -4, 3, -4 } },
+                new int[5, 4] { { -2, 3, 2, -1 }, { 1, 3, 2, 1 }, { -3, -2, -3, 1 }, { -1, -4, 2, -2 }, { 0, 0, 2, 1 } }));
+            fileList.Add(new StatML("stat-15.jpg",
+                new int[5, 4] { { -3, -6, -2, -3 }, { -2, -2, 1, -1 }, { 1, -2, 4, -4 }, { -1, -3, -2, -4 }, { 1, -4, 3, -4 } },
+                new int[5, 4] { { -2, 3, -200, -200 }, { 1, 3, 2, 1 }, { -3, -2, -2, 1 }, { -2, -4, 1, -2 }, { -100, -100, 2, 1 } }));
+            fileList.Add(new StatML("stat-16.jpg",
+                new int[5, 4] { { -3, -6, -2, -3 }, { -2, -2, 1, -1 }, { 1, -2, 4, -4 }, { -1, -3, -2, -4 }, { 1, -4, 3, -4 } },
+                new int[5, 4] { { -2, 3, -2, -1 }, { 1, 3, 2, 1 }, { -3, -2, -2, 1 }, { -2, -4, 1, -2 }, { -3, -4, 2, 1 } }));
+            fileList.Add(new StatML("stat-17.jpg",
+                new int[5, 4] { { -3, -6, -3, -3 }, { -2, -2, 1, -2 }, { 1, -2, 4, -6 }, { -1, -3, -2, -4 }, { 2, -4, 3, -4 } },
+                new int[5, 4] { { -2, 3, -1, -1 }, { 1, 3, 2, 1 }, { -3, -2, -2, 1 }, { -2, -4, 2, -2 }, { -2, -4, 2, 2 } }));
+            fileList.Add(new StatML("stat-18.jpg",
+                new int[5, 4] { { -3, -6, -2, -3 }, { -2, -2, 1, -2 }, { 1, -1, 4, -6 }, { -1, -3, -2, -4 }, { 2, -4, 3, -4 } },
+                new int[5, 4] { { -2, 9, -1, 100 }, { 1, 9, 2, 7 }, { -3, 100, -2, 7 }, { -2, 100, 3, 100 }, { -2, 100, 3, 8 } }));
+            fileList.Add(new StatML("stat-19.jpg",
+                new int[5, 4] { { -3, -6, -2, -3 }, { -2, -2, 1, -2 }, { 1, -1, 4, -6 }, { -1, -3, -2, -4 }, { 2, -4, 3, -4 } },
+                new int[5, 4] { { -2, 9, -1, 6 }, { 1, 9, 2, 7 }, { -3, 5, -2, 7 }, { -2, 3, 3, 5 }, { -2, 3, 3, 8 } }));
+            fileList.Add(new StatML("stat-20.jpg",
+                new int[5, 4] { { -3, -6, -2, -3 }, { -2, -2, 1, -2 }, { 1, -1, 4, -6 }, { -1, -3, -2, -4 }, { 2, -5, 3, -4 } },
+                new int[5, 4] { { 3, 2, 2, -3 }, { 1, 9, 2, 7 }, { -3, 5, -2, 7 }, { -2, 3, 3, 4 }, { -2, 3, 3, 8 } }));
+            fileList.Add(new StatML("stat-21.jpg",
+                new int[5, 4] { { -3, -7, -2, -6 }, { -2, -2, 2, -2 }, { 2, -2, 4, -5 }, { -1, -3, 1, -4 }, { 4, -5, 3, -4 } },
+                new int[5, 4] { { 2, 2, 1, -5 }, { -2, 8, 3, 7 }, { -2, 3, -1, 7 }, { -1, 3, 3, 4 }, { -1, 3, 5, 9 } }));
 
             var combatScanner = new ScannerColoCombat { DebugLevel = ScannerBase.EDebugLevel.None };
             var mapValues = new Dictionary<int, int>();
@@ -684,6 +750,11 @@ namespace SINoCOLO
             {
                 mapValues.Add(idx, 0);
             }
+            
+            mapValues.Add(-100, 0); // blue, no number
+            mapValues.Add(-200, 0); // blue, obstructed
+            mapValues.Add(100, 0); // red, no number
+            mapValues.Add(200, 0); // red, obstructed
 
             StartDataExport("stats");
             foreach (var fileData in fileList)
@@ -691,14 +762,14 @@ namespace SINoCOLO
                 var srcScreenshot = LoadScreenshot("train-stats/" + fileData.fileName);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
-                int exportHelper(int[,] statList, string logType)
+                int exportHelper(int[,] statList, string logType, bool isFriend)
                 {
                     for (int idx = 0; idx < 5; idx++)
                     {
                         for (int statIdx = 0; statIdx < 4; statIdx++)
                         {
                             ScannerCombatBase.EStatMode statMode;
-                            var values = combatScanner.ExtractFriendStatData(fastBitmap, idx, statIdx, out statMode);
+                            var values = combatScanner.ExtractPlayerStatData(fastBitmap, idx, statIdx, isFriend, out statMode);
                             var numValue = statList[idx, statIdx];
                             
                             ExportValues(values, numValue);
@@ -718,8 +789,8 @@ namespace SINoCOLO
                     return 0;
                 }
 
-                exportHelper(fileData.friendStats, "friend");
-                exportHelper(fileData.enemyStats, "enemy");
+                exportHelper(fileData.friendStats, "friend", true);
+                exportHelper(fileData.enemyStats, "enemy", false);
             }
 
             FinishDataExport("sino-ml-stats.json");

@@ -95,10 +95,13 @@ namespace SINoCOLO
                 return srcBitmap;
             }
 
-            // fixed crop with source size:462x864, too lazy to calc
             Rectangle cropRect_462_864 = new Rectangle(2, 45, 458, 814);
+            Rectangle cropRect_440_822 = new Rectangle(2, 43, 436, 775);
 
-            Rectangle cropRect = cropRect_462_864;
+            Rectangle cropRect =
+                (srcBitmap.Width == 462) && (srcBitmap.Height == 864) ? cropRect_462_864 :
+                cropRect_440_822;
+
             Bitmap croppedBitmap = srcBitmap.Clone(cropRect, srcBitmap.PixelFormat);
             srcBitmap.Dispose();
             srcBitmap = croppedBitmap;

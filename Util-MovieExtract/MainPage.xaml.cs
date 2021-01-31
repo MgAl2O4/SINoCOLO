@@ -287,7 +287,8 @@ namespace SINoCOLO
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            await ExportFramesPurify();
+            // await ExportFramesPurify();
+            await ExportFramesStats();
         }
 
         private async Task ExportFramesPurify()
@@ -348,6 +349,353 @@ namespace SINoCOLO
                 {
                     Console.WriteLine(ex);
                 }
+            }
+
+            Slider_ValueChanged(null, null);
+        }
+
+        private async Task ExportFramesStats()
+        {
+            // 2021-01-27 17-59-44.mp4
+
+            var exportCofig = new List<Tuple<float, int[]>>();
+            exportCofig.Add(new Tuple<float, int[]>(22.5f, new int[] {
+                0, 0, 0, 0,
+                0, 0, 0, -100,
+                -100, 0, 1, 0,
+                0, 0, -1, 0,
+                0, -2, -1, 0,
+
+                0, -1, 0, -2,
+                0, -1, 1, -1,
+                0, 0, 0, 1,
+                0, 100, 0, 0,
+                0, 0, 0, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(24.25f, new int[] {
+                -100, 0, -100, 0,
+                0, 0, 0, -100,
+                -100, 0, 1, 0,
+                0, 0, -1, 0,
+                -100, -2, -1, 0,
+
+                0, -1, 0, -3,
+                0, 100, 1, -1,
+                0, 0, 0, 1,
+                0, 100, 0, -100,
+                100, 0, -100, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(25.25f, new int[] {
+                -2, 0, -2, 0,
+                0, 0, 0, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, 0,
+                -1, -2, -1, 0,
+
+                0, -1, 0, -3,
+                0, 1, 1, -1,
+                0, 0, 0, 1,
+                0, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(25.5f, new int[] {
+                -2, 0, -2, 0,
+                0, 0, 0, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, 0,
+                -1, -2, -1, 0,
+
+                0, -1, 0, -3,
+                0, 1, 1, -1,
+                0, 0, 0, 1,
+                0, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(27.75f, new int[] {
+                -1, -100, -1, -100,
+                0, -100, 100, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, -100,
+                -1, -2, 100, 0,
+
+                0, -1, 0, -3,
+                0, 1, 1, -1,
+                -100, 0, 0, 1,
+                100, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(28.5f, new int[] {
+                -1, -100, -1, -100,
+                0, -100, 100, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, -100,
+                100, -3, 100, -100,
+
+                0, -1, 0, -3,
+                0, 1, 1, -1,
+                -100, 0, 0, 1,
+                100, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(29.0f, new int[] {
+                -1, -3, -1, -2,
+                0, -1, 1, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, -2,
+                1, -3, 2, -2,
+
+                0, -1, 0, -3,
+                0, 1, 1, -200,
+                -1, 0, 0, 1,
+                1, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(29.5f, new int[] {
+                -1, -3, -1, -2,
+                0, -1, 1, -1,
+                -1, 0, 1, 0,
+                0, 0, -1, -2,
+                1, -3, 2, -2,
+
+                0, -1, 0, -3,
+                0, 1, 1, -1,
+                -1, 0, 0, 1,
+                1, 1, 0, -1,
+                1, 0, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(30.75f, new int[] {
+                -100, -100, -100, -100,
+                0, -100, 100, -100,
+                -100, -100, 100, -100,
+                0, 0, -100, -100,
+                100, -100, 100, -100,
+
+                0, -100, 0, -100,
+                0, 100, 100, -100,
+                -100, 0, 0, 100,
+                100, 100, 0, -100,
+                100, 0, -100, -100 }));
+            exportCofig.Add(new Tuple<float, int[]>(31.75f, new int[] {
+                -2, -3, -2, -2,
+                0, -1, 1, -1,
+                -1, -100, 2, -100,
+                -100, 0, -1, -2,
+                1, -3, 2, -2,
+
+                0, -1, 0, -3,
+                100, 1, 1, -1,
+                -1, 0, 0, 1,
+                1, 1, 0, -1,
+                1, 100, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(35.5f, new int[] {
+                -2, -5, -2, -2,
+                0, -1, 1, -1,
+                -1, -1, 2, -3,
+                -1, 0, -1, -2,
+                1, -3, 2, -2,
+
+                -100, -1, -100, -3,
+                1, 2, 1, 100,
+                -1, -100, 0, 1,
+                1, 1, 100, -1,
+                1, 1, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(36.0f, new int[] {
+                -2, -5, -2, -2,
+                0, -2, 1, -2,
+                -1, -1, 2, -3,
+                -1, 0, -1, -2,
+                1, -3, 2, -2,
+
+                -2, -1, -2, -3,
+                1, 2, 1, 1,
+                -1, -1, 0, 1,
+                1, -100, 1, -1,
+                1, 1, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(39.0f, new int[] {
+                -2, -5, -2, -2,
+                0, -2, 1, -2,
+                -1, -1, 2, -3,
+                -1, 0, -1, -2,
+                2, -3, 3, -2,
+
+                -2, -1, -2, -3,
+                1, 3, 1, 1,
+                -1, -1, 0, 1,
+                1, -100, 1, -1,
+                2, 1, -1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(53.5f, new int[] {
+                -2, -5, -2, -2,
+                -2, -1, -1, -1,
+                1, -2, 3, -3,
+                -1, -1, -1, -3,
+                1, -3, 2, -2,
+
+                -1, -1, -2, -2,
+                1, 3, 2, 1,
+                -3, -2, -2, -1,
+                1, -4, 2, -1,
+                2, 2, 1, -2 }));
+            exportCofig.Add(new Tuple<float, int[]>(64.5f, new int[] {
+                -2, -6, -2, -3,
+                -2, -2, 1, -1,
+                1, -2, 4, -4,
+                -1, -3, -2, -4,
+                1, -4, 3, -4,
+
+                -2, 3, 2, -1,
+                1, 3, 2, 1,
+                -3, -2, -3, 1,
+                -1, -4, 2, -2,
+                0, 0, 2, 1 }));
+            exportCofig.Add(new Tuple<float, int[]>(67.0f, new int[] {
+                -3, -6, -2, -3,
+                -2, -2, 1, -1,
+                1, -2, 4, -4,
+                -1, -3, -2, -4,
+                1, -4, 3, -4,
+
+                -2, 3, -200, -200,
+                1, 3, 2, 1,
+                -3, -2, -2, 1,
+                -2, -4, 1, -2,
+                -100, -100, 2, 1 }));
+            exportCofig.Add(new Tuple<float, int[]>(68.0f, new int[] {
+                -3, -6, -2, -3,
+                -2, -2, 1, -1,
+                1, -2, 4, -4,
+                -1, -3, -2, -4,
+                1, -4, 3, -4,
+
+                -2, 3, -2, -1,
+                1, 3, 2, 1,
+                -3, -2, -2, 1,
+                -2, -4, 1, -2,
+                -3, -4, 2, 1 }));
+            exportCofig.Add(new Tuple<float, int[]>(74.0f, new int[] {
+                -3, -6, -3, -3,
+                -2, -2, 1, -2,
+                1, -2, 4, -6,
+                -1, -3, -2, -4,
+                2, -4, 3, -4,
+
+                -2, 3, -1, -1,
+                1, 3, 2, 1,
+                -3, -2, -2, 1,
+                -2, -4, 2, -2,
+                -2, -4, 2, 2 }));
+            exportCofig.Add(new Tuple<float, int[]>(77.75f, new int[] {
+                -3, -6, -2, -3,
+                -2, -2, 1, -2,
+                1, -1, 4, -6,
+                -1, -3, -2, -4,
+                2, -4, 3, -4,
+
+                -2, 9, -1, 100,
+                1, 9, 2, 7,
+                -3, 100, -2, 7,
+                -2, 100, 3, 100,
+                -2, 100, 3, 8 }));
+            exportCofig.Add(new Tuple<float, int[]>(78.25f, new int[] {
+                -3, -6, -2, -3,
+                -2, -2, 1, -2,
+                1, -1, 4, -6,
+                -1, -3, -2, -4,
+                2, -4, 3, -4,
+
+                -2, 9, -1, 6,
+                1, 9, 2, 7,
+                -3, 5, -2, 7,
+                -2, 3, 3, 5,
+                -2, 3, 3, 8 }));
+            exportCofig.Add(new Tuple<float, int[]>(82.0f, new int[] {
+                -3, -6, -2, -3,
+                -2, -2, 1, -2,
+                1, -1, 4, -6,
+                -1, -3, -2, -4,
+                2, -5, 3, -4,
+
+                3, 2, 2, -3,
+                1, 9, 2, 7,
+                -3, 5, -2, 7,
+                -2, 3, 3, 4,
+                -2, 3, 3, 8 }));
+            exportCofig.Add(new Tuple<float, int[]>(112.75f, new int[] {
+                -3, -7, -2, -6,
+                -2, -2, 2, -2,
+                2, -2, 4, -5,
+                -1, -3, 1, -4,
+                4, -5, 3, -4,
+
+                2, 2, 1, -5,
+                -2, 8, 3, 7,
+                -2, 3, -1, 7,
+                -1, 3, 3, 4,
+                -1, 3, 5, 9 }));
+
+            StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+            int imgIdx = 0;
+
+            var textData = new List<string>();
+            var prefix = "            ";
+
+            foreach (var item in exportCofig)
+            {
+                try
+                {
+                    int timeSec = (int)item.Item1;
+                    int timeMSec = (int)Math.Floor(item.Item1 * 1000) % 1000;
+                    TimeSpan timeOfFrame = new TimeSpan(0, 0, 0, timeSec, timeMSec);
+                    await LoadFrame(timeOfFrame);
+
+                    var fileName = "stat-" + imgIdx + ".jpg";
+                    StorageFile exportFile = await storageFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+                    imgIdx++;
+
+                    textData.Add(string.Format("{0}fileList.Add(new StatML(\"{1}\",", prefix, fileName));
+
+                    var statDesc = "";
+                    for (int idxS = 0; idxS < 20; idxS += 4)
+                    {
+                        if (idxS > 0) { statDesc += ", "; }
+                        statDesc += string.Format("{{ {0}, {1}, {2}, {3} }}", item.Item2[idxS], item.Item2[idxS + 1], item.Item2[idxS + 2], item.Item2[idxS + 3]);
+                    }
+                    textData.Add(string.Format("{0}    new int[5, 4]{{ {1} }},", prefix, statDesc));
+
+                    statDesc = "";
+                    for (int idxS = 20; idxS < 40; idxS += 4)
+                    {
+                        if (idxS > 20) { statDesc += ", "; }
+                        statDesc += string.Format("{{ {0}, {1}, {2}, {3} }}", item.Item2[idxS], item.Item2[idxS + 1], item.Item2[idxS + 2], item.Item2[idxS + 3]);
+                    }
+                    textData.Add(string.Format("{0}    new int[5, 4]{{ {1} }}));", prefix, statDesc));
+
+                    try
+                    {
+                        var _bitmap = new RenderTargetBitmap();
+                        await _bitmap.RenderAsync(previewImage);
+
+                        var pixels = await _bitmap.GetPixelsAsync();
+                        using (IRandomAccessStream stream = await exportFile.OpenAsync(FileAccessMode.ReadWrite))
+                        {
+                            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream);
+                            byte[] bytes = pixels.ToArray();
+                            encoder.SetPixelData(BitmapPixelFormat.Bgra8,
+                                                    BitmapAlphaMode.Ignore,
+                                                    (uint)_bitmap.PixelWidth,
+                                                    (uint)_bitmap.PixelHeight,
+                                                    200,
+                                                    200,
+                                                    bytes);
+
+                            await encoder.FlushAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+
+            {
+                StorageFile textExportFile = await storageFolder.CreateFileAsync("textData.txt", CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteLinesAsync(textExportFile, textData);
             }
 
             Slider_ValueChanged(null, null);

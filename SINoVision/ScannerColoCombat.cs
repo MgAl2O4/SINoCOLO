@@ -355,14 +355,9 @@ namespace SINoVision
             return values;
         }
 
-        public float[] ExtractFriendStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, out EStatMode statMode)
+        public float[] ExtractPlayerStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, bool isFriend, out EStatMode statMode)
         {
-            return ExtractStatData(bitmap, posStatFriend, playerIdx, statIdx, out statMode);
-        }
-
-        public float[] ExtractEnemyStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, out EStatMode statMode)
-        {
-            return ExtractStatData(bitmap, posStatEnemy, playerIdx, statIdx, out statMode);
+            return ExtractStatData(bitmap, isFriend ? posStatFriend : posStatEnemy, playerIdx, statIdx, out statMode);
         }
     }
 }
