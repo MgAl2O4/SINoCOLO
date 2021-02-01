@@ -28,6 +28,7 @@ namespace SINoCOLO
         private uint frameHeight = 0;
         private bool ignoreTimeSync = false;
         private ImageStream frameStream = null;
+        private string movieFileName;
 
         private List<ScannerBase> scanners = new List<ScannerBase>();
 
@@ -54,6 +55,8 @@ namespace SINoCOLO
             {
                 return;
             }
+
+            movieFileName = Path.GetFileNameWithoutExtension(pickedFile.Path);
             ///
 
             //Get video resolution
@@ -354,12 +357,9 @@ namespace SINoCOLO
             Slider_ValueChanged(null, null);
         }
 
-        private async Task ExportFramesStats()
+        private void ExportFramesStats_0127(List<Tuple<float, int[]>> exportConfig)
         {
-            // 2021-01-27 17-59-44.mp4
-
-            var exportCofig = new List<Tuple<float, int[]>>();
-            exportCofig.Add(new Tuple<float, int[]>(22.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(22.5f, new int[] {
                 0, 0, 0, 0,
                 0, 0, 0, -100,
                 -100, 0, 1, 0,
@@ -371,7 +371,7 @@ namespace SINoCOLO
                 0, 0, 0, 1,
                 0, 100, 0, 0,
                 0, 0, 0, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(24.25f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(24.25f, new int[] {
                 -100, 0, -100, 0,
                 0, 0, 0, -100,
                 -100, 0, 1, 0,
@@ -383,7 +383,7 @@ namespace SINoCOLO
                 0, 0, 0, 1,
                 0, 100, 0, -100,
                 100, 0, -100, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(25.25f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(25.25f, new int[] {
                 -2, 0, -2, 0,
                 0, 0, 0, -1,
                 -1, 0, 1, 0,
@@ -395,7 +395,7 @@ namespace SINoCOLO
                 0, 0, 0, 1,
                 0, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(25.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(25.5f, new int[] {
                 -2, 0, -2, 0,
                 0, 0, 0, -1,
                 -1, 0, 1, 0,
@@ -407,7 +407,7 @@ namespace SINoCOLO
                 0, 0, 0, 1,
                 0, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(27.75f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(27.75f, new int[] {
                 -1, -100, -1, -100,
                 0, -100, 100, -1,
                 -1, 0, 1, 0,
@@ -419,7 +419,7 @@ namespace SINoCOLO
                 -100, 0, 0, 1,
                 100, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(28.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(28.5f, new int[] {
                 -1, -100, -1, -100,
                 0, -100, 100, -1,
                 -1, 0, 1, 0,
@@ -431,7 +431,7 @@ namespace SINoCOLO
                 -100, 0, 0, 1,
                 100, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(29.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(29.0f, new int[] {
                 -1, -3, -1, -2,
                 0, -1, 1, -1,
                 -1, 0, 1, 0,
@@ -443,7 +443,7 @@ namespace SINoCOLO
                 -1, 0, 0, 1,
                 1, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(29.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(29.5f, new int[] {
                 -1, -3, -1, -2,
                 0, -1, 1, -1,
                 -1, 0, 1, 0,
@@ -455,7 +455,7 @@ namespace SINoCOLO
                 -1, 0, 0, 1,
                 1, 1, 0, -1,
                 1, 0, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(30.75f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(30.75f, new int[] {
                 -100, -100, -100, -100,
                 0, -100, 100, -100,
                 -100, -100, 100, -100,
@@ -467,7 +467,7 @@ namespace SINoCOLO
                 -100, 0, 0, 100,
                 100, 100, 0, -100,
                 100, 0, -100, -100 }));
-            exportCofig.Add(new Tuple<float, int[]>(31.75f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(31.75f, new int[] {
                 -2, -3, -2, -2,
                 0, -1, 1, -1,
                 -1, -100, 2, -100,
@@ -479,7 +479,7 @@ namespace SINoCOLO
                 -1, 0, 0, 1,
                 1, 1, 0, -1,
                 1, 100, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(35.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(35.5f, new int[] {
                 -2, -5, -2, -2,
                 0, -1, 1, -1,
                 -1, -1, 2, -3,
@@ -491,7 +491,7 @@ namespace SINoCOLO
                 -1, -100, 0, 1,
                 1, 1, 100, -1,
                 1, 1, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(36.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(36.0f, new int[] {
                 -2, -5, -2, -2,
                 0, -2, 1, -2,
                 -1, -1, 2, -3,
@@ -503,7 +503,7 @@ namespace SINoCOLO
                 -1, -1, 0, 1,
                 1, -100, 1, -1,
                 1, 1, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(39.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(39.0f, new int[] {
                 -2, -5, -2, -2,
                 0, -2, 1, -2,
                 -1, -1, 2, -3,
@@ -515,7 +515,7 @@ namespace SINoCOLO
                 -1, -1, 0, 1,
                 1, -100, 1, -1,
                 2, 1, -1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(53.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(53.5f, new int[] {
                 -2, -5, -2, -2,
                 -2, -1, -1, -1,
                 1, -2, 3, -3,
@@ -527,7 +527,7 @@ namespace SINoCOLO
                 -3, -2, -2, -1,
                 1, -4, 2, -1,
                 2, 2, 1, -2 }));
-            exportCofig.Add(new Tuple<float, int[]>(64.5f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(64.5f, new int[] {
                 -2, -6, -2, -3,
                 -2, -2, 1, -1,
                 1, -2, 4, -4,
@@ -539,7 +539,7 @@ namespace SINoCOLO
                 -3, -2, -3, 1,
                 -1, -4, 2, -2,
                 0, 0, 2, 1 }));
-            exportCofig.Add(new Tuple<float, int[]>(67.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(67.0f, new int[] {
                 -3, -6, -2, -3,
                 -2, -2, 1, -1,
                 1, -2, 4, -4,
@@ -551,7 +551,7 @@ namespace SINoCOLO
                 -3, -2, -2, 1,
                 -2, -4, 1, -2,
                 -100, -100, 2, 1 }));
-            exportCofig.Add(new Tuple<float, int[]>(68.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(68.0f, new int[] {
                 -3, -6, -2, -3,
                 -2, -2, 1, -1,
                 1, -2, 4, -4,
@@ -563,7 +563,7 @@ namespace SINoCOLO
                 -3, -2, -2, 1,
                 -2, -4, 1, -2,
                 -3, -4, 2, 1 }));
-            exportCofig.Add(new Tuple<float, int[]>(74.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(74.0f, new int[] {
                 -3, -6, -3, -3,
                 -2, -2, 1, -2,
                 1, -2, 4, -6,
@@ -575,7 +575,7 @@ namespace SINoCOLO
                 -3, -2, -2, 1,
                 -2, -4, 2, -2,
                 -2, -4, 2, 2 }));
-            exportCofig.Add(new Tuple<float, int[]>(77.75f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(77.75f, new int[] {
                 -3, -6, -2, -3,
                 -2, -2, 1, -2,
                 1, -1, 4, -6,
@@ -587,7 +587,7 @@ namespace SINoCOLO
                 -3, 100, -2, 7,
                 -2, 100, 3, 100,
                 -2, 100, 3, 8 }));
-            exportCofig.Add(new Tuple<float, int[]>(78.25f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(78.25f, new int[] {
                 -3, -6, -2, -3,
                 -2, -2, 1, -2,
                 1, -1, 4, -6,
@@ -599,7 +599,7 @@ namespace SINoCOLO
                 -3, 5, -2, 7,
                 -2, 3, 3, 5,
                 -2, 3, 3, 8 }));
-            exportCofig.Add(new Tuple<float, int[]>(82.0f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(82.0f, new int[] {
                 -3, -6, -2, -3,
                 -2, -2, 1, -2,
                 1, -1, 4, -6,
@@ -611,7 +611,7 @@ namespace SINoCOLO
                 -3, 5, -2, 7,
                 -2, 3, 3, 4,
                 -2, 3, 3, 8 }));
-            exportCofig.Add(new Tuple<float, int[]>(112.75f, new int[] {
+            exportConfig.Add(new Tuple<float, int[]>(112.75f, new int[] {
                 -3, -7, -2, -6,
                 -2, -2, 2, -2,
                 2, -2, 4, -5,
@@ -623,6 +623,296 @@ namespace SINoCOLO
                 -2, 3, -1, 7,
                 -1, 3, 3, 4,
                 -1, 3, 5, 9 }));
+            exportConfig.Add(new Tuple<float, int[]>(119.0f, new int[] {
+                -3, -7, -2, -6,
+                -2, -2, 2, -2,
+                -1, -2, 4, -5,
+                -1, 1, 1, -3,
+                5, -5, 3, -4,
+
+                1, 2, -100, -5,
+                -2, 8, 3, 7,
+                -3, 3, -1, 7,
+                -2, 2, 2, 2,
+                -1, 2, 5, 8 }));
+            exportConfig.Add(new Tuple<float, int[]>(327.0f, new int[] {
+                -3, -4, -3, -3,
+                -1, -5, 2, -2,
+                -1, -4, 1, -4,
+                1, -3, 2, -4,
+                3, 1, 8, -1,
+
+                -3, -7, 2, -11,
+                6, -1, 10, -6,
+                2, -7, 5, -7,
+                -2, -3, 8, -1,
+                1, -5, 10, -3 }));
+            exportConfig.Add(new Tuple<float, int[]>(327.5f, new int[] {
+                -3, -5, -3, -4,
+                -1, -5, 2, -2,
+                -1, -4, 1, -4,
+                1, -3, 2, -4,
+                3, 1, 8, -1,
+
+                -3, -7, 2, -11,
+                6, -1, 10, -6,
+                2, -7, 5, -7,
+                -2, -3, 8, -1,
+                1, -5, 10, -3 }));
+            exportConfig.Add(new Tuple<float, int[]>(329.75f, new int[] {
+                -3, -5, -3, -4,
+                -1, -6, 2, -3,
+                -1, -4, 1, -4,
+                1, -3, 2, -4,
+                3, 1, 8, -4,
+
+                -3, -7, 2, -10,
+                6, -1, 10, -6,
+                2, -7, 5, -7,
+                -2, -3, 8, -2,
+                1, -5, 10, -3 }));
+            exportConfig.Add(new Tuple<float, int[]>(336.5f, new int[] {
+                -3, -5, -2, -4,
+                -1, -6, 2, -3,
+                -1, -5, 1, -6,
+                1, -3, 2, -4,
+                3, 1, 8, -3,
+
+                4, -8, 2, -11,
+                6, -2, 10, -7,
+                2, -7, 5, -7,
+                -3, -3, 9, -2,
+                2, -4, 11, -3 }));
+            exportConfig.Add(new Tuple<float, int[]>(350.75f, new int[] {
+                2, -6, 3, -4,
+                -4, -6, 5, -3,
+                4, -5, 5, -6,
+                1, -3, 2, -4,
+                6, 1, 11, -5,
+
+                3, -8, 3, -11,
+                6, -3, 11, -8,
+                2, -7, 5, -7,
+                -3, -2, 8, -3,
+                1, -3, 11, -2 }));
+            exportConfig.Add(new Tuple<float, int[]>(424.5f, new int[] {
+                2, -2, 3, -1,
+                4, -5, 6, -2,
+                6, -6, 7, 1,
+                1, 4, 2, -4,
+                11, -4, 11, -1,
+
+                2, -8, 1, -11,
+                4, -5, 11, -8,
+                2, -5, 4, -6,
+                -3, 1, 10, -3,
+                1, -4, 12, -2 }));
+            exportConfig.Add(new Tuple<float, int[]>(425.5f, new int[] {
+                2, -1, 3, 100,
+                4, -5, 6, -1,
+                6, -6, 8, 1,
+                1, 4, 2, -4,
+                11, -4, 11, -1,
+
+                2, -8, 1, -11,
+                4, -5, 11, -8,
+                2, -6, 4, -6,
+                -3, 1, 10, -3,
+                1, -4, 12, -2 }));
+            exportConfig.Add(new Tuple<float, int[]>(537.5f, new int[] {
+                0, 1, 0, 1,
+                0, 0, 1, 0,
+                -1, 0, 4, 0,
+                1, 4, 0, 0,
+                2, 0, 2, 0,
+
+                2, -8, 1, -9,
+                4, -7, 9, -8,
+                1, -7, 3, -6,
+                -2, 4, 10, 1,
+                -1, -4, 13, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(539.25f, new int[] {
+                0, 1, 0, 1,
+                0, 0, 1, 0,
+                -1, -1, 4, -1,
+                1, 4, 0, 0,
+                3, 0, 3, 0,
+
+                2, -8, 1, -9,
+                4, -7, 10, -8,
+                1, -7, 3, -6,
+                -2, 4, 9, 1,
+                -1, -4, 13, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(543.75f, new int[] {
+                1, -3, 1, -1,
+                0, 0, 1, 0,
+                -1, -1, 4, -3,
+                1, 4, -100, 100,
+                3, 0, 3, 0,
+
+                3, -8, 3, -10,
+                4, -6, 10, -8,
+                1, -7, 3, -6,
+                -2, 4, 9, 1,
+                1, -4, 13, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(627.75f, new int[] {
+                0, 0, 0, 0,
+                0, 0, 1, 0,
+                2, 0, 3, 0,
+                1, 4, 0, 0,
+                3, 1, 4, 0,
+
+                6, -7, 11, -11,
+                4, -6, 13, -8,
+                1, -7, 9, -7,
+                -3, 5, 11, -1,
+                2, -3, 16, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(645.25f, new int[] {
+                0, -3, -1, 0,
+                -1, 0, -1, 1,
+                1, -2, 2, -1,
+                1, 5, 1, 5,
+                5, 1, 5, -2,
+
+                4, -7, 9, -11,
+                3, -6, 12, -8,
+                -1, -7, 8, -7,
+                -3, 5, 11, 1,
+                4, -3, 17, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(645.75f, new int[] {
+                0, -3, -1, 0,
+                -1, 0, -1, 1,
+                1, -2, 2, -1,
+                1, 5, 1, 5,
+                5, 1, 5, -2,
+
+                4, -7, 9, -11,
+                3, -6, 12, -8,
+                -1, -7, 8, -7,
+                -3, 5, 11, 1,
+                4, -3, 17, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(647.5f, new int[] {
+                0, -3, -1, 0,
+                -1, 0, 100, 1,
+                1, -2, 2, -1,
+                1, 5, 1, 5,
+                5, 1, 5, -2,
+
+                5, -7, 9, -11,
+                4, -6, 13, -8,
+                -1, -7, 8, -7,
+                -4, 5, 11, 1,
+                4, -3, 17, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(649.25f, new int[] {
+                0, -2, -1, 0,
+                -1, 0, 1, 1,
+                1, -2, 2, -3,
+                1, 5, -1, 5,
+                5, 1, 5, -2,
+
+                5, -6, 9, -10,
+                4, -6, 13, -8,
+                -1, -7, 8, -7,
+                -4, 6, 11, 1,
+                6, -3, 18, -2 }));
+            exportConfig.Add(new Tuple<float, int[]>(649.75f, new int[] {
+                0, -2, -1, 0,
+                -1, 0, 1, 1,
+                1, -2, 2, -3,
+                1, 5, -1, 5,
+                5, 1, 5, -2,
+
+                5, -6, 9, -10,
+                4, -6, 13, -8,
+                -1, -7, 8, -7,
+                -4, 6, 11, 1,
+                6, -3, 18, -2 }));
+            exportConfig.Add(new Tuple<float, int[]>(663.75f, new int[] {
+                -1, -2, 2, 0,
+                -1, -2, 1, 1,
+                1, -2, 2, -3,
+                3, 1, 3, 3,
+                6, 1, 6, -2,
+
+                4, -6, 9, -9,
+                4, -5, 13, -8,
+                -1, -7, 7, -7,
+                -4, 3, 12, 1,
+                6, -5, 18, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(665.5f, new int[] {
+                -1, -2, 2, 0,
+                -1, -2, 1, -100,
+                -100, -2, 2, -4,
+                3, 1, 3, 3,
+                6, 1, 6, -2,
+
+                4, -6, 9, -9,
+                4, -5, 13, -8,
+                -1, -7, 8, -7,
+                -4, 3, 12, 1,
+                6, -5, 18, -1 }));
+            exportConfig.Add(new Tuple<float, int[]>(673.0f, new int[] {
+                1, -2, 2, -1,
+                -1, -2, 1, -1,
+                -2, -2, 2, -4,
+                3, 1, 3, 3,
+                8, 1, 6, -2,
+
+                4, -8, 9, -9,
+                4, -5, 13, -9,
+                -1, -7, 8, -8,
+                -4, 3, 12, 1,
+                6, -3, 18, 1 }));
+            exportConfig.Add(new Tuple<float, int[]>(764.0f, new int[] {
+                1, -3, 1, -100,
+                0, -1, 1, 0,
+                0, 0, 3, 1,
+                3, 1, 3, 3,
+                10, 3, 9, 1,
+
+                3, -7, 9, -10,
+                4, -4, 13, -9,
+                2, -7, 9, -8,
+                -2, 3, 12, 1,
+                3, -3, 16, 1 }));
+            exportConfig.Add(new Tuple<float, int[]>(775.75f, new int[] {
+                -1, -3, 1, -2,
+                0, 1, 1, 1,
+                1, -3, 3, -2,
+                2, -3, 2, -3,
+                10, 4, 9, 2,
+
+                2, -7, 8, -9,
+                2, -2, 13, -8,
+                2, -8, 9, -8,
+                -2, 4, 12, 1,
+                3, -3, 17, 1 }));
+            exportConfig.Add(new Tuple<float, int[]>(784.5f, new int[] {
+                -1, -4, -1, 1,
+                -1, 1, 1, 1,
+                1, -3, 3, 1,
+                2, -3, 2, -3,
+                11, 1, 10, 1,
+
+                2, -7, 8, -10,
+                2, -2, 13, -8,
+                2, -8, 9, -8,
+                -2, 4, 12, -1,
+                3, -3, 16, 1 }));
+
+            // TODO: moar!
+        }
+
+        private async Task ExportFramesStats()
+        {
+            var exportConfig = new List<Tuple<float, int[]>>();
+            var dataPrefix = "stat";
+
+            if (movieFileName == "2021-01-27 17-59-44")
+            {
+                dataPrefix = "stat0127";
+                ExportFramesStats_0127(exportConfig);
+            }
 
             StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
             int imgIdx = 0;
@@ -630,7 +920,7 @@ namespace SINoCOLO
             var textData = new List<string>();
             var prefix = "            ";
 
-            foreach (var item in exportCofig)
+            foreach (var item in exportConfig)
             {
                 try
                 {
@@ -639,7 +929,7 @@ namespace SINoCOLO
                     TimeSpan timeOfFrame = new TimeSpan(0, 0, 0, timeSec, timeMSec);
                     await LoadFrame(timeOfFrame);
 
-                    var fileName = "stat-" + imgIdx + ".jpg";
+                    var fileName = string.Format("{0}-{1}.jpg", dataPrefix, imgIdx);
                     StorageFile exportFile = await storageFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
                     imgIdx++;
 
@@ -694,7 +984,7 @@ namespace SINoCOLO
             }
 
             {
-                StorageFile textExportFile = await storageFolder.CreateFileAsync("textData.txt", CreationCollisionOption.ReplaceExisting);
+                StorageFile textExportFile = await storageFolder.CreateFileAsync("textData-" + dataPrefix + ".txt", CreationCollisionOption.ReplaceExisting);
                 await FileIO.WriteLinesAsync(textExportFile, textData);
             }
 
