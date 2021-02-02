@@ -25,6 +25,17 @@ namespace SINoVision
             }
         }
 
+        public static void ApplyRelu(float[] arr)
+        {
+            for (int idx = 0; idx < arr.Length; idx++)
+            {
+                if (arr[idx] < 0)
+                {
+                    arr[idx] = 0.0f;
+                }
+            }
+        }
+
         public static void ApplySoftmax(float[] arr)
         {
             float maxV = arr[0];
