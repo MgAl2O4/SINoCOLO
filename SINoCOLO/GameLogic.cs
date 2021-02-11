@@ -290,8 +290,7 @@ namespace SINoCOLO
 
             cachedDataColoCombat = screenData;
 
-#if DEBUG && 0
-            bool canSave = true;
+            /*bool canSave = true;
             if (lastScreenshotTime != null)
             {
                 TimeSpan timeSinceScreenshot = DateTime.Now - lastScreenshotTime;
@@ -302,8 +301,7 @@ namespace SINoCOLO
             {
                 lastScreenshotTime = DateTime.Now;
                 OnSaveScreenshot();
-            }
-#endif // DEBUG
+            }*/
 
             scanSkipCounter--;
             if (scanSkipCounter > 0)
