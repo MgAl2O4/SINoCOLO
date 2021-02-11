@@ -52,6 +52,28 @@ namespace SINoVision
             }
         }
 
+        public class StatData
+        {
+            public int PAtk;
+            public int PDef;
+            public int MAtk;
+            public int MDef;
+
+            public EStatMode PAtkType;
+            public EStatMode PDefType;
+            public EStatMode MAtkType;
+            public EStatMode MDefType;
+
+            public override string ToString()
+            {
+                return string.Format("patk:{0}:{1}, pdef:{2}:{3}, matk:{4}:{5}, mdef:{6}:{7}",
+                    PAtkType, PAtk,
+                    PDefType, PDef,
+                    MAtkType, MAtk,
+                    MDefType, MDef);
+            }
+        }
+
         public class ScreenDataBase
         {
             public EChatMode chatMode = EChatMode.None;
@@ -61,6 +83,7 @@ namespace SINoVision
             public float SPFillPct = 0;
 
             public ActionData[] actions = new ActionData[5];
+            public StatData[] statPlayer = new StatData[5];
 
             public override string ToString()
             {
@@ -76,6 +99,11 @@ namespace SINoVision
                 for (int idx = 0; idx < actions.Length; idx++)
                 {
                     desc += "\nAction[" + idx + "]> " + actions[idx];
+                }
+
+                for (int idx = 0; idx < statPlayer.Length; idx++)
+                {
+                    desc += "\nStat[Player:" + idx + "]> " + statPlayer[idx];
                 }
 
                 return desc;
@@ -106,6 +134,7 @@ namespace SINoVision
         private FastPixelMatch matchSummonBack = new FastPixelMatchHSV(15, 25, 40, 60, 20, 30);
 
         protected MLClassifierWeaponType classifierWeapon = new MLClassifierWeaponType();
+        protected MLClassifierStats classifierStats = new MLClassifierStats();
 
         public ScannerCombatBase()
         {
@@ -113,6 +142,7 @@ namespace SINoVision
             DebugLevel = EDebugLevel.Simple;
 
             classifierWeapon.InitializeModel();
+            classifierStats.InitializeModel();
         }
 
         public override Rectangle[] GetActionBoxes()
@@ -481,38 +511,61 @@ namespace SINoVision
             return matchIn && matchOut;
         }
 
-        protected float[] ExtractStatData(FastBitmapHSV bitmap, Point[] playerPos, int playerIdx, int statIdx, out EStatMode statMode)
+        protected float[] ExtractStatData(FastBitmapHSV bitmap, Point[] playerPos, int playerIdx, int statIdx)
         {
-            // scan area: 9x7
-            float[] values = new float[9 * 7];
-            for (int idx = 0; idx < values.Length; idx++)
-            {
-                values[idx] = 0.0f;
-            }
+            // scan area: (9+1)x7
+            float[] values = new float[(11+1) * 9];
+            int writeIdx = 0;
 
-            const int monoSteps = 16;
-            const float monoScale = 1.0f / monoSteps;
-            float accHue = 0.0f;
-
-            for (int idxY = 0; idxY < 7; idxY++)
+            for (int idxY = 0; idxY < 9; idxY++)
             {
-                for (int idxX = 0; idxX < 9; idxX++)
+                float accHueLine = 0.0f;
+                for (int idxX = 0; idxX < 11; idxX++)
                 {
-                    FastPixelHSV pixel = bitmap.GetPixel(playerPos[playerIdx].X + posStatOffset[statIdx].X + idxX, playerPos[playerIdx].Y + posStatOffset[statIdx].Y + idxY);
-                    int monoV = pixel.GetMonochrome() / (256 / monoSteps);
-
-                    values[idxX + (idxY * 9)] = monoV * monoScale;
-                    accHue += pixel.GetHue();
+                    FastPixelHSV pixel = bitmap.GetPixel(playerPos[playerIdx].X + posStatOffset[statIdx].X + idxX - 1, playerPos[playerIdx].Y + posStatOffset[statIdx].Y + idxY - 1);
+                    values[writeIdx] = pixel.GetMonochrome() / 255.0f;
+                    accHueLine += pixel.GetHue() / 360.0f;
+                    writeIdx++;
                 }
-            }
 
-            float avgHue = (accHue / values.Length);
-            statMode =
-                (avgHue >= 0.0f && avgHue < 80.0f) ? EStatMode.Buff :
-                (avgHue >= 150.0f && avgHue < 220.0f) ? EStatMode.Debuff :
-                EStatMode.None;
+                values[writeIdx] = accHueLine / 11;
+                writeIdx++;
+            }
 
             return values;
+        }
+
+        protected void ScanStats(FastBitmapHSV bitmap, Point[] playerPos, ref StatData[] stats)
+        {
+            float dummyPct = 0.0f;
+            for (int playerIdx = 0; playerIdx < playerPos.Length; playerIdx++)
+            {
+                var statBlock = new StatData();
+
+                float[] values = ExtractStatData(bitmap, playerPos, playerIdx, 0);
+                statBlock.PAtk = classifierStats.Calculate(values, out dummyPct);
+                statBlock.PAtkType = (EStatMode)classifierStats.CalculateType(values, out dummyPct);
+
+                values = ExtractStatData(bitmap, playerPos, playerIdx, 1);
+                statBlock.PDef = classifierStats.Calculate(values, out dummyPct);
+                statBlock.PDefType = (EStatMode)classifierStats.CalculateType(values, out dummyPct);
+
+                values = ExtractStatData(bitmap, playerPos, playerIdx, 2);
+                statBlock.MAtk = classifierStats.Calculate(values, out dummyPct);
+                statBlock.MAtkType = (EStatMode)classifierStats.CalculateType(values, out dummyPct);
+
+                values = ExtractStatData(bitmap, playerPos, playerIdx, 3);
+                statBlock.MDef = classifierStats.Calculate(values, out dummyPct);
+                statBlock.MDefType = (EStatMode)classifierStats.CalculateType(values, out dummyPct);
+
+                // 21 = no number, store as -1
+                if (statBlock.PAtk > 20) { statBlock.PAtk = -1; }
+                if (statBlock.PDef > 20) { statBlock.PDef = -1; }
+                if (statBlock.MAtk > 20) { statBlock.MAtk = -1; }
+                if (statBlock.MDef > 20) { statBlock.MDef = -1; }
+
+                stats[playerIdx] = statBlock;
+            }
         }
     }
 }

@@ -7,10 +7,11 @@ from tensorflow import keras
 from tqdm.keras import TqdmCallback
 
 class NNTraining():
-    def __init__(self, inputFile, outputFile):
+    def __init__(self, inputFile, outputFile, labelKey="output"):
         path = 'data/'
         self.inputFile = path + inputFile
         self.outputFile = path + outputFile
+        self.labelKey = labelKey
         pass
         
     def printToLines(self, prefix, values, suffix):
@@ -26,12 +27,12 @@ class NNTraining():
         
         for elem in training_sets["dataset"]:
             inputs.append(elem["input"])
-            outputs.append(elem["output"])
+            outputs.append(elem[self.labelKey])
 
         return inputs, outputs
         
 
-    def writeCodeFile(self, model):
+    def writeCodeFile(self, model, codeSuffix):
         lines = []
 
         for i in range(len(model.layers)):
@@ -48,8 +49,8 @@ class NNTraining():
             if (len(weights) == 2 and layer.use_bias):
                 listWeights = np.reshape(weights[0], -1)
                 listBias = np.reshape(weights[1], -1)
-                lines += self.printToLines('Layer%iW = new float[]{' % i, listWeights, '};')
-                lines += self.printToLines('Layer%iB = new float[]{' % i, listBias, '};')
+                lines += self.printToLines('Layer%s%iW = new float[]{' % (codeSuffix, i), listWeights, '};')
+                lines += self.printToLines('Layer%s%iB = new float[]{' % (codeSuffix, i), listBias, '};')
 
         with open(self.outputFile, "w") as file:
             for line in lines:
@@ -57,18 +58,22 @@ class NNTraining():
                 file.write("\n")
 
 
-    def run(self, numHidden1, numEpochs=20, batch_size=512):
+    def run(self, numHidden1, numHidden2=0, numEpochs=20, batchSize=512, codeSuffix=''):
         x_train, y_train = self.loadData()
         x_train = np.array(x_train, np.float32)
         numClasses = max(y_train) + 1
 
         train_data = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-        train_data = train_data.repeat().shuffle(5000).batch(batch_size).prefetch(1)
+        train_data = train_data.repeat().shuffle(5000).batch(batchSize).prefetch(1)
 
-        model = tf.keras.Sequential([
-            tf.keras.layers.Dense(numHidden1, activation='relu'),
-            tf.keras.layers.Dense(numClasses)
-        ])
+        layers = []
+        if (numHidden1 > 0):
+            layers += [ tf.keras.layers.Dense(numHidden1, activation='relu') ]
+        if (numHidden2 > 0):
+            layers += [ tf.keras.layers.Dense(numHidden2, activation='relu') ]
+        
+        layers += [ tf.keras.layers.Dense(numClasses) ];
+        model = tf.keras.Sequential(layers)
         model.compile(optimizer='adam',
                       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                       metrics=['accuracy'])
@@ -78,4 +83,4 @@ class NNTraining():
           steps_per_epoch=100,
           verbose=0, callbacks=[TqdmCallback(verbose=2)])
 
-        self.writeCodeFile(model)
+        self.writeCodeFile(model, codeSuffix)

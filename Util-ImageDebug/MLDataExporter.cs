@@ -190,6 +190,17 @@ namespace SINoCOLO
             exportSB.Append("},");
         }
 
+        private void ExportValuesWithContext(float[] values, int classId, int contextId)
+        {
+            exportSB.Append("\n{\"input\":[");
+            exportSB.Append(string.Join(",", values));
+            exportSB.Append("], \"output\":");
+            exportSB.Append(classId);
+            exportSB.Append(", \"ctx\":");
+            exportSB.Append(contextId);
+            exportSB.Append("},");
+        }
+
         private void ExportWeapons()
         {
             List<WeapML> fileList = new List<WeapML>();
@@ -820,8 +831,15 @@ namespace SINoCOLO
                 mapValues.Add(idx, 0);
             }
             
-            mapValues.Add(-100, 0); // blue, no number
-            mapValues.Add(100, 0); // red, no number
+            mapValues.Add(-21, 0); // blue, no number
+            mapValues.Add(21, 0); // red, no number
+
+            MLClassifierStats statML = new MLClassifierStats();
+            statML.InitializeModel();
+
+            int accuracyNumber = 0;
+            int accuracyType = 0;
+            int numSamples = 0;
 
             StartDataExport("stats");
             foreach (var fileData in fileList)
@@ -829,14 +847,13 @@ namespace SINoCOLO
                 var srcScreenshot = LoadScreenshot("train-stats/" + fileData.fileName);
                 var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot);
 
-                int exportHelper(int[,] statList, string logType, bool isFriend)
+                int exportHelper(int[,] statList, string logType, bool isFriend, ref int accNumber, ref int accType, ref int accSamples)
                 {
                     for (int idx = 0; idx < 5; idx++)
                     {
                         for (int statIdx = 0; statIdx < 4; statIdx++)
                         {
-                            ScannerCombatBase.EStatMode statMode;
-                            var values = combatScanner.ExtractPlayerStatData(fastBitmap, idx, statIdx, isFriend, out statMode);
+                            var values = combatScanner.ExtractPlayerStatData(fastBitmap, idx, statIdx, isFriend);
                             var numValue = statList[idx, statIdx];
                             
                             if (numValue == 200 || numValue == -200)
@@ -845,25 +862,31 @@ namespace SINoCOLO
                                 continue;
                             }
 
-                            ExportValues(values, numValue);
-                            mapValues[numValue]++;
+                            var numValueToStore = Math.Abs(numValue);
+                            if (numValueToStore == 100) { numValueToStore = 21; }
 
-                            bool hasTypeError =
-                                (numValue > 0 && statMode != ScannerCombatBase.EStatMode.Buff) ||
-                                (numValue < 0 && statMode != ScannerCombatBase.EStatMode.Debuff) ||
-                                (numValue == 0 && statMode != ScannerCombatBase.EStatMode.None);
-                            if (hasTypeError)
-                            {
-                                Console.WriteLine("Stat type mismatch! image:{0}, player:{1}, stat:{2}, type:{3} => has:{4}, num:{5}",
-                                    fileData.fileName, idx, statIdx, logType, statMode, numValue);
-                            }
+                            var contextToStore = 
+                                (numValue == 0) ? ScannerCombatBase.EStatMode.None : 
+                                (numValue > 0) ? ScannerCombatBase.EStatMode.Buff :
+                                ScannerCombatBase.EStatMode.Debuff;
+
+                            ExportValuesWithContext(values, numValueToStore, (int)contextToStore);
+                            mapValues[numValueToStore]++;
+
+                            // verify accuracy of current setup
+                            int testValue = statML.Calculate(values, out float DummyPctN);
+                            int testType = statML.CalculateType(values, out float DummyPctT);
+
+                            accNumber += (testValue == numValueToStore) ? 1 : 0;
+                            accType += (testType == (int)contextToStore) ? 1 : 0;
+                            accSamples++;
                         }
                     }
                     return 0;
                 }
 
-                exportHelper(fileData.friendStats, "friend", true);
-                exportHelper(fileData.enemyStats, "enemy", false);
+                exportHelper(fileData.friendStats, "friend", true, ref accuracyNumber, ref accuracyType, ref numSamples);
+                exportHelper(fileData.enemyStats, "enemy", false, ref accuracyNumber, ref accuracyType, ref numSamples);
             }
 
             FinishDataExport("sino-ml-stats.json");
@@ -873,6 +896,10 @@ namespace SINoCOLO
             {
                 Console.WriteLine("  {0}: {1} {2}", kvp.Key, kvp.Value, kvp.Value == 0 ? " << MISSING!" : "");
             }
+
+            Console.WriteLine("Detection accuracy:");
+            Console.WriteLine(">> number: {0:P2}", 1.0f * accuracyNumber / numSamples);
+            Console.WriteLine(">> type: {0:P2}", 1.0f * accuracyType / numSamples);
         }
 
         private void ExportPurifyPvE()

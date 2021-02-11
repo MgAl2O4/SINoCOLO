@@ -34,9 +34,16 @@ namespace SINoVision
             public EDemonState demonState = EDemonState.None;
             public EWeaponType demonType = EWeaponType.Unknown;
 
+            public StatData[] statEnemy = new StatData[5];
+
             public override string ToString()
             {
                 string desc = base.ToString();
+                for (int idx = 0; idx < statEnemy.Length; idx++)
+                {
+                    desc += "\nStat[Enemy:" + idx + "]> " + statEnemy[idx];
+                }
+
                 desc += string.Format("\nSpecialAction> {0}", specialAction);
                 desc += string.Format("\nDemon> {0} {1}", demonState, (demonState == EDemonState.Active) ? demonType.ToString() : "");
                 return desc;
@@ -110,7 +117,10 @@ namespace SINoVision
                         ScanSpecialAction(bitmap, outputOb);
                     }
 
+                    ScanStats(bitmap, posStatFriend, ref outputOb.statPlayer);
+                    ScanStats(bitmap, posStatEnemy, ref outputOb.statEnemy);
                     ScanDemonSummon(bitmap, outputOb);
+
                     return outputOb;
                 }
             }
@@ -362,9 +372,9 @@ namespace SINoVision
             return values;
         }
 
-        public float[] ExtractPlayerStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, bool isFriend, out EStatMode statMode)
+        public float[] ExtractPlayerStatData(FastBitmapHSV bitmap, int playerIdx, int statIdx, bool isFriend)
         {
-            return ExtractStatData(bitmap, isFriend ? posStatFriend : posStatEnemy, playerIdx, statIdx, out statMode);
+            return ExtractStatData(bitmap, isFriend ? posStatFriend : posStatEnemy, playerIdx, statIdx);
         }
     }
 }

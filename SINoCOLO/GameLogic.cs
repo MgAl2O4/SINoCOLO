@@ -52,6 +52,9 @@ namespace SINoCOLO
         private TrackerActionBoost actionBoost = new TrackerActionBoost();
         private DateTime lastClickTime;
         private DateTime lastCombatTime;
+#if DEBUG
+        private DateTime lastScreenshotTime;
+#endif // DEBUG
         private bool waitingForCombat = false;
         private bool waitingForCombatReport = false;
         private bool waitingForEventSummary = false;
@@ -286,6 +289,21 @@ namespace SINoCOLO
             }
 
             cachedDataColoCombat = screenData;
+
+#if DEBUG && 0
+            bool canSave = true;
+            if (lastScreenshotTime != null)
+            {
+                TimeSpan timeSinceScreenshot = DateTime.Now - lastScreenshotTime;
+                canSave = timeSinceScreenshot.TotalSeconds >= 1.0f;
+            }
+
+            if (canSave)
+            {
+                lastScreenshotTime = DateTime.Now;
+                OnSaveScreenshot();
+            }
+#endif // DEBUG
 
             scanSkipCounter--;
             if (scanSkipCounter > 0)

@@ -44,10 +44,10 @@ namespace SINoCOLO
         {
             foreach (var path in Directory.EnumerateFiles(samplesFolder))
             {
-                string fileName = Path.GetFileNameWithoutExtension(path);
-                if (fileName.StartsWith("image-") || fileName.StartsWith("real-"))
+                string fileExt = Path.GetExtension(path);
+                if (fileExt == ".jpg")
                 {
-                    comboBoxFileName.Items.Add(fileName);
+                    comboBoxFileName.Items.Add(Path.GetFileNameWithoutExtension(path));
                 }
             }
 
