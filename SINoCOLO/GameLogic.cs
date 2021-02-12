@@ -47,17 +47,17 @@ namespace SINoCOLO
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
+        private int unknownStateScreenshotDelay = 4;
         private EStoryMode storyMode = EStoryMode.None;
         private EUnknownBehavior unknownBehavior = EUnknownBehavior.None;
         private TrackerActionBoost actionBoost = new TrackerActionBoost();
         private DateTime lastClickTime;
         private DateTime lastCombatTime;
-#if DEBUG
-        private DateTime lastScreenshotTime;
-#endif // DEBUG
+        private DateTime unknownStateStartTime;
         private bool waitingForCombat = false;
         private bool waitingForCombatReport = false;
         private bool waitingForEventSummary = false;
+        private bool useDebugScreenshotOnUnknown = false;
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
@@ -130,6 +130,8 @@ namespace SINoCOLO
                     state = EState.Unknown;
                     OnStateChanged();
 
+                    unknownStateStartTime = DateTime.Now;
+
                     /*if (prevState == EState.MessageBox)
                     {
                         OnSaveScreenshot?.Invoke();
@@ -154,6 +156,17 @@ namespace SINoCOLO
                 if (unknownBehavior != EUnknownBehavior.None)
                 {
                     OnScan_Unknown();
+                }
+
+                // debug screenshots in unknown state (e.g. colo combat suddenly stopped, probably a demon summon)
+                if (useDebugScreenshotOnUnknown)
+                {
+                    var timeSinceEnteringUnknown = DateTime.Now - unknownStateStartTime;
+                    if (timeSinceEnteringUnknown.TotalSeconds > unknownStateScreenshotDelay)
+                    {
+                        useDebugScreenshotOnUnknown = false;
+                        OnSaveScreenshot?.Invoke();
+                    }
                 }
             }
         }
@@ -247,7 +260,14 @@ namespace SINoCOLO
                 state, scanSkipCounter, scanSkipCounter <= 1 ? " (click)" : ""));
 
             lines.Add(string.Format("Story:{0}, behavior:{1}, wait(combat:{2}, report:{3})", storyMode, unknownBehavior, waitingForCombat, waitingForCombatReport));
-            
+            if (state == EState.Unknown && useDebugScreenshotOnUnknown)
+            {
+                var timeSinceEnteringUnknown = DateTime.Now - unknownStateStartTime;
+                var timeToScreenshot = unknownStateScreenshotDelay - timeSinceEnteringUnknown.TotalSeconds;
+
+                lines.Add(string.Format("Debug screenshot in:{0:F1}s", timeToScreenshot));
+            }
+
             if (cachedDataCombat != null || cachedDataColoCombat != null)
             {
                 actionBoost.AppendDetails(lines);
@@ -289,6 +309,10 @@ namespace SINoCOLO
             }
 
             cachedDataColoCombat = screenData;
+
+            // ignore that debug screenshots when leaving colo combat state after demon summon finishes
+            bool canIgnoreDebugScreenshots = (screenData.demonState == ScannerColoCombat.EDemonState.Active);
+            useDebugScreenshotOnUnknown = !canIgnoreDebugScreenshots;
 
             /*bool canSave = true;
             if (lastScreenshotTime != null)
@@ -543,6 +567,9 @@ namespace SINoCOLO
                 state = EState.ColoPurify;
                 OnStateChanged();
 
+                useDebugScreenshotOnUnknown = false;
+                cachedDataMessageBox = null;
+
                 // when returning to purify state, check if there's burst ready with at least 1 big on screen
                 // enforce longer delay so stuff can spawn back in and be detected
                 if (cachedDataColoPurify != null &&
@@ -562,7 +589,6 @@ namespace SINoCOLO
             }
 
             cachedDataColoPurify = screenData;
-            cachedDataMessageBox = null;
 
             // don't do anything when burst is already active
             if (screenData.BurstState == ScannerColoPurify.EBurstState.Active)
@@ -896,6 +922,7 @@ namespace SINoCOLO
                 cachedDataColoPurify = null;
                 cachedDataMessageBox = null;
                 waitingForCombat = false;
+                useDebugScreenshotOnUnknown = false;
             }
 
             cachedDataCombat = screenData;
@@ -1054,6 +1081,7 @@ namespace SINoCOLO
                 scanSkipCounter = 50; // 5s opening delay
                 waitingForCombatReport = false;
                 waitingForCombat = false;
+                useDebugScreenshotOnUnknown = false;
 
                 cachedDataCombat = null;
                 cachedDataColoCombat = null;
@@ -1101,6 +1129,7 @@ namespace SINoCOLO
                 waitingForCombat = false;
                 waitingForCombatReport = false;
                 waitingForEventSummary = false;
+                useDebugScreenshotOnUnknown = false;
 
                 cachedDataMessageBox = null;
                 purifySlot = randGen.Next(10);

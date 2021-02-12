@@ -77,7 +77,7 @@ namespace SINoCOLO
             {
                 for (int idx = 1; idx < 1000000; idx++)
                 {
-                    string testPath = "statcapture-" + idx + ".jpg";
+                    string testPath = "screenshot-" + idx + ".jpg";
                     if (!System.IO.File.Exists(testPath))
                     {
                         cachedSourceScreen.Save(testPath);
