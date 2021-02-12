@@ -605,9 +605,20 @@ namespace SINoCOLO
             // if burst is ready, check if there's anything worth using it on
             if (screenData.BurstState == ScannerColoPurify.EBurstState.ReadyAndCenter && (numBig > 0))
             {
-                float SPAfterBurst = (screenData.SPIsValid ? screenData.SPFillPct : 1.0f) + (numBig * burstBigPct);
+                // always burst when prepping or during demon rush, time takes priority
                 bool hasDemon = (cachedDataColoCombat != null) && (cachedDataColoCombat.demonState != ScannerColoCombat.EDemonState.None);
-                bool shouldUseBurst = (SPAfterBurst < 0.99) || hasDemon;
+
+                // if ready, check how much SP would be wasted: 
+                // - normal combat = don't waste, burst only to fill up
+                // - ship/revive = allow some wasting if already under 75%
+                bool bWantsToTopOff =
+                    (cachedDataColoCombat.specialAction == ScannerColoCombat.ESpecialAction.AttackShip) ||
+                    (cachedDataColoCombat.specialAction == ScannerColoCombat.ESpecialAction.Revive);
+
+                float SPCurrent = (screenData.SPIsValid ? screenData.SPFillPct : 1.0f);
+                float SPAfterBurst = SPCurrent + (numBig * burstBigPct);
+
+                bool shouldUseBurst = hasDemon || (SPAfterBurst < 0.99) || (bWantsToTopOff && SPCurrent < 0.75);
 
                 specialIdx = (int)(shouldUseBurst ? ScannerColoPurify.ESpecialBox.BurstReady : ScannerColoPurify.ESpecialBox.ReturnToBattle);
                 Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
