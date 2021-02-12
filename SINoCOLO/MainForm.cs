@@ -159,7 +159,7 @@ namespace SINoCOLO
                 case ScreenReader.EState.MissingGameProcess:
                     if (screenReader.GetAvailableGames().Count > 1)
                     {
-                        statusDesc += "Multiple BlueStacks instaces found - click here to select";
+                        statusDesc += "Multiple BlueStacks instances found - click here to select";
                         selectInstanceMode = true;
                     }
                     else
