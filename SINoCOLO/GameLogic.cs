@@ -53,10 +53,12 @@ namespace SINoCOLO
         private TrackerActionBoost actionBoost = new TrackerActionBoost();
         private DateTime lastClickTime;
         private DateTime lastCombatTime;
+        private DateTime lastPurifyActTime;
         private DateTime unknownStateStartTime;
         private bool waitingForCombat = false;
         private bool waitingForCombatReport = false;
         private bool waitingForEventSummary = false;
+        private bool canWaitForPurifySpawn = false;
         private bool useDebugScreenshotOnUnknown = false;
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
@@ -568,7 +570,11 @@ namespace SINoCOLO
                 OnStateChanged();
 
                 useDebugScreenshotOnUnknown = false;
+                canWaitForPurifySpawn = true;
                 cachedDataMessageBox = null;
+
+                // mark activity for fallback clicking
+                lastPurifyActTime = DateTime.Now;
 
                 // when returning to purify state, check if there's burst ready with at least 1 big on screen
                 // enforce longer delay so stuff can spawn back in and be detected
@@ -594,6 +600,7 @@ namespace SINoCOLO
             if (screenData.BurstState == ScannerColoPurify.EBurstState.Active)
             {
                 purifySlot = 0;
+                lastPurifyActTime = DateTime.Now;
                 return true;
             }
 
@@ -622,10 +629,19 @@ namespace SINoCOLO
 
             // if about to transition to next scene (or in flight) and burst is ready, wait a bit longer
             // to make sure everything spawns in before decision to use burst
-            if (numTotal == 0 && (screenData.BurstState != ScannerColoPurify.EBurstState.None))
+            if (canWaitForPurifySpawn && numTotal == 0 && (screenData.BurstState != ScannerColoPurify.EBurstState.None))
             {
                 scanSkipCounter = 15;   // 1.5s
+                canWaitForPurifySpawn = false;
+                lastPurifyActTime = DateTime.Now;
                 return true;
+            }
+
+            // reset waiting flag every time it sees spawned slots
+            // that way it can do single longer delay for burst logic after clearing out screen
+            if (numTotal > 0)
+            {
+                canWaitForPurifySpawn = true;
             }
 
             // if burst is ready, check if there's anything worth using it on
@@ -649,6 +665,7 @@ namespace SINoCOLO
                 specialIdx = (int)(shouldUseBurst ? ScannerColoPurify.ESpecialBox.BurstReady : ScannerColoPurify.ESpecialBox.ReturnToBattle);
                 Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
                 RequestMouseClick(actionBox, -1, specialIdx);
+                lastPurifyActTime = DateTime.Now;
                 return true;
             }
 
@@ -661,6 +678,7 @@ namespace SINoCOLO
                 specialIdx = (int)(shouldUseBurst ? ScannerColoPurify.ESpecialBox.BurstReady : ScannerColoPurify.ESpecialBox.ReturnToBattle);
                 Rectangle actionBox = screenScanner.GetSpecialActionBox(specialIdx);
                 RequestMouseClick(actionBox, -1, specialIdx);
+                lastPurifyActTime = DateTime.Now;
                 return true;
             }
 
@@ -673,14 +691,29 @@ namespace SINoCOLO
                     Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
                     slotIdx = purifySlot;
                     RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);
+                    lastPurifyActTime = DateTime.Now;
                     return true;
                 }
 
                 purifySlot = (purifySlot + 1) % 8;
             }
 
-            // no valid slots detected? ignore for now
-            // maybe click every 0.5s on random one?
+            // no valid slots detected?
+            // wait a bit for everything to spawn in and start clicking all potential slots in sequence - maybe it failed to recognize?
+
+            TimeSpan timeSinceLastAct = DateTime.Now - lastPurifyActTime;
+            if (timeSinceLastAct.TotalSeconds > 5)
+            {
+                // don't mark timestamp, it's just a fallback action that should keep going
+                // slightly increase delay between scan actions though
+                scanSkipCounter = randGen.Next(3, 5);
+                purifySlot = (purifySlot + 1) % 8;
+
+                Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
+                slotIdx = purifySlot;
+                RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);               
+            }
+
             return true;
         }
 
