@@ -73,17 +73,24 @@ namespace SINoCOLO
 
         private void GameLogic_OnSaveScreenshot()
         {
-            if (cachedSourceScreen != null)
+            try
             {
-                for (int idx = 1; idx < 1000000; idx++)
+                if (cachedSourceScreen != null)
                 {
-                    string testPath = "screenshot-" + idx + ".jpg";
-                    if (!System.IO.File.Exists(testPath))
+                    for (int idx = 1; idx < 1000000; idx++)
                     {
-                        cachedSourceScreen.Save(testPath);
-                        break;
+                        string testPath = "screenshot-" + idx + ".jpg";
+                        if (!System.IO.File.Exists(testPath))
+                        {
+                            cachedSourceScreen.Save(testPath);
+                            break;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception on saving:" + ex);
             }
         }
 
