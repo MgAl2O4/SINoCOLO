@@ -22,13 +22,24 @@ namespace SINoCOLO
             PressRankUp,
         }
 
+        public enum ETargetingMode
+        {
+            None,
+            Deselect,
+            CycleAll,
+            CycleTop3,
+            LockStrongest,
+        }
+
         public delegate void MouseClickDelegate(int posX, int posY);
         public delegate void SaveScreenshotDelegate();
         public delegate void UpdateEventCounter();
+        public delegate void StateChangedDelegate(EState newState);
 
         public event MouseClickDelegate OnMouseClickRequested;
         public event SaveScreenshotDelegate OnSaveScreenshot;
         public event UpdateEventCounter OnEventCounterUpdated;
+        public event StateChangedDelegate OnStateChangeNotify;
         private Random randGen = new Random();
 
         public ScannerBase screenScanner;
@@ -42,15 +53,17 @@ namespace SINoCOLO
         public int slotIdx = -1;
         public int specialIdx = -1;
         public int eventCounter = 0;
-        public bool canClick = false;
 
         private float interpActiveFill = 0.0f;
         private int scanSkipCounter = 0;
         private int purifySlot = 0;
         private int unknownStateScreenshotDelay = 4;
         private EStoryMode storyMode = EStoryMode.None;
+        private ETargetingMode targetingMode = ETargetingMode.None;
         private EUnknownBehavior unknownBehavior = EUnknownBehavior.None;
         private TrackerActionBoost actionBoost = new TrackerActionBoost();
+        private TrackerTargeting targetFriend = new TrackerTargeting();
+        private TrackerTargeting targetEnemy = new TrackerTargeting();
         private DateTime lastClickTime;
         private DateTime lastCombatTime;
         private DateTime lastPurifyActTime;
@@ -60,6 +73,7 @@ namespace SINoCOLO
         private bool waitingForEventSummary = false;
         private bool canWaitForPurifySpawn = false;
         private bool useDebugScreenshotOnUnknown = false;
+        private bool canClick = false;
 
         private Font overlayFont = new Font(FontFamily.GenericSansSerif, 7.0f);
         private Color colorPaletteRed = Color.FromArgb(0xff, 0xad, 0xad);
@@ -78,6 +92,22 @@ namespace SINoCOLO
             new Rectangle(277, 573, 49, 15),
             new Rectangle(75, 332, 80, 20),
         };
+        private Rectangle rectNoTargetPlayer = new Rectangle(120, 288, 8, 8);
+        private Rectangle[] rectTargetPlayer = new Rectangle[] {
+            new Rectangle(132, 131, 8, 8),
+            new Rectangle(133, 243, 8, 8),
+            new Rectangle(136, 357, 8, 8),
+            new Rectangle(55, 188, 8, 8),
+            new Rectangle(55, 302, 8, 8),
+        };
+        private Rectangle rectNoTargetEnemy = new Rectangle(211, 288, 8, 8);
+        private Rectangle[] rectTargetEnemy = new Rectangle[] {
+            new Rectangle(202, 127, 8, 8),
+            new Rectangle(202, 243, 8, 8),
+            new Rectangle(200, 357, 8, 8),
+            new Rectangle(275, 188, 8, 8),
+            new Rectangle(275, 302, 8, 8),
+        };
 
         public enum EState
         {
@@ -91,12 +121,31 @@ namespace SINoCOLO
         }
         private EState state;
 
+        public EState GetState() { return state; }
+        public EStoryMode GetStoryMode() { return storyMode; }
+
+        public GameLogic()
+        {
+            targetFriend.mode = targetingMode;
+            targetEnemy.mode = targetingMode;
+
+            targetFriend.rectNoTarget = rectNoTargetPlayer;
+            targetEnemy.rectNoTarget = rectNoTargetEnemy;
+
+            targetFriend.rectTargets = rectTargetPlayer;
+            targetEnemy.rectTargets = rectTargetEnemy;
+
+            targetFriend.randGen = randGen;
+            targetEnemy.randGen = randGen;
+        }
+
         private void OnStateChanged()
         {
             slotIdx = -1;
             specialIdx = -1;
             scanSkipCounter = 0;
             unknownBehavior = EUnknownBehavior.None;
+            OnStateChangeNotify?.Invoke(state);
             // don't clear purify slot
         }
 
@@ -178,6 +227,26 @@ namespace SINoCOLO
             storyMode = mode;
         }
 
+        public void SetTargetingMode(ETargetingMode mode)
+        {
+            targetingMode = mode;
+
+            targetFriend.mode = targetingMode;
+            targetFriend.Reset();
+
+            targetEnemy.mode = targetingMode;
+            targetEnemy.Reset();
+        }
+
+        public void SetCanClick(bool bAllow)
+        {
+            canClick = bAllow;
+
+            // temp: reset targetting counters to force restart scripted cycles
+            targetFriend.Reset();
+            targetEnemy.Reset();
+        }
+
         public void DrawScanHighlights(Graphics g)
         {
             bool handled = false;
@@ -230,11 +299,15 @@ namespace SINoCOLO
             slotIdx = newSlotIdx;
             specialIdx = newSpecialIdx;
 
+            RequestMouseClickNoHighlights(actionBox);
+            lastClickTime = DateTime.Now;
+        }
+
+        private void RequestMouseClickNoHighlights(Rectangle actionBox)
+        {
             int posX = actionBox.X + randGen.Next(0, actionBox.Width);
             int posY = actionBox.Y + randGen.Next(0, actionBox.Height);
             OnMouseClickRequested.Invoke(posX, posY);
-
-            lastClickTime = DateTime.Now;
         }
 
         private void DrawActionArea(Graphics g, Rectangle bounds, string desc, Color color, bool isActive)
@@ -273,6 +346,8 @@ namespace SINoCOLO
             if (cachedDataCombat != null || cachedDataColoCombat != null)
             {
                 actionBoost.AppendDetails(lines);
+                targetFriend.AppendDetails(lines, "friend");
+                targetEnemy.AppendDetails(lines, "enemy");
             }
 
             // cached data status
@@ -308,6 +383,9 @@ namespace SINoCOLO
                 cachedDataMessageBox = null;
                 waitingForCombatReport = false;
                 waitingForCombat = false;
+
+                targetFriend.Reset();
+                targetEnemy.Reset();
             }
 
             cachedDataColoCombat = screenData;
@@ -329,15 +407,29 @@ namespace SINoCOLO
                 OnSaveScreenshot();
             }*/
 
+            Rectangle actionBox;
+
             scanSkipCounter--;
             if (scanSkipCounter > 0)
             {
+                // target swaps are allowed only in between action presses
+                targetFriend.Update();
+                targetEnemy.Update();
+
+                if (targetFriend.GetAndConsumeAction(out actionBox))
+                {
+                    RequestMouseClickNoHighlights(actionBox);
+                }
+                else if (targetEnemy.GetAndConsumeAction(out actionBox))
+                {
+                    RequestMouseClickNoHighlights(actionBox);
+                }
+
                 return true;
             }
 
             // random delay: 0.5..0.8s between action presses (OnScan interval = 100ms)
             scanSkipCounter = randGen.Next(5, 8);
-            Rectangle actionBox;
 
             // close the chat if needed
             if (screenData.chatMode != ScannerCombatBase.EChatMode.None)

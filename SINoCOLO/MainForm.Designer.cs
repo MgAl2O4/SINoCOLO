@@ -33,11 +33,13 @@ namespace SINoCOLO
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pictureBoxAnalyzed = new System.Windows.Forms.PictureBox();
             this.panelStatus = new System.Windows.Forms.Panel();
-            this.numericEventRepeat = new System.Windows.Forms.NumericUpDown();
+            this.labelCombatMode = new System.Windows.Forms.Label();
+            this.comboBoxColoTarget = new System.Windows.Forms.ComboBox();
             this.comboBoxStoryMode = new System.Windows.Forms.ComboBox();
             this.labelStoryMode = new System.Windows.Forms.Label();
             this.checkBoxClicks = new System.Windows.Forms.CheckBox();
             this.labelStatus = new System.Windows.Forms.Label();
+            this.numericEventRepeat = new System.Windows.Forms.NumericUpDown();
             this.timerScan = new System.Windows.Forms.Timer(this.components);
             this.buttonDetails = new System.Windows.Forms.Button();
             this.labelScreenshotFailed = new System.Windows.Forms.Label();
@@ -65,35 +67,39 @@ namespace SINoCOLO
             this.panelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelStatus.Controls.Add(this.numericEventRepeat);
+            this.panelStatus.Controls.Add(this.labelCombatMode);
+            this.panelStatus.Controls.Add(this.comboBoxColoTarget);
             this.panelStatus.Controls.Add(this.comboBoxStoryMode);
             this.panelStatus.Controls.Add(this.labelStoryMode);
             this.panelStatus.Controls.Add(this.checkBoxClicks);
             this.panelStatus.Controls.Add(this.labelStatus);
+            this.panelStatus.Controls.Add(this.numericEventRepeat);
             this.panelStatus.Location = new System.Drawing.Point(12, 12);
             this.panelStatus.Name = "panelStatus";
             this.panelStatus.Size = new System.Drawing.Size(654, 45);
             this.panelStatus.TabIndex = 2;
             this.panelStatus.Click += new System.EventHandler(this.topPanelClick);
             // 
-            // numericEventRepeat
+            // labelCombatMode
             // 
-            this.numericEventRepeat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericEventRepeat.Location = new System.Drawing.Point(479, 20);
-            this.numericEventRepeat.Maximum = new decimal(new int[] {
-            9999,
-            0,
-            0,
-            0});
-            this.numericEventRepeat.Name = "numericEventRepeat";
-            this.numericEventRepeat.Size = new System.Drawing.Size(49, 20);
-            this.numericEventRepeat.TabIndex = 5;
-            this.numericEventRepeat.Value = new decimal(new int[] {
-            9,
-            0,
-            0,
-            0});
-            this.numericEventRepeat.ValueChanged += new System.EventHandler(this.numericEventRepeat_ValueChanged);
+            this.labelCombatMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelCombatMode.AutoSize = true;
+            this.labelCombatMode.Location = new System.Drawing.Point(435, 22);
+            this.labelCombatMode.Name = "labelCombatMode";
+            this.labelCombatMode.Size = new System.Drawing.Size(93, 13);
+            this.labelCombatMode.TabIndex = 7;
+            this.labelCombatMode.Text = "Combat targetting:";
+            // 
+            // comboBoxColoTarget
+            // 
+            this.comboBoxColoTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBoxColoTarget.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxColoTarget.FormattingEnabled = true;
+            this.comboBoxColoTarget.Location = new System.Drawing.Point(534, 19);
+            this.comboBoxColoTarget.Name = "comboBoxColoTarget";
+            this.comboBoxColoTarget.Size = new System.Drawing.Size(115, 21);
+            this.comboBoxColoTarget.TabIndex = 6;
+            this.comboBoxColoTarget.SelectedIndexChanged += new System.EventHandler(this.comboBoxColoTarget_SelectedIndexChanged);
             // 
             // comboBoxStoryMode
             // 
@@ -136,6 +142,25 @@ namespace SINoCOLO
             this.labelStatus.TabIndex = 1;
             this.labelStatus.Text = "Status: --";
             this.labelStatus.Click += new System.EventHandler(this.topPanelClick);
+            // 
+            // numericEventRepeat
+            // 
+            this.numericEventRepeat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.numericEventRepeat.Location = new System.Drawing.Point(479, 20);
+            this.numericEventRepeat.Maximum = new decimal(new int[] {
+            9999,
+            0,
+            0,
+            0});
+            this.numericEventRepeat.Name = "numericEventRepeat";
+            this.numericEventRepeat.Size = new System.Drawing.Size(49, 20);
+            this.numericEventRepeat.TabIndex = 5;
+            this.numericEventRepeat.Value = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.numericEventRepeat.ValueChanged += new System.EventHandler(this.numericEventRepeat_ValueChanged);
             // 
             // timerScan
             // 
@@ -217,6 +242,8 @@ namespace SINoCOLO
         private System.Windows.Forms.ComboBox comboBoxStoryMode;
         private System.Windows.Forms.Label labelStoryMode;
         private System.Windows.Forms.NumericUpDown numericEventRepeat;
+        private System.Windows.Forms.ComboBox comboBoxColoTarget;
+        private System.Windows.Forms.Label labelCombatMode;
     }
 }
 

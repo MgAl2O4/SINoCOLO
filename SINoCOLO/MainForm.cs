@@ -47,6 +47,7 @@ namespace SINoCOLO
             gameLogic.OnMouseClickRequested += GameLogic_OnMouseClickRequested;
             gameLogic.OnSaveScreenshot += GameLogic_OnSaveScreenshot;
             gameLogic.OnEventCounterUpdated += GameLogic_OnEventCounterUpdated;
+            gameLogic.OnStateChangeNotify += GameLogic_OnStateChangeNotify;
 
             // show version number
             var assembly = typeof(Program).Assembly.GetName();
@@ -100,6 +101,18 @@ namespace SINoCOLO
             {
                 numericEventRepeat.Value = gameLogic.eventCounter;
             }
+        }
+
+        private void GameLogic_OnStateChangeNotify(GameLogic.EState newState)
+        {
+            // always force story mode: ignore when activating colo combat
+            // shouldn't matter but meh, doesn't hurt to be on safe side
+            if (newState == GameLogic.EState.ColoCombat)
+            {
+                comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.None;
+            }
+
+            UpdateVisibileControls();
         }
 
         private void Scan()
@@ -224,13 +237,13 @@ namespace SINoCOLO
             else
             {
                 checkBoxClicks.Checked = !checkBoxClicks.Checked;
-                gameLogic.canClick = checkBoxClicks.Checked;
+                gameLogic.SetCanClick(checkBoxClicks.Checked);
             }
         }
 
         private void checkBoxClicks_CheckedChanged(object sender, EventArgs e)
         {
-            gameLogic.canClick = checkBoxClicks.Checked;
+            gameLogic.SetCanClick(checkBoxClicks.Checked);
         }
 
         private void pictureBoxAnalyzed_MouseMove(object sender, MouseEventArgs e)
@@ -317,16 +330,29 @@ namespace SINoCOLO
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            string[] itemDesc = new string[4];
-            itemDesc[(int)GameLogic.EStoryMode.None] = "Ignore";
-            itemDesc[(int)GameLogic.EStoryMode.AdvanceChapter] = "Complete Chapter";
-            itemDesc[(int)GameLogic.EStoryMode.FarmStage] = "Farm Stage";
-            itemDesc[(int)GameLogic.EStoryMode.FarmEvent] = "Farm Event";
+            {
+                string[] itemDesc = new string[4];
+                itemDesc[(int)GameLogic.EStoryMode.None] = "Ignore";
+                itemDesc[(int)GameLogic.EStoryMode.AdvanceChapter] = "Complete Chapter";
+                itemDesc[(int)GameLogic.EStoryMode.FarmStage] = "Farm Stage";
+                itemDesc[(int)GameLogic.EStoryMode.FarmEvent] = "Farm Event";
 
-            comboBoxStoryMode.Items.Clear();
-            comboBoxStoryMode.Items.AddRange(itemDesc);
-            comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.FarmStage;
+                comboBoxStoryMode.Items.Clear();
+                comboBoxStoryMode.Items.AddRange(itemDesc);
+                comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.FarmStage;
+            }
+            {
+                string[] itemDesc = new string[5];
+                itemDesc[(int)GameLogic.ETargetingMode.None] = "Manual";
+                itemDesc[(int)GameLogic.ETargetingMode.Deselect] = "Deselect";
+                itemDesc[(int)GameLogic.ETargetingMode.CycleAll] = "Cycle All";
+                itemDesc[(int)GameLogic.ETargetingMode.CycleTop3] = "Cycle Front";
+                itemDesc[(int)GameLogic.ETargetingMode.LockStrongest] = "Lock Strongest";
 
+                comboBoxColoTarget.Items.Clear();
+                comboBoxColoTarget.Items.AddRange(itemDesc);
+                comboBoxColoTarget.SelectedIndex = (int)GameLogic.ETargetingMode.None;
+            }
             numericEventRepeat_ValueChanged(null, null);
 #if !DEBUG
             buttonDetails_Click(null, null);
@@ -387,11 +413,34 @@ namespace SINoCOLO
                 mode = (GameLogic.EStoryMode)comboBoxStoryMode.SelectedIndex;
             }
 
-            var showEventCounter = (mode == GameLogic.EStoryMode.FarmEvent);
-            numericEventRepeat.Visible = showEventCounter;
-            labelStoryMode.Visible = !showEventCounter;
-
             gameLogic.SetStoryMode(mode);
+            UpdateVisibileControls();
+        }
+
+        private void comboBoxColoTarget_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var mode = GameLogic.ETargetingMode.None;
+            if (comboBoxColoTarget.SelectedIndex > 0)
+            {
+                mode = (GameLogic.ETargetingMode)comboBoxStoryMode.SelectedIndex;
+            }
+
+            gameLogic.SetTargetingMode(mode);
+        }
+
+        private void UpdateVisibileControls()
+        {
+            bool wantsCombatSelectors =
+                (gameLogic.GetState() == GameLogic.EState.ColoCombat) ||
+                (gameLogic.GetState() == GameLogic.EState.ColoPurify);
+
+            bool wantsEventCounter = gameLogic.GetStoryMode() == GameLogic.EStoryMode.FarmEvent;
+
+            comboBoxStoryMode.Visible = !wantsCombatSelectors;
+            comboBoxColoTarget.Visible = wantsCombatSelectors;
+            labelCombatMode.Visible = wantsCombatSelectors;
+            labelStoryMode.Visible = !wantsCombatSelectors && !wantsEventCounter;
+            numericEventRepeat.Visible = !wantsCombatSelectors && wantsEventCounter;
         }
 
         private void numericEventRepeat_ValueChanged(object sender, EventArgs e)
