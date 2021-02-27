@@ -422,7 +422,7 @@ namespace SINoCOLO
             var mode = GameLogic.ETargetingMode.None;
             if (comboBoxColoTarget.SelectedIndex > 0)
             {
-                mode = (GameLogic.ETargetingMode)comboBoxStoryMode.SelectedIndex;
+                mode = (GameLogic.ETargetingMode)comboBoxColoTarget.SelectedIndex;
             }
 
             gameLogic.SetTargetingMode(mode);

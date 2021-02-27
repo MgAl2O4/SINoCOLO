@@ -6,7 +6,6 @@ namespace SINoCOLO
 {
     class TrackerTargeting
     {
-        public GameLogic.ETargetingMode mode;
         public Rectangle rectNoTarget;
         public Rectangle[] rectTargets;
         public Random randGen;
@@ -15,6 +14,7 @@ namespace SINoCOLO
         private int[] rotationPattern3 = { 0, 1, 2 };
         private int rotationIdx = -1;
         private int delay = 0;
+        private GameLogic.ETargetingMode mode;
         private Rectangle pendingActionBox;
 
         public void Update()
@@ -63,6 +63,12 @@ namespace SINoCOLO
             rotationIdx = -1;
             delay = 0;
             pendingActionBox = Rectangle.Empty;
+        }
+
+        public void SetMode(GameLogic.ETargetingMode mode)
+        {
+            this.mode = mode;
+            Reset();
         }
 
         public bool GetAndConsumeAction(out Rectangle actionBox)

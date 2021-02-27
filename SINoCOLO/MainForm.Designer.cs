@@ -84,11 +84,11 @@ namespace SINoCOLO
             // 
             this.labelCombatMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCombatMode.AutoSize = true;
-            this.labelCombatMode.Location = new System.Drawing.Point(435, 22);
+            this.labelCombatMode.Location = new System.Drawing.Point(470, 22);
             this.labelCombatMode.Name = "labelCombatMode";
-            this.labelCombatMode.Size = new System.Drawing.Size(93, 13);
+            this.labelCombatMode.Size = new System.Drawing.Size(58, 13);
             this.labelCombatMode.TabIndex = 7;
-            this.labelCombatMode.Text = "Combat targetting:";
+            this.labelCombatMode.Text = "Targetting:";
             // 
             // comboBoxColoTarget
             // 

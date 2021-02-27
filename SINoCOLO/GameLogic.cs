@@ -126,16 +126,11 @@ namespace SINoCOLO
 
         public GameLogic()
         {
-            targetFriend.mode = targetingMode;
-            targetEnemy.mode = targetingMode;
-
             targetFriend.rectNoTarget = rectNoTargetPlayer;
-            targetEnemy.rectNoTarget = rectNoTargetEnemy;
-
             targetFriend.rectTargets = rectTargetPlayer;
-            targetEnemy.rectTargets = rectTargetEnemy;
-
             targetFriend.randGen = randGen;
+            targetEnemy.rectNoTarget = rectNoTargetEnemy;
+            targetEnemy.rectTargets = rectTargetEnemy;
             targetEnemy.randGen = randGen;
         }
 
@@ -231,11 +226,8 @@ namespace SINoCOLO
         {
             targetingMode = mode;
 
-            targetFriend.mode = targetingMode;
-            targetFriend.Reset();
-
-            targetEnemy.mode = targetingMode;
-            targetEnemy.Reset();
+            targetFriend.SetMode(targetingMode);
+            targetEnemy.SetMode(targetingMode);
         }
 
         public void SetCanClick(bool bAllow)
@@ -346,10 +338,13 @@ namespace SINoCOLO
             if (cachedDataCombat != null || cachedDataColoCombat != null)
             {
                 actionBoost.AppendDetails(lines);
+            }
+            if (cachedDataColoCombat != null)
+            {
                 targetFriend.AppendDetails(lines, "friend");
                 targetEnemy.AppendDetails(lines, "enemy");
             }
-
+ 
             // cached data status
             string scannerNamePrefix = "Scanner";
 
@@ -1048,6 +1043,8 @@ namespace SINoCOLO
                 cachedDataMessageBox = null;
                 waitingForCombat = false;
                 useDebugScreenshotOnUnknown = false;
+
+                targetFriend.Reset();
             }
 
             cachedDataCombat = screenData;
