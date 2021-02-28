@@ -94,17 +94,17 @@ namespace SINoCOLO
         };
         private Rectangle rectNoTargetPlayer = new Rectangle(120, 288, 8, 8);
         private Rectangle[] rectTargetPlayer = new Rectangle[] {
-            new Rectangle(132, 131, 8, 8),
-            new Rectangle(133, 243, 8, 8),
-            new Rectangle(136, 357, 8, 8),
+            new Rectangle(128, 131, 8, 8),
+            new Rectangle(129, 243, 8, 8),
+            new Rectangle(131, 357, 8, 8),
             new Rectangle(55, 188, 8, 8),
             new Rectangle(55, 302, 8, 8),
         };
         private Rectangle rectNoTargetEnemy = new Rectangle(211, 288, 8, 8);
         private Rectangle[] rectTargetEnemy = new Rectangle[] {
-            new Rectangle(202, 127, 8, 8),
-            new Rectangle(202, 243, 8, 8),
-            new Rectangle(200, 357, 8, 8),
+            new Rectangle(206, 127, 8, 8),
+            new Rectangle(206, 243, 8, 8),
+            new Rectangle(204, 357, 8, 8),
             new Rectangle(275, 188, 8, 8),
             new Rectangle(275, 302, 8, 8),
         };
@@ -624,6 +624,22 @@ namespace SINoCOLO
                     Color.White;
 
                 DrawActionArea(g, rectBoostElem, "BOOST", boostColor, false);
+            }
+
+            // temp: target trackers
+            if (targetingMode == ETargetingMode.Deselect)
+            {
+                DrawActionArea(g, rectNoTargetEnemy, "x", Color.White, false);
+                DrawActionArea(g, rectNoTargetPlayer, "x", Color.White, false);
+            }
+            else if (targetingMode != ETargetingMode.None)
+            {
+                for (int idx = 0; idx < rectTargetPlayer.Length; idx++)
+                {
+                    string targetSlotDesc = idx.ToString();
+                    DrawActionArea(g, rectTargetPlayer[idx], targetSlotDesc, Color.White, false);
+                    DrawActionArea(g, rectTargetEnemy[idx], targetSlotDesc, Color.White, false);
+                }
             }
 
             // weapon icons
