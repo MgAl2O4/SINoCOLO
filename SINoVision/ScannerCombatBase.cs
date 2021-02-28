@@ -125,7 +125,7 @@ namespace SINoVision
         protected Point[] posStatOffset = { new Point(1, 3), new Point(14, 3), new Point(26, 3), new Point(37, 3) };
 
         private FastPixelMatch matchSPFull = new FastPixelMatchHueMono(40, 55, 90, 255);
-        private FastPixelMatch matchSPEmpty = new FastPixelMatchHueMono(0, 360, 0, 50);
+        private FastPixelMatch matchSPEmpty = new FastPixelMatchMono(0, 55);
         private FastPixelMatch matchActionAvail = new FastPixelMatchMono(180, 255);
         private FastPixelMatch matchBoostIn = new FastPixelMatchHueMono(-10, 60, 80, 255);
         private FastPixelMatch matchBoostOut = new FastPixelMatchHSV(-40, 30, 0, 100, 0, 40);
