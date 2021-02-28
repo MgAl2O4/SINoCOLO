@@ -387,7 +387,8 @@ namespace SINoCOLO
 
             // ignore that debug screenshots when leaving colo combat state after demon summon finishes
             bool canIgnoreDebugScreenshots = (screenData.demonState == ScannerColoCombat.EDemonState.Active);
-            useDebugScreenshotOnUnknown = !canIgnoreDebugScreenshots;
+            // actually, ignore all, didn't help much so far
+            useDebugScreenshotOnUnknown = false;
 
             /*bool canSave = true;
             if (lastScreenshotTime != null)
