@@ -18,6 +18,7 @@ namespace SINoCOLO
         private bool selectInstanceMode = false;
         private int numHighFreqTicks = 0;
         private int numScanDelayTicks = 0;
+        private int numTicksToResetStoryMode = -1;
         private string cachedTitle;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
@@ -107,9 +108,10 @@ namespace SINoCOLO
         {
             // always force story mode: ignore when activating colo combat
             // shouldn't matter but meh, doesn't hurt to be on safe side
+            numTicksToResetStoryMode = -1;
             if (newState == GameLogic.EState.ColoCombat)
             {
-                comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.None;
+                numTicksToResetStoryMode = 20;
             }
 
             UpdateVisibileControls();
@@ -168,6 +170,16 @@ namespace SINoCOLO
             Scan();
             UpdateTimerFreq();
             DetailLog();
+
+            if (numTicksToResetStoryMode > 0)
+            {
+                numTicksToResetStoryMode--;
+                if (numTicksToResetStoryMode == 0)
+                {
+                    comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.None;
+                    numTicksToResetStoryMode = -1;
+                }
+            }
         }
 
         private void SetScreenState(ScreenReader.EState NewState)
