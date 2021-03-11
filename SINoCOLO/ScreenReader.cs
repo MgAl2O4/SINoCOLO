@@ -393,7 +393,7 @@ namespace SINoCOLO
                         Bitmap scaledBitmap = new Bitmap(finalSize.Width, finalSize.Height);
                         using (Graphics g = Graphics.FromImage(scaledBitmap))
                         {
-                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            g.InterpolationMode = InterpolationMode.Bilinear;
                             g.DrawImage(bitmap, 0, 0, finalSize.Width, finalSize.Height);
                         }
 

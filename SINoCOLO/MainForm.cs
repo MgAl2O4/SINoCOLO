@@ -17,7 +17,8 @@ namespace SINoCOLO
         private bool hasDetailCtrl = true;
         private bool selectInstanceMode = false;
         private int numHighFreqTicks = 0;
-        private int numScanDelayTicks = 0;
+        private int numScanProcessDelayTicks = 0;
+        private int numScanSnapshotDelayTicks = 0;
         private int numTicksToResetStoryMode = -1;
         private string cachedTitle;
 
@@ -120,6 +121,10 @@ namespace SINoCOLO
         private void Scan()
         {
             gameLogic.OnScanPrep();
+            if (numScanSnapshotDelayTicks > 0)
+            {
+                return;
+            }
 
             var srcScreenshot = screenReader.DoWork();
             if (srcScreenshot != null)
@@ -128,7 +133,7 @@ namespace SINoCOLO
                 cachedSourceScreen = srcScreenshot.Clone(new Rectangle(0, 0, srcScreenshot.Width, srcScreenshot.Height), srcScreenshot.PixelFormat);
 
                 if (screenReader.GetState() != ScreenReader.EState.WindowTooSmall &&
-                    numScanDelayTicks <= 0)
+                    (numScanProcessDelayTicks <= 0))
                 {
                     var forcedSize = screenReader.GetExpectedSize();
                     var fastBitmap = ScreenshotUtilities.ConvertToFastBitmap(srcScreenshot, forcedSize.Width, forcedSize.Height);
@@ -387,10 +392,20 @@ namespace SINoCOLO
                 }
             }
 
-            numScanDelayTicks -= 1;
-            if (numScanDelayTicks < 0)
+            numScanProcessDelayTicks -= 1;
+            if (numScanProcessDelayTicks < 0)
             {
-                numScanDelayTicks = (numHighFreqTicks > 0) ? 0 : 20;
+                // high freq: process in every timer tick, 10x per second
+                // otherwise: run recognition once every 1s
+                numScanProcessDelayTicks = (numHighFreqTicks > 0) ? 0 : 10;
+            }
+
+            numScanSnapshotDelayTicks -= 1;
+            if (numScanSnapshotDelayTicks < 0)
+            {
+                // can click: take screenshot in every timer tick, 10x per second
+                // otherwise: grab window once every 0.5s
+                numScanSnapshotDelayTicks = checkBoxClicks.Checked ? 0 : 5;
             }
         }
 
@@ -402,8 +417,9 @@ namespace SINoCOLO
             }
 
             var lines = new List<string>();
-            lines.Add(string.Format("Tick: high freq:{0}, delay:{1}{2}",
-                numHighFreqTicks, numScanDelayTicks, numScanDelayTicks <= 0 ? " (scan now)" : ""));
+            lines.Add(string.Format("Tick: HFreq:{0}, snap:{1}, process:{2} {3}",
+                numHighFreqTicks, numScanSnapshotDelayTicks, numScanProcessDelayTicks,
+                (numScanProcessDelayTicks <= 0 && numScanSnapshotDelayTicks <= 0) ? " (scan now)" : ""));
             lines.Add(string.Format("Screenshot:{0} ({1})",
                 cachedSourceScreen != null ? string.Format("{0}x{1}", cachedSourceScreen.Width, cachedSourceScreen.Height) : "n/a",
                 screenReader.GetState()));

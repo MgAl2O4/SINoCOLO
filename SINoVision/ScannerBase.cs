@@ -150,14 +150,14 @@ namespace SINoVision
 
             for (int idxX = 0; idxX < width; idxX++)
             {
-                bitmap.Pixels[(posX + idxX) + ((posY - border) * bitmap.Width)] = pixelOb;
-                bitmap.Pixels[(posX + idxX) + ((posY + height + border) * bitmap.Width)] = pixelOb;
+                bitmap.SetPixel(posX + idxX, posY - border, pixelOb);
+                bitmap.SetPixel(posX + idxX, posY + height + border, pixelOb);
             }
 
             for (int idxY = 0; idxY < height; idxY++)
             {
-                bitmap.Pixels[(posX - border) + ((posY + idxY) * bitmap.Width)] = pixelOb;
-                bitmap.Pixels[(posX + width + border) + ((posY + idxY) * bitmap.Width)] = pixelOb;
+                bitmap.SetPixel(posX - border, posY + idxY, pixelOb);
+                bitmap.SetPixel(posX + width + border, posY + idxY, pixelOb);
             }
         }
     }

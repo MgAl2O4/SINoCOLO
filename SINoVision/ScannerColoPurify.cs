@@ -331,7 +331,7 @@ namespace SINoVision
                         byte color = (byte)(pixelInput[readIdx] * 255);
                         readIdx++;
 
-                        bitmap.Pixels[(previewX + idxX) + ((previewY + idxY) * bitmap.Width)] = new FastPixelHSV(color, color, color);
+                        bitmap.SetPixel(previewX + idxX, previewY + idxY, new FastPixelHSV(color, color, color));
                     }
                 }
             }

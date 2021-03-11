@@ -13,16 +13,21 @@ namespace SINoVision
         public byte Value;
         public byte Monochrome;
 
+        public byte RawR;
+        public byte RawG;
+        public byte RawB;
+        public byte HasHSL;
+
         public FastPixelHSV(byte colorR, byte colorG, byte colorB)
         {
-            Color pixelColor = Color.FromArgb(colorR, colorG, colorB);
-
-            int Hue = (int)Math.Round(pixelColor.GetHue());
-            int Saturation = (int)Math.Round(pixelColor.GetSaturation() * 100);
-            HuePack = (byte)(Hue & 0xff);
-            SaturationPack = (byte)((Saturation & 0xff) | ((Hue & 0x100) >> 1));
-            Value = (byte)Math.Round(pixelColor.GetBrightness() * 100);
-            Monochrome = (byte)Math.Round((0.2125 * colorR) + (0.7154 * colorG) + (0.0721 * colorB));
+            HuePack = 0;
+            SaturationPack = 0;
+            Value = 0;
+            Monochrome = 0;
+            RawR = colorR;
+            RawG = colorG;
+            RawB = colorB;
+            HasHSL = 0;
         }
 
         public FastPixelHSV(bool patternMatch)
@@ -31,6 +36,10 @@ namespace SINoVision
             SaturationPack = 0;
             Value = 0;
             Monochrome = patternMatch ? (byte)255 : (byte)0;
+            RawR = Monochrome;
+            RawG = Monochrome;
+            RawB = Monochrome;
+            HasHSL = 1;
         }
 
         public int GetHue()
@@ -56,11 +65,68 @@ namespace SINoVision
         public void SetHSV(int hue, int saturation, int value)
         {
             HuePack = (byte)(hue & 0xff);
-            SaturationPack = (byte)((saturation & 0xff) | ((hue & 0x100) >> 1));
+            SaturationPack = (byte)((saturation & 0x7f) | ((hue & 0x100) >> 1));
             Value = (byte)value;
 
             ScreenshotUtilities.HsvToRgb(hue, saturation, value, out int colorR, out int colorG, out int colorB);
             Monochrome = (byte)Math.Round((0.2125 * colorR) + (0.7154 * colorG) + (0.0721 * colorB));
+            RawR = (byte)colorR;
+            RawG = (byte)colorG;
+            RawB = (byte)colorB;
+            HasHSL = 1;
+        }
+
+        public void ExpandHSV()
+        {
+            float LinearR = (RawR / 255f);
+            float LinearG = (RawG / 255f);
+            float LinearB = (RawB / 255f);
+
+            float MinRG = (LinearR < LinearG) ? LinearR : LinearG;
+            float MaxRG = (LinearR > LinearG) ? LinearR : LinearG;
+            float MinV = (MinRG < LinearB) ? MinRG : LinearB;
+            float MaxV = (MaxRG > LinearB) ? MaxRG : LinearB;
+            float DeltaV = MaxV - MinV;
+
+            float H = 0;
+            float S = 0;
+            float L = (float)((MaxV + MinV) / 2.0f);
+
+            if (DeltaV != 0)
+            {
+                if (L < 0.5f)
+                {
+                    S = (float)(DeltaV / (MaxV + MinV));
+                }
+                else
+                {
+                    S = (float)(DeltaV / (2.0f - MaxV - MinV));
+                }
+
+                if (LinearR == MaxV)
+                {
+                    H = (LinearG - LinearB) / DeltaV;
+                }
+                else if (LinearG == MaxV)
+                {
+                    H = 2f + (LinearB - LinearR) / DeltaV;
+                }
+                else if (LinearB == MaxV)
+                {
+                    H = 4f + (LinearR - LinearG) / DeltaV;
+                }
+            }
+
+            int HueV = (int)(H * 60f);
+            if (HueV < 0) HueV += 360;
+            int SaturationV = (int)(S * 100f);
+            int LightV = (int)(L * 100f);
+
+            HuePack = (byte)(HueV & 0xff);
+            SaturationPack = (byte)((SaturationV & 0x7f) | ((HueV & 0x100) >> 1));
+            Value = (byte)LightV;
+            Monochrome = (byte)((0.2125 * RawR) + (0.7154 * RawG) + (0.0721 * RawB));
+            HasHSL = 1;
         }
 
         public override string ToString()
@@ -176,9 +242,32 @@ namespace SINoVision
         public int Width;
         public int Height;
 
+        public FastBitmapHSV(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            Pixels = new FastPixelHSV[width * height];
+        }
+
         public FastPixelHSV GetPixel(int X, int Y)
         {
-            return Pixels[X + (Y * Width)];
+            int idx = X + (Y * Width);
+            if (Pixels[idx].HasHSL == 0)
+            {
+                Pixels[idx].ExpandHSV();
+            }
+
+            return Pixels[idx];
+        }
+
+        public void SetPixel(int X, int Y, FastPixelHSV pixel)
+        {
+            Pixels[X + (Y * Width)] = pixel;
+        }
+
+        public void SetPixel(int Idx, FastPixelHSV pixel)
+        {
+            Pixels[Idx] = pixel;
         }
 
         public override string ToString()
@@ -191,10 +280,9 @@ namespace SINoVision
     {
         public static FastBitmapHSV ConvertToFastBitmap(Bitmap image, int forcedWidth = -1, int forcedHeight = -1)
         {
-            FastBitmapHSV result = new FastBitmapHSV();
-            result.Width = (forcedWidth > 0) ? forcedWidth : image.Width;
-            result.Height = (forcedHeight > 0) ? forcedHeight : image.Height;
-            result.Pixels = new FastPixelHSV[result.Width * result.Height];
+            int useWidth = (forcedWidth > 0) ? forcedWidth : image.Width;
+            int useHeight = (forcedHeight > 0) ? forcedHeight : image.Height;
+            FastBitmapHSV result = new FastBitmapHSV(useWidth, useHeight);
 
             unsafe
             {
@@ -209,7 +297,7 @@ namespace SINoVision
                     int IdxPixel = IdxY * result.Width;
                     for (int IdxByte = 0; IdxByte < bytesPerRow; IdxByte += bytesPerPixel)
                     {
-                        result.Pixels[IdxPixel] = new FastPixelHSV(pixels[IdxByte + 2], pixels[IdxByte + 1], pixels[IdxByte]);                       
+                        result.Pixels[IdxPixel] = new FastPixelHSV(pixels[IdxByte + 2], pixels[IdxByte + 1], pixels[IdxByte]);
                         IdxPixel++;
                     }
                 }
@@ -222,12 +310,10 @@ namespace SINoVision
 
         public static FastBitmapHSV ConvertToFastBitmap(byte[] PixelsBGRA, int width, int height)
         {
-            FastBitmapHSV result = new FastBitmapHSV();
-            result.Width = width;
-            result.Height = height;
-            result.Pixels = new FastPixelHSV[width * height];
+            FastBitmapHSV result = new FastBitmapHSV(width, height);
 
-            for (int IdxPx = 0; IdxPx < result.Pixels.Length; IdxPx++)
+            int numPx = width * height;
+            for (int IdxPx = 0; IdxPx < numPx; IdxPx++)
             {
                 int IdxByte = IdxPx * 4;
                 result.Pixels[IdxPx] = new FastPixelHSV(PixelsBGRA[IdxByte + 2], PixelsBGRA[IdxByte + 1], PixelsBGRA[IdxByte]);
@@ -760,24 +846,19 @@ namespace SINoVision
             floodBounds = new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
             if (floodPoints.Count > 0)
             {
-                FastPixelHSV[] bitmapPixels = new FastPixelHSV[floodBounds.Width * floodBounds.Height];
-                for (int Idx = 0; Idx < bitmapPixels.Length; Idx++)
+                floodBitmap = new FastBitmapHSV(floodBounds.Width, floodBounds.Height);
+                int numPx = floodBounds.Width * floodBounds.Height;
+
+                for (int Idx = 0; Idx < numPx; Idx++)
                 {
-                    bitmapPixels[Idx] = new FastPixelHSV(false);
+                    floodBitmap.SetPixel(Idx, new FastPixelHSV(false));
                 }
 
                 foreach (Point p in floodPoints)
                 {
                     int Idx = (p.X - minX) + ((p.Y - minY) * floodBounds.Width);
-                    bitmapPixels[Idx] = new FastPixelHSV(true);
+                    floodBitmap.SetPixel(Idx, new FastPixelHSV(true));
                 }
-
-                floodBitmap = new FastBitmapHSV()
-                {
-                    Pixels = bitmapPixels,
-                    Width = floodBounds.Width,
-                    Height = floodBounds.Height,
-                };
             }
             else
             {
