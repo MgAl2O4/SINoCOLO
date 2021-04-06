@@ -953,13 +953,22 @@ namespace SINoCOLO
                         else
                         {
                             // click retry if counter allows, otherwise keep clicking ok
-                            if (canClick)
+                            if (canClick && !waitingForCombat)
                             {
                                 eventCounter = (eventCounter > 0) ? (eventCounter - 1) : 0;
                                 OnEventCounterUpdated?.Invoke();
                             }
 
-                            specialIdx = (eventCounter <= 0) ? (int)ScannerMessageBox.EButtonPos.CombatReportOk : (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                            if (eventCounter <= 0)
+                            {
+                                specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportOk;
+                                waitingForCombat = false;
+                            }
+                            else
+                            {
+                                specialIdx = (int)ScannerMessageBox.EButtonPos.CombatReportRetry;
+                                waitingForCombat = true;
+                            }
                         }
                     }
                     else if (storyMode == EStoryMode.AdvanceChapter && btnType == ScannerMessageBox.EButtonType.Retry)

@@ -10,7 +10,7 @@ namespace SINoCOLO
         public Rectangle[] rectTargets;
         public Random randGen;
 
-        private int[] rotationPatternAll = { 0, 1, 2, 0, 1, 2, 3, 4 };
+        private int[] rotationPatternAll = { 0, 1, 2, 3, 4 };
         private int[] rotationPattern3 = { 0, 1, 2 };
         private int rotationIdx = -1;
         private int delay = 0;
