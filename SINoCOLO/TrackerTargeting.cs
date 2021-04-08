@@ -12,6 +12,7 @@ namespace SINoCOLO
 
         private int[] rotationPatternAll = { 0, 1, 2, 3, 4 };
         private int[] rotationPattern3 = { 0, 1, 2 };
+        private int[] rotationPatternHiding = { 4, 3, 0 };
         private int rotationIdx = -1;
         private int delay = 0;
         private GameLogic.ETargetingMode mode;
@@ -44,6 +45,10 @@ namespace SINoCOLO
                     pendingActionBox = rectTargets[0];
                     break;
 
+                case GameLogic.ETargetingMode.LockWeakest:
+                    pendingActionBox = rectTargets[4];
+                    break;
+
                 case GameLogic.ETargetingMode.CycleAll:
                     rotationIdx = (rotationIdx + 1) % rotationPatternAll.Length;
                     pendingActionBox = rectTargets[rotationPatternAll[rotationIdx]];
@@ -52,6 +57,11 @@ namespace SINoCOLO
                 case GameLogic.ETargetingMode.CycleTop3:
                     rotationIdx = (rotationIdx + 1) % rotationPattern3.Length;
                     pendingActionBox = rectTargets[rotationPattern3[rotationIdx]];
+                    break;
+
+                case GameLogic.ETargetingMode.CycleHiding:
+                    rotationIdx = (rotationIdx + 1) % rotationPatternHiding.Length;
+                    pendingActionBox = rectTargets[rotationPatternHiding[rotationIdx]];
                     break;
 
                 default: break;

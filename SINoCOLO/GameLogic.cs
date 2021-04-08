@@ -28,7 +28,9 @@ namespace SINoCOLO
             Deselect,
             CycleAll,
             CycleTop3,
+            CycleHiding,
             LockStrongest,
+            LockWeakest,
         }
 
         public delegate void MouseClickDelegate(int posX, int posY);

@@ -359,12 +359,14 @@ namespace SINoCOLO
                 comboBoxStoryMode.SelectedIndex = (int)GameLogic.EStoryMode.FarmStage;
             }
             {
-                string[] itemDesc = new string[5];
+                string[] itemDesc = new string[7];
                 itemDesc[(int)GameLogic.ETargetingMode.None] = "Manual";
                 itemDesc[(int)GameLogic.ETargetingMode.Deselect] = "Deselect";
                 itemDesc[(int)GameLogic.ETargetingMode.CycleAll] = "Cycle All";
                 itemDesc[(int)GameLogic.ETargetingMode.CycleTop3] = "Cycle Front";
+                itemDesc[(int)GameLogic.ETargetingMode.CycleHiding] = "Cycle Hiding";
                 itemDesc[(int)GameLogic.ETargetingMode.LockStrongest] = "Lock Strongest";
+                itemDesc[(int)GameLogic.ETargetingMode.LockWeakest] = "Lock Weakest";
 
                 comboBoxColoTarget.Items.Clear();
                 comboBoxColoTarget.Items.AddRange(itemDesc);
