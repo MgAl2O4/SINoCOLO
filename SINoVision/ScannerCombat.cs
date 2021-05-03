@@ -38,7 +38,7 @@ namespace SINoVision
         private FastPixelMatch matchSpecialReload = new FastPixelMatchHueMono(26, 60, 50, 255);
         private string[] scannerStates = new string[] { "Idle", "NoTextBox", "NoChests", "Ok" };
 
-        public ScannerCombat() 
+        public ScannerCombat()
         {
             ScannerName = "[Combat]";
             DebugLevel = EDebugLevel.Simple;

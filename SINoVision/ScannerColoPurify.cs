@@ -92,7 +92,7 @@ namespace SINoVision
             for (int idx = 0; idx < posActionSlots.Length; idx++)
             {
                 posActionSlots[idx].Y -= 8;
-                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + (42/2) - (32/2) + 5, posActionSlots[idx].Y + (92/2) - (32/2) + 5, 32, 32);
+                rectActionSlots[idx] = new Rectangle(posActionSlots[idx].X + (42 / 2) - (32 / 2) + 5, posActionSlots[idx].Y + (92 / 2) - (32 / 2) + 5, 32, 32);
             }
 
             for (int idx = 0; idx < posBurstMarkerI.Length; idx++)

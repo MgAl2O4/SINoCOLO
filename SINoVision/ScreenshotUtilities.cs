@@ -162,7 +162,7 @@ namespace SINoVision
         public override bool IsMatching(FastPixelHSV pixel)
         {
             int Saturation = pixel.GetSaturation();
-            if ((Saturation < SaturationMin) || (Saturation > SaturationMax) || 
+            if ((Saturation < SaturationMin) || (Saturation > SaturationMax) ||
                  (pixel.Value < ValueMin) || (pixel.Value > ValueMax))
             {
                 return false;

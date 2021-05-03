@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 
 namespace SINoVision
@@ -31,17 +30,17 @@ namespace SINoVision
         private int[] posChatLineModeY = new int[] { -1, 590, 583 };
         private Rectangle rectChatLine = new Rectangle(20, 0, 200, 1);
 
-        public virtual void PrepareForScan() 
+        public virtual void PrepareForScan()
         {
             scannerState = 0;
         }
 
         public virtual string GetState()
         {
-            return "--"; 
+            return "--";
         }
 
-        public virtual object Process(FastBitmapHSV bitmap) 
+        public virtual object Process(FastBitmapHSV bitmap)
         {
             return null;
         }

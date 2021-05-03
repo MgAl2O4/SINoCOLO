@@ -1,9 +1,10 @@
-﻿using SINoVision;
+﻿using MgAl2O4.Utils;
+using SINoVision;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SINoCOLO
@@ -244,7 +245,8 @@ namespace SINoCOLO
             if (selectInstanceMode)
             {
                 var showLocation = new Point(Location.X + 20, Location.Y + Math.Min(Size.Height, 20));
-                var selectForm = new InstanceSelectForm{ 
+                var selectForm = new InstanceSelectForm
+                {
                     screenReader = screenReader,
                     StartPosition = FormStartPosition.Manual,
                     Location = showLocation
@@ -376,6 +378,19 @@ namespace SINoCOLO
 #if !DEBUG
             buttonDetails_Click(null, null);
 #endif // !DEBUG
+
+            Task updateTask = new Task(() =>
+            {
+                bool bFoundUpdate = GithubUpdater.FindAndDownloadUpdates(out string statusMsg);
+
+                Invoke((MethodInvoker)delegate
+                {
+                    Console.WriteLine("Version check: " + statusMsg);
+                    labelUpdateNotify.Visible = bFoundUpdate;
+                    labelUpdateNotify.BringToFront();
+                });
+            });
+            updateTask.Start();
         }
 
         private void UpdateTimerFreq()
@@ -476,6 +491,11 @@ namespace SINoCOLO
         private void numericEventRepeat_ValueChanged(object sender, EventArgs e)
         {
             gameLogic.eventCounter = (int)numericEventRepeat.Value;
+        }
+
+        private void labelUpdateNotify_Click(object sender, EventArgs e)
+        {
+            labelUpdateNotify.Visible = false;
         }
     }
 }

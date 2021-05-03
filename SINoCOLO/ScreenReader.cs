@@ -54,7 +54,7 @@ namespace SINoCOLO
 
         public void SetSelectedWindow(IntPtr windowHandle) { selectedWindow = windowHandle; }
 
-        public HandleRef GetInputWindowHandle() 
+        public HandleRef GetInputWindowHandle()
         {
             return (cachedGameInfo != null) ? cachedGameInfo.windowInput : new HandleRef();
         }
@@ -303,7 +303,7 @@ namespace SINoCOLO
                     }
                 }
             }
-        
+
             foreach (var info in availableGameInfo)
             {
                 info.rectMain = GetGameWindowBoundsFromAPI(info.windowMain);
@@ -320,7 +320,7 @@ namespace SINoCOLO
             }
 
             // reset forced selection once it's no longer available
-            if (selectedWindow != IntPtr.Zero && 
+            if (selectedWindow != IntPtr.Zero &&
                 (cachedGameInfo == null || cachedGameInfo.windowMain.Handle != selectedWindow))
             {
                 SetSelectedWindow(IntPtr.Zero);
@@ -353,7 +353,7 @@ namespace SINoCOLO
                 cachedGameInfo.rectMain = bounds;
                 Rectangle absClipWindow = GetGameWindowBoundsFromAPI(cachedGameInfo.windowClient);
                 Point relClipWindowPos = new Point(
-                    Math.Max(0, absClipWindow.X - cachedGameInfo.rectMain.X), 
+                    Math.Max(0, absClipWindow.X - cachedGameInfo.rectMain.X),
                     Math.Max(0, absClipWindow.Y - cachedGameInfo.rectMain.Y));
                 Size relClipWindowSize = new Size(
                     Math.Min(bounds.Width - relClipWindowPos.X, absClipWindow.Width),

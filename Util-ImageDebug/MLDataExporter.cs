@@ -308,7 +308,7 @@ namespace SINoCOLO
             mapEffects.Add("def+", 0);
             mapEffects.Add("def-", 0);
 
-            var combatScanner = new ScannerCombat{ DebugLevel = ScannerBase.EDebugLevel.None };
+            var combatScanner = new ScannerCombat { DebugLevel = ScannerBase.EDebugLevel.None };
 
             StartDataExport("weapons");
             foreach (var fileData in fileList)
@@ -680,8 +680,8 @@ namespace SINoCOLO
         {
             var fileList = new List<StatML>();
             fileList.Add(new StatML("image-elemboost1-scaled.jpg",
-                new int[5, 4]{ { 9, 9, 12, 4 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, {11, 9, 11, 11 }, {7, 6, 10, -6 } },
-                new int[5, 4]{ { 19, 20, 19, 15 }, { 7, 20, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 8, 17, 3, 8 } }));
+                new int[5, 4] { { 9, 9, 12, 4 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, { 11, 9, 11, 11 }, { 7, 6, 10, -6 } },
+                new int[5, 4] { { 19, 20, 19, 15 }, { 7, 20, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 8, 17, 3, 8 } }));
             fileList.Add(new StatML("image-elemboost2-scaled.jpg",
                 new int[5, 4] { { 9, 10, 12, 5 }, { 8, 9, 11, 9 }, { 3, 10, 7, 10 }, { 11, 9, 11, 11 }, { 7, 6, 10, -6 } },
                 new int[5, 4] { { 19, 20, 19, 15 }, { 6, 19, 12, 20 }, { 9, 14, 10, 13 }, { 2, 14, 3, 17 }, { 7, 17, 3, 11 } }));
@@ -830,7 +830,7 @@ namespace SINoCOLO
             {
                 mapValues.Add(idx, 0);
             }
-            
+
             mapValues.Add(-21, 0); // blue, no number
             mapValues.Add(21, 0); // red, no number
 
@@ -855,7 +855,7 @@ namespace SINoCOLO
                         {
                             var values = combatScanner.ExtractPlayerStatData(fastBitmap, idx, statIdx, isFriend);
                             var numValue = statList[idx, statIdx];
-                            
+
                             if (numValue == 200 || numValue == -200)
                             {
                                 // ignore obstructed exports
@@ -865,8 +865,8 @@ namespace SINoCOLO
                             var numValueToStore = Math.Abs(numValue);
                             if (numValueToStore == 100) { numValueToStore = 21; }
 
-                            var contextToStore = 
-                                (numValue == 0) ? ScannerCombatBase.EStatMode.None : 
+                            var contextToStore =
+                                (numValue == 0) ? ScannerCombatBase.EStatMode.None :
                                 (numValue > 0) ? ScannerCombatBase.EStatMode.Buff :
                                 ScannerCombatBase.EStatMode.Debuff;
 

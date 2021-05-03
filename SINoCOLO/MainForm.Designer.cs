@@ -44,6 +44,7 @@ namespace SINoCOLO
             this.buttonDetails = new System.Windows.Forms.Button();
             this.labelScreenshotFailed = new System.Windows.Forms.Label();
             this.textBoxDetails = new System.Windows.Forms.TextBox();
+            this.labelUpdateNotify = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxAnalyzed)).BeginInit();
             this.panelStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericEventRepeat)).BeginInit();
@@ -205,11 +206,26 @@ namespace SINoCOLO
             this.textBoxDetails.TabIndex = 5;
             this.textBoxDetails.WordWrap = false;
             // 
+            // labelUpdateNotify
+            // 
+            this.labelUpdateNotify.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelUpdateNotify.BackColor = System.Drawing.Color.Lime;
+            this.labelUpdateNotify.Location = new System.Drawing.Point(12, 12);
+            this.labelUpdateNotify.Name = "labelUpdateNotify";
+            this.labelUpdateNotify.Size = new System.Drawing.Size(654, 45);
+            this.labelUpdateNotify.TabIndex = 6;
+            this.labelUpdateNotify.Text = "New version downloaded, please restart program to finish update. Click here to hi" +
+    "de.";
+            this.labelUpdateNotify.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.labelUpdateNotify.Click += new System.EventHandler(this.labelUpdateNotify_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 695);
+            this.Controls.Add(this.labelUpdateNotify);
             this.Controls.Add(this.textBoxDetails);
             this.Controls.Add(this.labelScreenshotFailed);
             this.Controls.Add(this.buttonDetails);
@@ -244,6 +260,7 @@ namespace SINoCOLO
         private System.Windows.Forms.NumericUpDown numericEventRepeat;
         private System.Windows.Forms.ComboBox comboBoxColoTarget;
         private System.Windows.Forms.Label labelCombatMode;
+        private System.Windows.Forms.Label labelUpdateNotify;
     }
 }
 

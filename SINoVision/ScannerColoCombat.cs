@@ -300,7 +300,7 @@ namespace SINoVision
 
             if (DebugLevel >= EDebugLevel.Simple)
             {
-                Console.WriteLine("{0} Demon: {1} {2}", ScannerName, screenData.demonState, 
+                Console.WriteLine("{0} Demon: {1} {2}", ScannerName, screenData.demonState,
                     hasCircle ? screenData.demonType.ToString() : "");
             }
             if (DebugLevel >= EDebugLevel.Verbose)

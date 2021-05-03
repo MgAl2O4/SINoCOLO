@@ -65,7 +65,7 @@ namespace SINoCOLO
             if (isActive)
             {
                 string desc = "";
-                
+
                 for (int idxE = 0; idxE < boostedElement.Length; idxE++)
                 {
                     if (boostedElement[idxE] > 0)
@@ -91,7 +91,7 @@ namespace SINoCOLO
         public bool GetBoostDesc(out ScannerColoCombat.EElementType bestElem)
         {
             bestElem = ScannerCombatBase.EElementType.Unknown;
-            
+
             int maxV = 0;
             for (int idxE = 0; idxE < boostedElement.Length; idxE++)
             {
@@ -137,7 +137,7 @@ namespace SINoCOLO
 
             Array.Clear(boostedElement, 0, boostedElement.Length);
             Array.Clear(boostedClass, 0, boostedClass.Length);
-            
+
             isActive = numBoostedClasses > 0 || numBoostedElements > 0;
             if (isActive)
             {

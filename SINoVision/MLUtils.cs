@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace SINoVision
+namespace MgAl2O4.Utils
 {
     public class MLUtils
     {

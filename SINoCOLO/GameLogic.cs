@@ -346,7 +346,7 @@ namespace SINoCOLO
                 targetFriend.AppendDetails(lines, "friend");
                 targetEnemy.AppendDetails(lines, "enemy");
             }
- 
+
             // cached data status
             string scannerNamePrefix = "Scanner";
 
@@ -464,7 +464,7 @@ namespace SINoCOLO
             }
 
             // don't click on action area (including big button) if summon selector is active
-            if (screenData.hasSummonSelection && 
+            if (screenData.hasSummonSelection &&
                 (screenData.specialAction == ScannerColoCombat.ESpecialAction.None ||
                  screenData.specialAction == ScannerColoCombat.ESpecialAction.Reload))
             {
@@ -610,7 +610,7 @@ namespace SINoCOLO
                     break;
 
                 case ScannerColoCombat.EDemonState.Preparing:
-                    DrawActionArea(g, rectDemonWarning, "DEMON SOON", colorPaletteYellow, false);;
+                    DrawActionArea(g, rectDemonWarning, "DEMON SOON", colorPaletteYellow, false); ;
                     break;
 
                 default: break;
@@ -817,7 +817,7 @@ namespace SINoCOLO
 
                 Rectangle[] actionBoxes = screenScanner.GetActionBoxes();
                 slotIdx = purifySlot;
-                RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);               
+                RequestMouseClick(actionBoxes[slotIdx], slotIdx, -1);
             }
 
             return true;
@@ -942,7 +942,7 @@ namespace SINoCOLO
                     else if (storyMode == EStoryMode.FarmEvent && !waitingForCombatReport)
                     {
 #if DEBUG
-                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2}, wait:{3}, counter:{4} => {5}!", 
+                        Console.WriteLine("[MessageBox:{0}] story:{1}, btn:{2}, wait:{3}, counter:{4} => {5}!",
                             screenData.mode, storyMode, btnType, waitingForEventSummary, eventCounter,
                             waitingForEventSummary ? "ok" : (eventCounter > 1) ? "retry" : "ok");
 #endif // DEBUG

@@ -22,8 +22,8 @@ namespace SINoVision
             Wind,
         }
 
-        public enum EStatMode      
-        { 
+        public enum EStatMode
+        {
             None,
             Buff,
             Debuff,
@@ -467,7 +467,7 @@ namespace SINoVision
             }
 
             bool matchIn = ((numMatching + numWildCards) == samplesIn.Length) && (numHueDec == 3) && (numWildCards < 2);
-            
+
             FastPixelHSV[] samplesOut = new FastPixelHSV[posBoostOut.Length];
             bool matchOut = true;
             for (int idx = 0; idx < samplesOut.Length; idx++)
@@ -490,9 +490,9 @@ namespace SINoVision
                 for (int idx = 0; idx < samplesIn.Length; idx++)
                 {
                     if (idx > 0) { desc += ", "; }
-                    desc += string.Format("({0},{1} = {2}):{3}", 
+                    desc += string.Format("({0},{1} = {2}):{3}",
                         posX + posBoostIn[idx].X, posY + posBoostIn[idx].Y,
-                        samplesIn[idx], 
+                        samplesIn[idx],
                         matchBoostIn.IsMatching(samplesIn[idx]) ? "Yes" : matchBoostInW.IsMatching(samplesIn[idx]) ? "Maybe" : "No");
                 }
                 Console.WriteLine("   IN({0}): {1}", matchBoostIn, desc);
@@ -514,7 +514,7 @@ namespace SINoVision
         protected float[] ExtractStatData(FastBitmapHSV bitmap, Point[] playerPos, int playerIdx, int statIdx)
         {
             // scan area: (9+1)x7
-            float[] values = new float[(11+1) * 9];
+            float[] values = new float[(11 + 1) * 9];
             int writeIdx = 0;
 
             for (int idxY = 0; idxY < 9; idxY++)

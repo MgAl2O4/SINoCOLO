@@ -27,8 +27,8 @@ namespace SINoVision
             CombatDetails,
         }
 
-        public enum EButtonType   
-        { 
+        public enum EButtonType
+        {
             Unknown,
             Cancel,
             Close,
@@ -100,7 +100,7 @@ namespace SINoVision
             DebugLevel = EDebugLevel.None;
 
             classifierButtons.InitializeModel();
-            
+
             rectButtonPos = new Rectangle[8];
             rectButtonPos[(int)EButtonPos.Unknown] = Rectangle.Empty;
             rectButtonPos[(int)EButtonPos.Center] = rectOkButton;
@@ -189,14 +189,14 @@ namespace SINoVision
             {
                 screenData.mode = EMessageType.CombatStart;
             }
-            else if (screenData.actions[(int)EButtonPos.Center].buttonColor == EButtonColor.Red && 
+            else if (screenData.actions[(int)EButtonPos.Center].buttonColor == EButtonColor.Red &&
                 screenData.actions[(int)EButtonPos.Center].buttonType == EButtonType.Ok)
             {
                 screenData.mode = EMessageType.Ok;
             }
-            else if (screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonColor == EButtonColor.White && 
+            else if (screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonColor == EButtonColor.White &&
                 screenData.actions[(int)EButtonPos.CenterTwoLeft].buttonType == EButtonType.Cancel &&
-                screenData.actions[(int)EButtonPos.CenterTwoRight].buttonColor == EButtonColor.Red && 
+                screenData.actions[(int)EButtonPos.CenterTwoRight].buttonColor == EButtonColor.Red &&
                 screenData.actions[(int)EButtonPos.CenterTwoRight].buttonType == EButtonType.Ok)
             {
                 screenData.mode = EMessageType.OkCancel;
@@ -217,7 +217,7 @@ namespace SINoVision
                 for (int idx = 1; idx < avgPx.Length; idx++)
                 {
                     Console.WriteLine("  [{0}]:({1}), color:{2}, class:{3}",
-                        (EButtonPos)idx, avgPx[idx], 
+                        (EButtonPos)idx, avgPx[idx],
                         screenData.actions[idx].buttonColor,
                         screenData.actions[idx].buttonType);
                 }

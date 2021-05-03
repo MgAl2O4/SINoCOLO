@@ -13,7 +13,7 @@ namespace SINoCOLO
     {
         private string samplesFolder = @"..\..\..\samples\";
         private string jsonFolder = @"..\..\..\ML\data\";
-        private List<ScannerBase> scanners = new List<ScannerBase>();        
+        private List<ScannerBase> scanners = new List<ScannerBase>();
 
         public MainForm()
         {

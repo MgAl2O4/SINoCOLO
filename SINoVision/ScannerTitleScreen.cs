@@ -19,8 +19,8 @@ namespace SINoVision
         private FastPixelMatch matchLogoBlack = new FastPixelMatchMono(0, 3);
 
         private Rectangle rectStartArea = new Rectangle(25, 265, 280, 130);
-        
-        private Point[] posLogoWhite = new Point[] { 
+
+        private Point[] posLogoWhite = new Point[] {
             new Point(266, 551), new Point(266, 556), new Point(266, 562),
             new Point(290, 551), new Point(290, 556), new Point(290, 562),
             new Point(265, 576), new Point(278, 576), new Point(291, 576),
@@ -58,7 +58,7 @@ namespace SINoVision
             var hasMsgBox = HasLogoMarkers(bitmap);
             if (hasMsgBox)
             {
-                scannerState = 2;               
+                scannerState = 2;
                 var outputOb = new ScreenData();
                 return outputOb;
             }

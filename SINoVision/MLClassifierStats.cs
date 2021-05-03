@@ -1,4 +1,6 @@
-﻿namespace SINoVision
+﻿using MgAl2O4.Utils;
+
+namespace SINoVision
 {
     public class MLClassifierStats
     {
@@ -6,7 +8,7 @@
         private float[] Layer0B = null;
         private float[] Layer1W = null;
         private float[] Layer1B = null;
-        
+
         private float[] LayerT0W = null;
         private float[] LayerT0B = null;
 
@@ -15,7 +17,7 @@
             float[] Layer0Out = new float[Layer0B.Length];
             MLUtils.CalcNetworkLayer(input, Layer0Out, Layer0W, Layer0B);
             MLUtils.ApplyRelu(Layer0Out);
-            
+
             float[] Layer1Out = new float[Layer1B.Length];
             MLUtils.CalcNetworkLayer(Layer0Out, Layer1Out, Layer1W, Layer1B);
             MLUtils.ApplySoftmax(Layer1Out);

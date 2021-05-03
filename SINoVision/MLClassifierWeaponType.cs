@@ -1,4 +1,6 @@
-﻿namespace SINoVision
+﻿using MgAl2O4.Utils;
+
+namespace SINoVision
 {
     public class MLClassifierWeaponType
     {

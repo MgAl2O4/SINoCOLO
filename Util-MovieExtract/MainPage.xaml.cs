@@ -194,7 +194,7 @@ namespace SINoCOLO
             }
 
             if (cropBounds.Width > 0)
-            { 
+            {
                 var scaledW = 338;
                 var scaledH = 600;
 
@@ -295,7 +295,7 @@ namespace SINoCOLO
         }
 
         private async Task ExportFramesPurify()
-        { 
+        {
             var purifyTime = new List<Tuple<float, float>>();
             purifyTime.Add(new Tuple<float, float>(73.0f, 92.5f));
             purifyTime.Add(new Tuple<float, float>(157.25f, 180.25f));

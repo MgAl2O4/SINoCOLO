@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using MgAl2O4.Utils;
+using System;
 using System.Windows.Forms;
 
 namespace SINoCOLO
@@ -14,6 +12,12 @@ namespace SINoCOLO
         [STAThread]
         static void Main()
         {
+            bool bUpdatePending = GithubUpdater.FindAndApplyUpdates();
+            if (bUpdatePending)
+            {
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
