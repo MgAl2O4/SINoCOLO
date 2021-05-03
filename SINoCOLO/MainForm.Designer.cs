@@ -218,6 +218,7 @@ namespace SINoCOLO
             this.labelUpdateNotify.Text = "New version downloaded, please restart program to finish update. Click here to hi" +
     "de.";
             this.labelUpdateNotify.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.labelUpdateNotify.Visible = false;
             this.labelUpdateNotify.Click += new System.EventHandler(this.labelUpdateNotify_Click);
             // 
             // MainForm
