@@ -226,12 +226,12 @@ namespace SINoCOLO
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 695);
-            this.Controls.Add(this.labelUpdateNotify);
             this.Controls.Add(this.textBoxDetails);
             this.Controls.Add(this.labelScreenshotFailed);
             this.Controls.Add(this.buttonDetails);
             this.Controls.Add(this.pictureBoxAnalyzed);
             this.Controls.Add(this.panelStatus);
+            this.Controls.Add(this.labelUpdateNotify);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimumSize = new System.Drawing.Size(380, 130);
