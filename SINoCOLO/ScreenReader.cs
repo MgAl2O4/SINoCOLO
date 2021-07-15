@@ -205,13 +205,13 @@ namespace SINoCOLO
         private static extern bool GetWindowInfo(IntPtr hwnd, ref WINDOWINFO pwi);
         #endregion
 
-        private void UpdateAvailableGameInfo()
+        private void UpdateAvailableGames_Bluestack4()
         {
             const uint WS_VISIBLE = 0x10000000;
             const uint WS_EX_APPWINDOW = 0x00040000;
 
             var processes = Process.GetProcessesByName("BlueStacks");
-            //Console.WriteLine("Scanning processes, check:{0}", processes.Length);
+            //Console.WriteLine("Scanning processes [Bluestack4], check:{0}", processes.Length);
 
             foreach (var proc in processes)
             {
@@ -235,23 +235,6 @@ namespace SINoCOLO
 
                             return true;
                         }, IntPtr.Zero);
-                    }
-
-                    // remove all handles not on the list
-                    for (int idx = availableGameInfo.Count - 1; idx >= 0; idx--)
-                    {
-                        if (!availableGameInfo[idx].IsValid())
-                        {
-                            availableGameInfo.RemoveAt(idx);
-                        }
-                        else if (availableGameInfo[idx].process == proc)
-                        {
-                            var isKnown = windowHandles.Contains(availableGameInfo[idx].windowMain.Handle);
-                            if (!isKnown)
-                            {
-                                availableGameInfo.RemoveAt(idx);
-                            }
-                        }
                     }
 
                     // process all known
@@ -303,6 +286,102 @@ namespace SINoCOLO
                     }
                 }
             }
+        }
+
+        private void UpdateAvailableGames_Bluestack5()
+        {
+            const uint WS_VISIBLE = 0x10000000;
+
+            var processes = Process.GetProcessesByName("HD-Player");
+            //Console.WriteLine("Scanning processes [Bluestack5], check:{0}", processes.Length);
+
+            foreach (var proc in processes)
+            {
+                //Console.WriteLine(">> proc:{0:x}, mainWnd:{1:x} ({2})", proc.Id, proc.MainWindowHandle, proc.MainWindowTitle);
+                if (proc.MainWindowHandle.ToInt64() != 0)
+                {
+                    var windowHandles = new List<IntPtr>();
+                    foreach (ProcessThread thread in proc.Threads)
+                    {
+                        EnumThreadWindows(thread.Id, (hWnd, lParam) =>
+                        {
+                            WINDOWINFO wndInfo = new WINDOWINFO();
+                            GetWindowInfo(hWnd, ref wndInfo);
+
+                            var isVisible = (wndInfo.dwStyle & WS_VISIBLE) != 0;
+                            if (isVisible)
+                            {
+                                windowHandles.Add(hWnd);
+                            }
+
+                            return true;
+                        }, IntPtr.Zero);
+                    }
+
+                    // process all known
+                    foreach (IntPtr testHandle in windowHandles)
+                    {
+                        StringBuilder sb = new StringBuilder(256);
+                        GetWindowText(testHandle, sb, 256);
+
+                        //Console.WriteLine("  >> testing window:{0:x} ({1})", testHandle, sb);
+
+                        IntPtr childHandleInput = FindWindowEx(testHandle, (IntPtr)0, null, null);
+                        //Console.WriteLine("    >> childInput:{0:x}", childHandleInput.ToInt64());
+                        if (childHandleInput != IntPtr.Zero)
+                        {
+                            IntPtr childHandleClient = FindWindowEx(childHandleInput, (IntPtr)0, null, "_ctl.Window");
+                            //Console.WriteLine("    >> childClient:{0:x}", childHandleClient.ToInt64());
+                            if (childHandleClient != IntPtr.Zero)
+                            {
+                                bool added = false;
+                                foreach (var info in availableGameInfo)
+                                {
+                                    if (info.windowMain.Handle == testHandle)
+                                    {
+                                        if (info.windowClient.Handle != childHandleClient) { info.windowClient = new HandleRef(this, childHandleClient); }
+                                        if (info.windowInput.Handle != childHandleInput) { info.windowInput = new HandleRef(this, childHandleInput); }
+
+                                        //Console.WriteLine("    >> already added");
+                                        added = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!added)
+                                {
+                                    var newInfo = new GameInfo
+                                    {
+                                        process = proc,
+                                        windowTitle = sb.ToString(),
+                                        windowMain = new HandleRef(this, testHandle),
+                                        windowClient = new HandleRef(this, childHandleClient),
+                                        windowInput = new HandleRef(this, childHandleInput)
+                                    };
+
+                                    //Console.WriteLine("    >> new entry!");
+                                    availableGameInfo.Add(newInfo);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void UpdateAvailableGameInfo()
+        {
+            // remove all handles not on the list
+            for (int idx = availableGameInfo.Count - 1; idx >= 0; idx--)
+            {
+                if (!availableGameInfo[idx].IsValid())
+                {
+                    availableGameInfo.RemoveAt(idx);
+                }
+            }
+
+            UpdateAvailableGames_Bluestack4();
+            UpdateAvailableGames_Bluestack5();
 
             foreach (var info in availableGameInfo)
             {
