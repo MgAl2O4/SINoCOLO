@@ -32,7 +32,10 @@ namespace SINoCOLO
             public Rectangle rectMain;
             public Rectangle rectClient;
 
-            public bool IsValid() { return (process != null) && !process.HasExited && windowMain.Handle != IntPtr.Zero; }
+            public bool IsValid() 
+            {
+                return (process != null && windowMain.Handle != IntPtr.Zero && ScreenReader.IsProcessRunning(process.Id));
+            }
         }
 
         private List<GameInfo> availableGameInfo = new List<GameInfo>();
@@ -203,6 +206,21 @@ namespace SINoCOLO
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool GetWindowInfo(IntPtr hwnd, ref WINDOWINFO pwi);
+
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x00001000,
+        }
+
+        [DllImport("kernel32.dll")]
+        static extern bool GetExitCodeProcess(IntPtr hProcess, out uint lpExitCode);
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool CloseHandle(IntPtr handle);
         #endregion
 
         private void UpdateAvailableGames_Bluestack4()
@@ -330,7 +348,7 @@ namespace SINoCOLO
                         //Console.WriteLine("    >> childInput:{0:x}", childHandleInput.ToInt64());
                         if (childHandleInput != IntPtr.Zero)
                         {
-                            IntPtr childHandleClient = FindWindowEx(childHandleInput, (IntPtr)0, null, "_ctl.Window");
+                            IntPtr childHandleClient = FindWindowEx(childHandleInput, (IntPtr)0, null, null);
                             //Console.WriteLine("    >> childClient:{0:x}", childHandleClient.ToInt64());
                             if (childHandleClient != IntPtr.Zero)
                             {
@@ -491,6 +509,16 @@ namespace SINoCOLO
             }
 
             return bitmap;
+        }
+
+        static bool IsProcessRunning(int processID)
+        {
+            var handle = OpenProcess(ProcessAccessFlags.PROCESS_QUERY_LIMITED_INFORMATION, false, processID);
+
+            GetExitCodeProcess(handle, out uint exitCode);
+            CloseHandle(handle);
+
+            return (exitCode == 259);
         }
     }
 }
